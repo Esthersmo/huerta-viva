@@ -42,7 +42,9 @@
   <div class="wrap">
     <!-- CALENDARIO -->
     <section id="p-cal" class="tabpanel">
-      <div class="panel zonebox">
+      <div class="panel zonebox" id="zoneBox">
+        <div class="zsum" id="zoneSum" hidden><span><strong>Tu zona:</strong> <span id="zoneSumTxt"></span></span><button class="btn" type="button" id="zoneEdit">Cambiar</button></div>
+        <div class="zfull" id="zoneFull">
         <h2 class="zonetitle">Tu zona</h2>
         <div class="altrow">
           <div class="locrow">
@@ -60,10 +62,14 @@
           <small id="altHint"></small>
         </div>
         <p class="note">Temperaturas medias y horas de sol aproximadas de la capital de tu provincia, ajustadas a la altitud de tu huerto.</p>
+        <div class="zdone" id="zoneDoneRow" hidden><button class="btn primary" type="button" id="zoneDone">Listo</button></div>
+        </div>
       </div>
       <div class="panel">
         <div class="chips" id="calGroups"></div>
         <div class="cal-gsel"><span>Mostrar</span><select id="calGroupSel" aria-label="Mostrar cultivos"></select></div>
+        <div class="calnow" id="calNow"></div>
+        <button class="btn yearbtn" type="button" id="yearBtn" aria-expanded="false">Ver todo el año</button>
         <div class="legend">
           <span><i style="background:var(--leaf-cell)"></i>Siembra directa o plantación</span>
           <span><i style="background:repeating-linear-gradient(135deg,var(--sem-a,var(--seed)) 0 4px,var(--sem-b,var(--leaf-soft)) 4px 8px);border:1px solid var(--seed-ink)"></i>Semillero protegido</span>

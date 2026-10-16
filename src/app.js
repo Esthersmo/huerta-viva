@@ -272,6 +272,13 @@ function renderCal(){
     h+='</tr>';
   }
   document.getElementById('cal').innerHTML=h+'</tbody>';
+  // Móvil: lo que se puede sembrar o plantar este mes, antes de la tabla del año
+  const dir=list.filter(s=>cellState(s,z,curM)==='directa'),sem=list.filter(s=>cellState(s,z,curM)==='semillero');
+  const chips=a=>a.map(s=>`<button class="chip" type="button" data-sp="${s.id}">${s.n}</button>`).join('');
+  document.getElementById('calNow').innerHTML=`<h3>Qué sembrar en ${MONTHS_L[curM]}</h3>`+
+    (dir.length?`<p class="cn-lbl"><i class="cn-dir"></i>Siembra directa o plantación</p><div class="chips">${chips(dir)}</div>`:'')+
+    (sem.length?`<p class="cn-lbl"><i class="cn-sem"></i>En semillero protegido</p><div class="chips">${chips(sem)}</div>`:'')+
+    (dir.length||sem.length?'':`<p class="cn-none">Este mes no toca sembrar nada de este grupo en tu zona.</p>`);
   const f=document.getElementById('ficha');if(f.open&&state.mode==='crop')renderFicha();
 }
 function renderFicha(){
@@ -535,7 +542,7 @@ function pickZone(k){closeZones(true);if(k===state.zone)return;state.zone=k;save
 // Altitud del huerto
 const altIn=document.getElementById('alt');
 function drawAlt(){const b=ZONES[state.zone];altIn.value=state.alt??'';altIn.placeholder=b.alt;document.getElementById('altHint').textContent=state.alt!=null&&state.alt!==b.alt?`Temperaturas ajustadas: ${state.alt>b.alt?'más frescas':'más templadas'} que en ${b.name.split(' (')[0]} capital (${b.alt} m).`:`Si lo dejas vacío se usa la altitud de ${b.name.split(' (')[0]} capital (${b.alt} m).`}
-altIn.addEventListener('change',()=>{const v=altIn.value.trim();const n=v===''?null:Math.max(0,Math.min(3000,Math.round(+v)));state.alt=isNaN(n)?null:n;save('hv.alt',state.alt);drawAlt();renderAll()});
+altIn.addEventListener('change',()=>{const v=altIn.value.trim();const n=v===''?null:Math.max(0,Math.min(3000,Math.round(+v)));state.alt=isNaN(n)?null:n;save('hv.alt',state.alt);drawAlt();drawZoneBox();renderAll()});
 drawAlt();
 
 // ---------- Código postal: municipio, provincia y altitud ----------
@@ -546,12 +553,22 @@ const cpIn=document.getElementById('cp'),cpOpts=document.getElementById('cpOpts'
 let cpData=null;
 async function cpLoad(){if(!cpData){const r=await fetch(import.meta.env.BASE_URL+'cp.json');if(!r.ok)throw new Error('cp');cpData=await r.json()}return cpData}
 function setCp(v){state.cp=v;save('hv.cp',v);drawCp()}
+let zoneOpen=false;
+function drawZoneBox(){
+  const c=state.cp,fold=!!c&&!zoneOpen;
+  document.getElementById('zoneSum').hidden=!fold;document.getElementById('zoneFull').hidden=fold;
+  document.getElementById('zoneDoneRow').hidden=!c;
+  if(c)document.getElementById('zoneSumTxt').textContent=`${c.name} (${ZONES[PROV_INE[c.prov]].name.split(' (')[0]})${state.alt!=null?` · ${state.alt} m`:''}`;
+}
+document.getElementById('zoneEdit').addEventListener('click',()=>{zoneOpen=true;drawZoneBox();cpIn.focus()});
+document.getElementById('zoneDone').addEventListener('click',()=>{zoneOpen=false;drawZoneBox()});
 function drawCp(){
   cpIn.value=state.cp?.cp||'';
   const c=state.cp;cpHint.hidden=!c;
   if(c)cpHint.textContent=`${c.name} (${ZONES[PROV_INE[c.prov]].name.split(' (')[0]})${c.alt!=null?` · ${c.alt} m de altitud`:''}`;
   const opts=c?.opts||[];cpOpts.hidden=opts.length<2;
   cpOpts.innerHTML=opts.length<2?'':opts.map(o=>`<button class="chip" type="button" data-cpm="${o.i}" aria-pressed="${o.i===c.i}">${esc(o.name)}</button>`).join('');
+  drawZoneBox();
 }
 async function cpElevation(lat,lon){
   const r=await fetch(`https://api.open-meteo.com/v1/elevation?latitude=${lat}&longitude=${lon}`);
@@ -562,9 +579,10 @@ async function cpApply(code,i){
   const d=await cpLoad();const [name,lat,lon,prov]=d.m[i];
   const opts=(d.c[code]||[]).map(k=>({i:k,name:d.m[k][0]}));
   let alt=null;try{alt=await cpElevation(lat,lon)}catch(e){}
+  zoneOpen=opts.length>1&&!state.cp?.opts?.some(o=>o.i===i&&state.cp.cp===code);
   setCp({cp:code,i,name,prov,alt,opts});
   const z=PROV_INE[prov];if(z&&z!==state.zone){state.zone=z;save('hv.zone',z);drawZones()}
-  state.alt=alt;save('hv.alt',alt);drawAlt();renderAll();
+  state.alt=alt;save('hv.alt',alt);drawAlt();drawZoneBox();renderAll();
   toast(alt==null?`Calendario para ${name}. Sin conexión no puedo consultar la altitud: escríbela si la sabes.`:`Calendario ajustado a ${name} (${alt} m)`);
 }
 cpIn.addEventListener('input',async()=>{
@@ -576,7 +594,7 @@ cpIn.addEventListener('input',async()=>{
     await cpApply(v,ms[0]);cpIn.blur();
   }catch(e){cpHint.hidden=false;cpHint.textContent='No se pudieron cargar los códigos postales. Inténtalo con conexión.'}
 });
-cpOpts.addEventListener('click',e=>{const b=e.target.closest('[data-cpm]');if(!b||!state.cp)return;cpApply(state.cp.cp,+b.dataset.cpm)});
+cpOpts.addEventListener('click',e=>{const b=e.target.closest('[data-cpm]');if(!b||!state.cp)return;zoneOpen=false;cpApply(state.cp.cp,+b.dataset.cpm).then(()=>{zoneOpen=false;drawZoneBox()})});
 drawCp();
 zBtn.addEventListener('click',()=>zList.hidden?openZones():closeZones());
 zList.addEventListener('click',e=>{const li=e.target.closest('[data-z]');if(li)pickZone(li.dataset.z)});
@@ -602,6 +620,9 @@ const calGroupSel=document.getElementById('calGroupSel');
 calGroupSel.innerHTML=`<option value="todos">Todos los cultivos</option>`+Object.entries(GROUPS).map(([g,l])=>`<option value="${g}">${l}</option>`).join('');
 calGroupSel.addEventListener('change',()=>{state.calGroup=calGroupSel.value;renderCal()});
 document.getElementById('cal').addEventListener('click',e=>{const r=e.target.closest('tr.crop');if(!r)return;openFicha(r.dataset.sp)});
+document.getElementById('calNow').addEventListener('click',e=>{const b=e.target.closest('[data-sp]');if(b)openFicha(b.dataset.sp)});
+const yearBtn=document.getElementById('yearBtn');
+yearBtn.addEventListener('click',()=>{const on=document.getElementById('p-cal').classList.toggle('showyear');yearBtn.setAttribute('aria-expanded',on);yearBtn.textContent=on?'Ocultar el calendario del año':'Ver todo el año'});
 document.getElementById('plGroups').addEventListener('click',e=>{const g=e.target.closest('[data-g]');if(!g)return;state.plGroup=state.plGroup===g.dataset.g?'todos':g.dataset.g;renderPlants()});
 document.getElementById('locSeg').addEventListener('click',e=>{const b=e.target.closest('[data-loc]');if(!b)return;state.plLoc=b.dataset.loc;if(b.dataset.loc==='todas')state.plGroup='todos';renderPlants()});
 document.addEventListener('click',e=>{

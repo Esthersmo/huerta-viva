@@ -298,6 +298,14 @@ form.add label{display:flex;flex-direction:column;gap:4px;font-size:.85rem;color
 .avisos{margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid var(--line);text-align:center;color:var(--muted)}
 .avisos p{margin:0 auto 12px;max-width:52ch}
 .avisos-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+/* «Tu zona» plegada en una línea cuando ya está configurada */
+.zsum{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.zsum>span{min-width:0;line-height:1.35}
+.zsum .btn{flex:none}
+.zsum[hidden],.zdone[hidden],.zfull[hidden]{display:none}
+.zdone{display:flex;justify-content:center;margin-top:14px}
+/* «Qué sembrar este mes» y botón del año: solo en móvil */
+.calnow,.yearbtn{display:none}
 .avisos .btn.act{background:var(--act-bg);border-color:var(--act-line);color:var(--act-ink)}
 
 /* Móvil: logo más pequeño y columna de cultivos estrecha para que quepa el año entero */
@@ -326,6 +334,16 @@ form.add label{display:flex;flex-direction:column;gap:4px;font-size:.85rem;color
   .cal .ms{display:inline}
   .cal .cell{height:24px;margin:3px 1px;border-radius:3px}
   .cell.semillero{background:repeating-linear-gradient(135deg,var(--sem-a,var(--seed)) 0 3px,var(--sem-b,var(--leaf-soft)) 3px 6px)}
+  .calnow{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;margin-bottom:14px}
+  .calnow h3{color:var(--carob-text)}
+  .calnow .chips{justify-content:center}
+  .cn-lbl{margin:6px 0 0;display:flex;align-items:center;gap:8px;font-size:.88rem;color:var(--muted)}
+  .cn-lbl i{width:16px;height:16px;border-radius:3px;display:inline-block}
+  .cn-dir{background:var(--leaf-cell)}
+  .cn-sem{background:repeating-linear-gradient(135deg,var(--sem-a,var(--seed)) 0 3px,var(--sem-b,var(--leaf-soft)) 3px 6px);border:1px solid var(--sem-line,var(--seed-ink))}
+  .cn-none{margin:0;color:var(--muted);font-size:.9rem}
+  .yearbtn{display:block;margin:4px auto 14px}
+  #p-cal:not(.showyear) .legend,#p-cal:not(.showyear) .calhint,#p-cal:not(.showyear) .scroll{display:none}
 }
 
 /* Ordenador: «Tu zona» ordenada como el formulario de Añadir planta */
