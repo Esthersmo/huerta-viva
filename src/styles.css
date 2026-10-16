@@ -304,6 +304,15 @@ form.add label{display:flex;flex-direction:column;gap:4px;font-size:.85rem;color
 .zsum .btn{flex:none}
 .zsum[hidden],.zdone[hidden],.zfull[hidden]{display:none}
 .zdone{display:flex;justify-content:center;margin-top:14px}
+/* Clima de la zona dentro de «Tu zona» */
+.zclim{margin-top:14px;overflow-x:auto}
+.zclim table{width:100%;border-collapse:collapse;font-size:.85rem;color:var(--muted);table-layout:fixed}
+.zclim th,.zclim td{text-align:center;padding:4px 0;font-weight:400}
+.zclim thead th{color:var(--ink);font-weight:600;font-size:.8rem}
+.zclim th:first-child{width:150px}
+.zclim tbody th{text-align:left;padding-right:6px;line-height:1.15}
+.zclim .now{background:var(--surface-2);border-radius:4px}
+.zclim .ms{display:none}
 /* «Qué sembrar este mes» y botón del año: solo en móvil */
 .calnow,.yearbtn{display:none}
 .avisos .btn.act{background:var(--act-bg);border-color:var(--act-line);color:var(--act-ink)}
@@ -330,7 +339,11 @@ form.add label{display:flex;flex-direction:column;gap:4px;font-size:.85rem;color
   .cal tr.clim th.name{font-size:.66rem}
   .cal tr.clim td{font-size:.64rem;letter-spacing:-.02em}
   .cal thead th{font-size:.8rem;padding:6px 0}
-  .cal .ml{display:none}
+  .cal .ml,.zclim .ml{display:none}
+  .zclim .ms{display:inline}
+  .zclim table{font-size:.7rem}
+  .zclim th:first-child{width:58px}
+  .zclim tbody th{font-size:.68rem;white-space:nowrap}
   .cal .ms{display:inline}
   .cal .cell{height:24px;margin:3px 1px;border-radius:3px}
   .cell.semillero{background:repeating-linear-gradient(135deg,var(--sem-a,var(--seed)) 0 3px,var(--sem-b,var(--leaf-soft)) 3px 6px)}

@@ -201,6 +201,9 @@ const EXAMPLES=[
  {id:'e11',name:'Limonero del patio',sp:'limonero',loc:'exterior',sown:ago(730),log:{riego:ago(3),abono:ago(30),poda:ago(200)},ej:1}
 ];
 let photos=load('hv.photos',{});
+// Las plantas de ejemplo desaparecen solas en cuanto hay una planta propia
+function dropExamples(){const ex=state.plants.filter(p=>p.ej);if(!ex.length)return false;
+  state.plants=state.plants.filter(p=>!p.ej);ex.forEach(p=>delete photos[p.id]);try{store.setItem('hv.photos',JSON.stringify(photos))}catch(e){}return true}
 // Cada foto necesita un id único: si dos fotos comparten id, al cambiar la fecha de una se "cambian" todas
 function newId(){return 'f'+Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
 (()=>{const seen=new Set();let fixed=false;for(const k in photos)for(const x of photos[k]||[]){if(!x.id||seen.has(x.id)){x.id=newId();fixed=true}seen.add(x.id)}
@@ -213,6 +216,7 @@ if(load('hv.seedV',1)<4){const e=state.plants.find(p=>p.id==='e11');if(e){e.log=
 // Las plantas nuevas se creaban con todos los cuidados anotados el día de siembra y salían como «hechos».
 // La fecha de siembra ya es la referencia si no hay registro, así que se quitan esas anotaciones automáticas.
 if(load('hv.seedV',1)<5){for(const p of state.plants){if(p.ej||!p.log)continue;for(const a of Object.keys(p.log))if(p.log[a]===p.sown)delete p.log[a]}save('hv.plants',state.plants);save('hv.seedV',5)}
+if(load('hv.seedV',1)<6){if(state.plants.some(p=>!p.ej)){dropExamples();save('hv.plants',state.plants)}save('hv.seedV',6)}
 
 // ---------- Calendario ----------
 function cellState(s,z,m){
@@ -262,8 +266,6 @@ function renderCal(){
   const list=SPECIES.filter(s=>!s.pot&&(state.calGroup==='todos'||s.g===state.calGroup));
   const nowCls=m=>m===curM?' now':'';
   let h=`<thead><tr><th class="name" scope="col">Cultivo</th>${MONTHS.map((m,i)=>`<th scope="col" class="${nowCls(i).trim()}" title="${MONTHS_L[i]}"><span class="ml">${m}</span><span class="ms" aria-hidden="true">${m[0]}</span></th>`).join('')}</tr></thead><tbody>`;
-  h+=`<tr class="clim"><th class="name" scope="row">Temp. media °C</th>${z.t.map((t,i)=>`<td class="${nowCls(i).trim()}">${Math.round(t)}</td>`).join('')}</tr>`;
-  h+=`<tr class="clim"><th class="name" scope="row">Horas de sol/día</th>${z.sun.map((s,i)=>`<td class="${nowCls(i).trim()}">${s}</td>`).join('')}</tr>`;
   for(const s of list){
     h+=`<tr class="crop${state.sel===s.id?' sel':''}" data-sp="${s.id}"><th class="name" scope="row">${s.n}</th>`;
     for(let m=0;m<12;m++){const st=cellState(s,z,m);const luz=st&&!s.tree&&z.sun[m]<s.sun?' luz':'';
@@ -272,6 +274,10 @@ function renderCal(){
     h+='</tr>';
   }
   document.getElementById('cal').innerHTML=h+'</tbody>';
+  // Clima de la zona: dato informativo dentro de «Tu zona»
+  document.getElementById('zoneClim').innerHTML=`<table><thead><tr><th scope="col"></th>${MONTHS.map((m,i)=>`<th scope="col" class="${nowCls(i).trim()}" title="${MONTHS_L[i]}"><span class="ml">${m}</span><span class="ms" aria-hidden="true">${m[0]}</span></th>`).join('')}</tr></thead><tbody>
+    <tr><th scope="row"><span class="ml">Temp. media °C</span><span class="ms">Temp. °C</span></th>${z.t.map((t,i)=>`<td class="${nowCls(i).trim()}">${Math.round(t)}</td>`).join('')}</tr>
+    <tr><th scope="row"><span class="ml">Horas de sol/día</span><span class="ms">Sol h/día</span></th>${z.sun.map((x,i)=>`<td class="${nowCls(i).trim()}">${x}</td>`).join('')}</tr></tbody></table>`;
   // Móvil: lo que se puede sembrar o plantar este mes, antes de la tabla del año
   const now=list.map(s=>({s,st:cellState(s,z,curM)})).filter(o=>o.st==='directa'||o.st==='semillero');
   const anySem=now.some(o=>o.st==='semillero');
@@ -419,7 +425,7 @@ ficha.addEventListener('click',e=>{
     // Se añade al momento con el nombre de la especie; la ficha se abre en edición para cambiarle el nombre
     const sp=SP[state.sel],n=state.plants.filter(p=>p.sp===sp.id).length,d=iso(today);
     const np={id:'p'+Date.now(),name:sp.n+(n?` ${n+1}`:''),sp:sp.id,loc:INDOOR.includes(sp.id)?'interior':'exterior',sown:d,log:{}};
-    state.plants.push(np);save('hv.plants',state.plants);state.plGroup='todos';state.plLoc='todas';
+    dropExamples();state.plants.push(np);save('hv.plants',state.plants);state.plGroup='todos';state.plLoc='todas';
     document.getElementById('t-pl').click();renderPlants();renderRem();
     openPlant(np.id);state.editing=true;renderPlantFicha();toast(`Añadido a tus plantas: ${np.name}`)}
 });
@@ -491,11 +497,6 @@ function renderRem(){
   let h=['over','today','soon'].map(k=>lim(k,all.filter(x=>cls(x.left)===k).map(row))).join('')||'<p class="lede">No hay tareas pendientes esta semana.</p>';
   if(done.length)h+=`<p class="remhead">Hecho hoy</p>`+lim('done',done.map(x=>`<div class="rrow done"><span class="bar"></span>
     <div><p><strong>${ACTIONS[x.a]}</strong> ${esc(x.p.name)}</p><p class="sub"><span class="tag">Hecho</span> · ${x.p.loc}</p></div><span></span></div>`));
-  // Hechos en días anteriores (última vez de cada cuidado en los últimos 7 días)
-  const past=state.plants.flatMap(p=>Object.keys(ACTIONS).filter(a=>p.log&&p.log[a]&&p.log[a]<iso(today)).map(a=>({p,a,d:parse(p.log[a])})))
-    .map(x=>({...x,n:Math.round((parse(iso(today))-x.d)/864e5)})).filter(x=>x.n>=1&&x.n<=7).sort((a,b)=>a.n-b.n);
-  if(past.length)h+=`<p class="remhead">Hecho los últimos días</p>`+lim('past',past.map(x=>`<div class="rrow done past"><span class="bar"></span>
-    <div><p><strong>${ACTIONS[x.a]}</strong> ${esc(x.p.name)}</p><p class="sub"><span class="tag">Hecho</span> · ${x.n===1?'ayer':`hace ${x.n} días`} · ${x.d.toLocaleDateString('es-ES',{day:'numeric',month:'short'})} · ${x.p.loc}</p></div><span></span></div>`));
   document.getElementById('remList').innerHTML=h;
   // Próximas tareas para los avisos diarios
   updateSchedule(state.plants.flatMap(dues).map(x=>({date:iso(x.due),text:`${VERB[x.a]} ${x.p.name}`})));
@@ -560,7 +561,7 @@ let zoneOpen=false;
 function drawZoneBox(){
   const c=state.cp,fold=!!c&&!zoneOpen;
   document.getElementById('zoneSum').hidden=!fold;document.getElementById('zoneFull').hidden=fold;
-  document.getElementById('zoneDoneRow').hidden=!c;
+  document.getElementById('zoneDoneRow').hidden=!c||fold;
   if(c)document.getElementById('zoneSumTxt').textContent=`${c.name} (${ZONES[PROV_INE[c.prov]].name.split(' (')[0]})${state.alt!=null?` · ${state.alt} m`:''}`;
 }
 document.getElementById('zoneEdit').addEventListener('click',()=>{zoneOpen=true;drawZoneBox();cpIn.focus()});
@@ -688,7 +689,7 @@ document.getElementById('addForm').addEventListener('submit',e=>{
   const name=document.getElementById('fName').value.trim()||SP[fSp.value].n;
   const sown=document.getElementById('fDate').value||iso(today);
   const p={id:'p'+Date.now(),name,sp:fSp.value,loc:document.getElementById('fLoc').value,sown,log:{}};
-  state.plants.push(p);save('hv.plants',state.plants);e.target.reset();document.getElementById('fDate').value=iso(today);refreshSelects();
+  dropExamples();state.plants.push(p);save('hv.plants',state.plants);e.target.reset();document.getElementById('fDate').value=iso(today);refreshSelects();
   state.plGroup='todos';state.plLoc='todas';renderPlants();renderRem();toast(`${name} añadida`);try{if(!matchMedia("(min-width:601px)").matches)document.getElementById("addBox").open=false}catch(e){}
 });
 renderAll();
