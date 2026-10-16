@@ -314,29 +314,6 @@ form.add label{display:flex;flex-direction:column;gap:4px;font-size:.85rem;color
 .zclim tbody th{text-align:left;padding-right:6px;line-height:1.15}
 .zclim .now{background:var(--surface-2);border-radius:4px}
 .zclim .ms{display:none}
-/* Tiempo de AEMET dentro de «Tu zona» */
-.keyrow{display:flex;flex-direction:column;gap:4px;margin-top:12px}
-.zwx{margin-top:16px;border-top:1px solid var(--panel-line);padding-top:14px}
-.zwx h3{color:var(--carob-text);text-align:center;margin:0 0 10px}
-.wx-cta{text-align:center;margin:0;color:var(--muted);font-size:.9rem;display:flex;flex-direction:column;align-items:center;gap:8px}
-.wx-err{color:var(--danger)}
-.wx-days{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
-.wx-day{display:flex;flex-direction:column;align-items:center;gap:2px;background:var(--card);border:1px solid var(--card-line);border-radius:10px;padding:6px 2px;font-size:.85rem}
-.wx-day .wd{font-weight:600;color:var(--ink);text-transform:capitalize}
-.wx-day .wmax{color:var(--ink)}
-.wx-day .wmin,.wx-day .wrain{color:var(--muted);font-size:.78rem}
-.wx-day.frost{border-color:var(--danger-bar);background:var(--danger-soft)}
-.wx-day.frost .wmin{color:var(--danger);font-weight:600}
-.wx-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px 20px;margin:12px 0 0}
-.wx-facts div{display:flex;gap:10px;align-items:baseline}
-.wx-facts dt{font-weight:600;min-width:58px}
-.wx-facts dd{margin:0;display:flex;flex-direction:column}
-.wx-facts small{color:var(--muted);font-size:.78rem}
-.wx-src{text-align:right;font-size:.75rem;color:var(--muted);margin:8px 0 0}
-.wxwarn{background:var(--danger-soft);border:1px solid var(--danger-bar);border-radius:12px;padding:10px 14px;margin:0 0 14px;font-size:.9rem}
-.wxwarn p{margin:0}.wxwarn p+p{margin-top:6px}
-.wxwarn[hidden]{display:none}
-@media (max-width:520px){.wx-days{gap:3px}.wx-day{font-size:.78rem;padding:5px 0}.wx-day .wmin,.wx-day .wrain{font-size:.7rem}}
 /* «Qué sembrar este mes» y botón del año: solo en móvil */
 .calnow,.yearbtn{display:none}
 .avisos .btn.act{background:var(--act-bg);border-color:var(--act-line);color:var(--act-ink)}

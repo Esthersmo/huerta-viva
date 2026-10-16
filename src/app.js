@@ -1,7 +1,6 @@
 import './styles.css';
 import {store} from './store.js';
 import {setupNotify,updateSchedule} from './notify.js';
-import {getKey,setKey,weatherFor} from './aemet.js';
 const ILUS=import.meta.env.BASE_URL+'ilus/';
 
 const MONTHS=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
@@ -289,7 +288,6 @@ function renderCal(){
         a.sort((x,y)=>(x.st===y.st?0:x.st==='directa'?-1:1));
         return `<section class="cn-grp"><h4>${GROUPS[g]}</h4><div class="chips">${a.map(chip).join('')}</div></section>`}).join('')
     :`<p class="cn-none">Este mes no toca sembrar nada de este grupo en tu zona.</p>`);
-  drawWarn('calWarn',calWarnings(list,z));
   const f=document.getElementById('ficha');if(f.open&&state.mode==='crop')renderFicha();
 }
 function renderFicha(){
@@ -500,7 +498,6 @@ function renderRem(){
   if(done.length)h+=`<p class="remhead">Hecho hoy</p>`+lim('done',done.map(x=>`<div class="rrow done"><span class="bar"></span>
     <div><p><strong>${ACTIONS[x.a]}</strong> ${esc(x.p.name)}</p><p class="sub"><span class="tag">Hecho</span> · ${x.p.loc}</p></div><span></span></div>`));
   document.getElementById('remList').innerHTML=h;
-  drawWarn('remWarn',remWarnings());
   // Próximas tareas para los avisos diarios
   updateSchedule(state.plants.flatMap(dues).map(x=>({date:iso(x.due),text:`${VERB[x.a]} ${x.p.name}`})));
 }
@@ -545,7 +542,7 @@ function drawZones(){
 }
 function openZones(){zAct=zKeys.indexOf(state.zone);zList.hidden=false;drawZones();zBtn.setAttribute('aria-expanded','true');zList.focus()}
 function closeZones(f){zList.hidden=true;zBtn.setAttribute('aria-expanded','false');if(f)zBtn.focus()}
-function pickZone(k){closeZones(true);if(k===state.zone)return;state.zone=k;save('hv.zone',k);state.alt=null;save('hv.alt',null);setCp(null);drawZones();drawAlt();renderAll();loadWx();toast('Calendario actualizado para tu zona')}
+function pickZone(k){closeZones(true);if(k===state.zone)return;state.zone=k;save('hv.zone',k);state.alt=null;save('hv.alt',null);setCp(null);drawZones();drawAlt();renderAll();toast('Calendario actualizado para tu zona')}
 // Altitud del huerto
 const altIn=document.getElementById('alt');
 function drawAlt(){const b=ZONES[state.zone];altIn.value=state.alt??'';altIn.placeholder=b.alt;document.getElementById('altHint').textContent=state.alt!=null&&state.alt!==b.alt?`Temperaturas ajustadas: ${state.alt>b.alt?'más frescas':'más templadas'} que en ${b.name.split(' (')[0]} capital (${b.alt} m).`:`Si lo dejas vacío se usa la altitud de ${b.name.split(' (')[0]} capital (${b.alt} m).`}
@@ -587,9 +584,9 @@ async function cpApply(code,i){
   const opts=(d.c[code]||[]).map(k=>({i:k,name:d.m[k][0]}));
   let alt=null;try{alt=await cpElevation(lat,lon)}catch(e){}
   zoneOpen=opts.length>1&&!state.cp?.opts?.some(o=>o.i===i&&state.cp.cp===code);
-  setCp({cp:code,i,name,prov,alt,opts,lat,lon});
+  setCp({cp:code,i,name,prov,alt,opts});
   const z=PROV_INE[prov];if(z&&z!==state.zone){state.zone=z;save('hv.zone',z);drawZones()}
-  state.alt=alt;save('hv.alt',alt);drawAlt();drawZoneBox();renderAll();loadWx();
+  state.alt=alt;save('hv.alt',alt);drawAlt();drawZoneBox();renderAll();
   toast(alt==null?`Calendario para ${name}. Sin conexión no puedo consultar la altitud: escríbela si la sabes.`:`Calendario ajustado a ${name} (${alt} m)`);
 }
 cpIn.addEventListener('input',async()=>{
@@ -727,68 +724,3 @@ let decoW=innerWidth,decoT;addEventListener('resize',()=>{clearTimeout(decoT);de
 function padHead(){const hd=document.querySelector('header');if(hd){document.body.style.paddingTop=hd.offsetHeight+'px';document.documentElement.style.scrollPaddingTop=hd.offsetHeight+12+'px'}}
 padHead();try{new ResizeObserver(padHead).observe(document.querySelector('header'))}catch(e){addEventListener('resize',padHead)}
 setupNotify();
-// ---------- Tiempo real de AEMET ----------
-const DOW=['dom','lun','mar','mié','jue','vie','sáb'];
-const fmtDoy=d=>new Date(2026,0,1+d).toLocaleDateString('es-ES',{day:'numeric',month:'short'});
-const DOWL=['el domingo','el lunes','el martes','el miércoles','el jueves','el viernes','el sábado'];
-const cuando=ds=>{const t=new Date(today);t.setDate(t.getDate()+1);return ds===iso(today)?'hoy':ds===iso(t)?'mañana':DOWL[parse(ds).getDay()]};
-const fmtDay=ds=>ds===iso(today)?'hoy':DOW[parse(ds).getDay()];
-const TENDER=s=>!s.tree&&s.tMin>=14;
-// Primer día de la previsión con mínima de helada (≤ 1 °C a 1,5 m suele ser helada a ras de suelo)
-function frostAhead(){const f=state.wx?.forecast;if(!f)return null;return f.find(x=>x.date>=iso(today)&&x.min!=null&&x.min<=1)||null}
-function springFrostRisk(){const fr=state.wx?.frost;if(!fr||fr.none||fr.last==null)return false;
-  const doy=Math.floor((today-new Date(today.getFullYear(),0,1))/864e5);return doy<=fr.last+14&&doy<212}
-function calWarnings(list,z){
-  if(!state.wx)return [];const w=[];
-  const dir=list.filter(s=>cellState(s,z,curM)==='directa');
-  const fa=frostAhead();
-  const tender=dir.filter(TENDER);
-  if(fa)w.push(`<strong>Helada prevista ${cuando(fa.date)}</strong> (mínima ${fa.min} °C).${tender.length?` No siembres fuera ${list_(tender.map(s=>s.n.toLowerCase()))} hasta que pase; mejor en semillero protegido.`:''}`);
-  else if(tender.length&&springFrostRisk())w.push(`<strong>Aún puede helar:</strong> la última helada suele llegar hacia el ${fmtDoy(state.wx.frost.last)}. Para ${list_(tender.map(s=>s.n.toLowerCase()))}, mejor en semillero hasta entonces.`);
-  const soil=state.wx.soil;
-  if(soil){const cold=dir.filter(s=>!s.tree&&soil.t<s.tMin-2);
-    if(cold.length)w.push(`<strong>Suelo frío</strong> (${fmt1(soil.t)} °C${soil.estimated?', estimada':''}): para ${list_(cold.map(s=>s.n.toLowerCase()))}, espera unos días o usa semillero.`)}
-  return w;
-}
-function remWarnings(){
-  const fa=frostAhead();if(!fa)return [];
-  const ext=state.plants.filter(p=>p.loc==='exterior'&&SP[p.sp]&&(SP[p.sp].tMin>=12));
-  return [`<strong>Helada prevista ${cuando(fa.date)}</strong> (mínima ${fa.min} °C).${ext.length?` Protege ${list_(ext.map(p=>p.name))} o mételas dentro esa noche.`:' Protege las plantas sensibles de exterior.'}`];
-}
-const fmt1=v=>String(Math.round(v*10)/10).replace('.',',');
-function list_(n){n=n.map(esc);const t=n.length>4?[...n.slice(0,4),`${n.length-4} más`]:n;return t.length>1?t.slice(0,-1).join(', ')+' y '+t.at(-1):t[0]}
-function drawWarn(id,w){const el=document.getElementById(id);if(!el)return;el.hidden=!w.length;el.innerHTML=w.map(x=>`<p>${x}</p>`).join('')}
-let wxBusy=false;
-async function cpCoords(){const c=state.cp;if(!c)return null;if(c.lat!=null)return c;
-  try{const d=await cpLoad();const m=d.m[c.i];if(m){c.lat=m[1];c.lon=m[2];save('hv.cp',c)}return c}catch(e){return null}}
-async function loadWx(){
-  if(!getKey()){state.wx=null;drawWx();return}
-  const c=await cpCoords();if(!c){state.wx=null;drawWx();return}
-  wxBusy=true;drawWx();
-  try{state.wx=await weatherFor(c.lat,c.lon,state.alt);state.wxErr=state.wx.errors[0]?.message||null}
-  catch(e){state.wxErr=e.message||'No se pudo conectar con AEMET';state.wx=null}
-  wxBusy=false;drawWx();renderCal();renderRem();
-}
-function drawWx(){
-  const el=document.getElementById('zoneWx');const k=getKey();
-  if(!k){el.innerHTML=`<p class="wx-cta">Previsión de 7 días, heladas y temperatura del suelo con datos oficiales de AEMET. <button class="btn" type="button" id="wxKeyBtn">Añadir clave de AEMET</button></p>`;return}
-  if(!state.cp){el.innerHTML=`<p class="wx-cta">Pon tu código postal para ver el tiempo de tu municipio.</p>`;return}
-  if(wxBusy&&!state.wx){el.innerHTML=`<p class="wx-cta">Consultando AEMET…</p>`;return}
-  const w=state.wx;if(!w){el.innerHTML=`<p class="wx-cta wx-err">${esc(state.wxErr||'Sin datos de AEMET')}. <button class="btn" type="button" id="wxRetry">Reintentar</button></p>`;return}
-  let h=`<h3>El tiempo en ${esc(w.muni?.name||state.cp.name)}</h3>`;
-  if(w.forecast?.length)h+=`<div class="wx-days">${w.forecast.slice(0,7).map(d=>`<div class="wx-day${d.min!=null&&d.min<=1?' frost':''}" title="${esc(d.sky)}"><span class="wd">${fmtDay(d.date)}</span><span class="wmax">${d.max??'–'}°</span><span class="wmin">${d.min??'–'}°</span><span class="wrain" title="Probabilidad de lluvia">${d.rain?d.rain+' %':''}</span></div>`).join('')}</div>`;
-  const fr=w.frost;
-  h+='<dl class="wx-facts">';
-  if(fr)h+=`<div><dt>Heladas</dt><dd>${fr.none?'Aquí no suele helar.':`${fr.last!=null?`Última hacia el ${fmtDoy(fr.last)}`:''}${fr.last!=null&&fr.first!=null?' · ':''}${fr.first!=null?`primera hacia el ${fmtDoy(fr.first)}`:''}`}<small>Normales 1991-2020 de ${esc(fr.station.name)} (${Math.round(fr.station.km)} km)</small></dd></div>`;
-  if(w.soil)h+=`<div><dt>Suelo</dt><dd>${fmt1(w.soil.t)} °C ${w.soil.estimated?'<small>Estimada con las temperaturas de AEMET</small>':`<small>A ${w.soil.depth} cm en ${esc(w.soil.station.name)} (${Math.round(w.soil.station.km)} km)</small>`}</dd></div>`;
-  h+='</dl>';
-  h+=`<p class="wx-src">Fuente: AEMET${state.wxErr?` · ${esc(state.wxErr)}`:''}</p>`;
-  el.innerHTML=h;
-}
-document.getElementById('zoneWx').addEventListener('click',e=>{
-  if(e.target.closest('#wxKeyBtn')){zoneOpen=true;drawZoneBox();const k=document.getElementById('aemetKey');k.scrollIntoView({block:'center'});k.focus()}
-  if(e.target.closest('#wxRetry'))loadWx();
-});
-const keyIn=document.getElementById('aemetKey');keyIn.value=getKey();
-keyIn.addEventListener('change',()=>{setKey(keyIn.value);toast(keyIn.value.trim()?'Clave de AEMET guardada':'Clave de AEMET quitada');loadWx()});
-drawWx();loadWx();
