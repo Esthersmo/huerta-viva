@@ -36,6 +36,7 @@ npm run preview  # sirve dist/ para probar la PWA
 ## Código postal
 
 - `public/cp.json`: códigos postales → municipios (nombre, coordenadas y provincia). Generado a partir del paquete [spanish-cities-info](https://github.com/ManuelCebreiro/spanish-cities-info) (licencia ISC, datos del INE). Se descarga solo la primera vez que se escribe un código postal.
+- Tiempo: previsión de 7 días por municipio, fechas medias de helada (normales 1991-2020 de la estación más cercana) y temperatura del suelo (estaciones a menos de 40 km que la miden; si no, estimada con la temperatura del aire). Fuente: © AEMET, [AEMET OpenData](https://opendata.aemet.es). Cada usuario usa su propia clave gratuita, que se guarda solo en su dispositivo.
 - La altitud del municipio se consulta en la [API de elevación de Open-Meteo](https://open-meteo.com/en/docs/elevation-api). Sin conexión, la altitud se puede escribir a mano.
 
 ## Avisos

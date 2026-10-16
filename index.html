@@ -60,15 +60,19 @@
           <div class="chips cpopts" id="cpOpts" hidden></div>
           <small id="cpHint" hidden></small>
           <small id="altHint"></small>
+          <label for="aemetKey" class="keyrow">Clave de AEMET<input id="aemetKey" type="password" autocomplete="off" spellcheck="false" placeholder="Pega aquí tu clave"></label>
+          <small id="keyHint">Para la previsión, las heladas y la temperatura del suelo. Es gratis: <a href="https://opendata.aemet.es/centrodedescargas/altaUsuario" target="_blank" rel="noopener">pídela a AEMET</a> y te llega por correo. Se guarda solo en este dispositivo.</small>
         </div>
         <p class="note">Temperaturas medias y horas de sol aproximadas de la capital de tu provincia, ajustadas a la altitud de tu huerto.</p>
         </div>
         <div class="zclim" id="zoneClim"></div>
+        <div class="zwx" id="zoneWx"></div>
         <div class="zdone" id="zoneDoneRow" hidden><button class="btn primary" type="button" id="zoneDone">Listo</button></div>
       </div>
       <div class="panel">
         <div class="chips" id="calGroups"></div>
         <div class="cal-gsel"><span>Mostrar</span><select id="calGroupSel" aria-label="Mostrar cultivos"></select></div>
+        <div class="wxwarn" id="calWarn" hidden></div>
         <div class="calnow" id="calNow"></div>
         <button class="btn yearbtn" type="button" id="yearBtn" aria-expanded="false">Ver todo el año</button>
         <div class="legend">
@@ -129,6 +133,7 @@
       <div class="panel">
         <div class="avisos" id="avisos"></div>
         <p class="lede" id="remLede"></p>
+        <div class="wxwarn" id="remWarn" hidden></div>
         <div class="rem" id="remList"></div>
       </div>
     </section>
