@@ -23,12 +23,6 @@
     <div class="top">
       <h1>Huerta <span>Viva</span></h1>
       <div class="tools">
-        <div class="zone"><span id="zoneLbl">Tu provincia</span>
-          <div class="zsel">
-            <button type="button" id="zone" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="zoneLbl zone"><span id="zoneTxt"></span><span aria-hidden="true">▾</span></button>
-            <ul id="zoneList" role="listbox" aria-labelledby="zoneLbl" tabindex="-1" hidden></ul>
-          </div>
-        </div>
         <div class="seg" id="themeSeg" role="group" aria-label="Apariencia">
           <button data-theme-set="light" aria-pressed="true">Claro</button>
           <button data-theme-set="dark" aria-pressed="false">Oscuro</button>
@@ -48,9 +42,16 @@
   <div class="wrap">
     <!-- CALENDARIO -->
     <section id="p-cal" class="tabpanel">
-      <div class="panel">
+      <div class="panel zonebox">
+        <h2 class="zonetitle">Tu zona</h2>
         <div class="altrow">
           <div class="locrow">
+            <div class="zone"><span id="zoneLbl">Provincia</span>
+              <div class="zsel">
+                <button type="button" id="zone" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="zoneLbl zone"><span id="zoneTxt"></span><span aria-hidden="true">▾</span></button>
+                <ul id="zoneList" role="listbox" aria-labelledby="zoneLbl" tabindex="-1" hidden></ul>
+              </div>
+            </div>
             <label for="cp">Código postal<input id="cp" type="text" inputmode="numeric" maxlength="5" autocomplete="postal-code" placeholder="11500"></label>
             <label for="alt">Altitud<input id="alt" type="number" inputmode="numeric" min="0" max="3000" step="10"> m</label>
           </div>
@@ -58,6 +59,9 @@
           <small id="cpHint" hidden></small>
           <small id="altHint"></small>
         </div>
+        <p class="note">Temperaturas medias y horas de sol aproximadas de la capital de tu provincia, ajustadas a la altitud de tu huerto.</p>
+      </div>
+      <div class="panel">
         <div class="chips" id="calGroups"></div>
         <div class="cal-gsel"><span>Mostrar</span><select id="calGroupSel" aria-label="Mostrar cultivos"></select></div>
         <div class="legend">
@@ -68,7 +72,6 @@
         </div>
         <p class="calhint" id="calLede"></p>
         <div class="scroll"><table class="cal" id="cal"></table></div>
-        <p class="note" style="text-align:center">Temperaturas medias y horas de sol aproximadas de cada capital de provincia, ajustadas a la altitud de tu huerto. La versión final usaría datos climáticos oficiales por municipio.</p>
       </div>
     </section>
 
