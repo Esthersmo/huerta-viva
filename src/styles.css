@@ -89,6 +89,7 @@ main .wrap{padding-block:20px 48px;display:flex;flex-direction:column;gap:20px}
 .altrow small{font-size:.8rem;text-align:center}
 .legend{display:flex;flex-wrap:wrap;gap:14px;font-size:.85rem;color:var(--muted)}
 .legend i{display:inline-block;width:14px;height:14px;border-radius:3px;vertical-align:-2px;margin-right:6px}
+.calhint{margin:0 0 8px;text-align:center;font-size:.8rem;color:var(--muted)}
 .scroll{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
 table.cal{border-collapse:collapse;width:100%;min-width:720px;font-variant-numeric:tabular-nums}
 .cal .ms{display:none}

@@ -49,7 +49,6 @@
     <!-- CALENDARIO -->
     <section id="p-cal" class="tabpanel">
       <div class="panel">
-        <p class="lede" id="calLede"></p>
         <div class="altrow">
           <div class="locrow">
             <label for="cp">Código postal<input id="cp" type="text" inputmode="numeric" maxlength="5" autocomplete="postal-code" placeholder="11500"></label>
@@ -67,6 +66,7 @@
           <span><i style="outline:2px dotted var(--luz-mark,var(--luz));outline-offset:-3px;background:var(--luz-sample,var(--surface-2))"></i>Poca luz para ese cultivo</span>
           <span><i style="box-shadow:inset 0 0 0 2px var(--sun)"></i>Mes actual</span>
         </div>
+        <p class="calhint" id="calLede"></p>
         <div class="scroll"><table class="cal" id="cal"></table></div>
         <p class="note" style="text-align:center">Temperaturas medias y horas de sol aproximadas de cada capital de provincia, ajustadas a la altitud de tu huerto. La versión final usaría datos climáticos oficiales por municipio.</p>
       </div>
