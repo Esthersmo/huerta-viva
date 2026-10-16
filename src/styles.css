@@ -83,6 +83,9 @@ main .wrap{padding-block:20px 48px;display:flex;flex-direction:column;gap:20px}
 .altrow{display:flex;flex-direction:column;align-items:center;gap:4px;margin:0 0 12px;font-size:.88rem;color:var(--muted)}
 .altrow label{display:flex;align-items:center;gap:8px}
 .altrow input{width:90px;text-align:center}
+.locrow{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 18px}
+.cpopts{justify-content:center;margin:4px 0 2px}
+#cpHint{color:var(--carob-text);font-weight:700;font-size:.85rem}
 .altrow small{font-size:.8rem;text-align:center}
 .legend{display:flex;flex-wrap:wrap;gap:14px;font-size:.85rem;color:var(--muted)}
 .legend i{display:inline-block;width:14px;height:14px;border-radius:3px;vertical-align:-2px;margin-right:6px}

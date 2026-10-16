@@ -33,6 +33,11 @@ npm run preview  # sirve dist/ para probar la PWA
 - `src/sw.js`: service worker (caché sin conexión y avisos con la app cerrada).
 - `public/ilus/`: ilustraciones del fondo. `public/icons/`: iconos de la app.
 
+## Código postal
+
+- `public/cp.json`: códigos postales → municipios (nombre, coordenadas y provincia). Generado a partir del paquete [spanish-cities-info](https://github.com/ManuelCebreiro/spanish-cities-info) (licencia ISC, datos del INE). Se descarga solo la primera vez que se escribe un código postal.
+- La altitud del municipio se consulta en la [API de elevación de Open-Meteo](https://open-meteo.com/en/docs/elevation-api). Sin conexión, la altitud se puede escribir a mano.
+
 ## Avisos
 
 - Con la app abierta, se muestra un aviso al día con las tareas pendientes.

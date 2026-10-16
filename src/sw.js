@@ -6,6 +6,8 @@ self.skipWaiting();
 cleanupOutdatedCaches();
 precacheAndRoute(self.__WB_MANIFEST);
 registerRoute(new NavigationRoute(createHandlerBoundToURL('index.html')));
+// Códigos postales: se descargan la primera vez que se usan
+registerRoute(({ url }) => url.pathname.endsWith('/cp.json'), new StaleWhileRevalidate({ cacheName: 'cp' }));
 // Tipografías de Google: disponibles sin conexión después de la primera visita
 registerRoute(({ url }) => url.origin === 'https://fonts.googleapis.com', new StaleWhileRevalidate({ cacheName: 'fonts-css' }));
 registerRoute(({ url }) => url.origin === 'https://fonts.gstatic.com', new CacheFirst({ cacheName: 'fonts' }));

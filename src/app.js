@@ -528,12 +528,53 @@ function drawZones(){
 }
 function openZones(){zAct=zKeys.indexOf(state.zone);zList.hidden=false;drawZones();zBtn.setAttribute('aria-expanded','true');zList.focus()}
 function closeZones(f){zList.hidden=true;zBtn.setAttribute('aria-expanded','false');if(f)zBtn.focus()}
-function pickZone(k){closeZones(true);if(k===state.zone)return;state.zone=k;save('hv.zone',k);state.alt=null;save('hv.alt',null);drawZones();drawAlt();renderAll();toast('Calendario actualizado para tu zona')}
+function pickZone(k){closeZones(true);if(k===state.zone)return;state.zone=k;save('hv.zone',k);state.alt=null;save('hv.alt',null);setCp(null);drawZones();drawAlt();renderAll();toast('Calendario actualizado para tu zona')}
 // Altitud del huerto
 const altIn=document.getElementById('alt');
 function drawAlt(){const b=ZONES[state.zone];altIn.value=state.alt??'';altIn.placeholder=b.alt;document.getElementById('altHint').textContent=state.alt!=null&&state.alt!==b.alt?`Temperaturas ajustadas: ${state.alt>b.alt?'más frescas':'más templadas'} que en ${b.name.split(' (')[0]} capital (${b.alt} m).`:`Si lo dejas vacío se usa la altitud de ${b.name.split(' (')[0]} capital (${b.alt} m).`}
 altIn.addEventListener('change',()=>{const v=altIn.value.trim();const n=v===''?null:Math.max(0,Math.min(3000,Math.round(+v)));state.alt=isNaN(n)?null:n;save('hv.alt',state.alt);drawAlt();renderAll()});
 drawAlt();
+
+// ---------- Código postal: municipio, provincia y altitud ----------
+// Provincia según los dos primeros dígitos del código INE del municipio
+const PROV_INE=[null,'alava','albacete','alicante','almeria','avila','badajoz','baleares','barcelona','burgos','caceres','cadiz','castellon','ciudadreal','cordoba','coruna','cuenca','girona','granada','guadalajara','gipuzkoa','huelva','huesca','jaen','leon','lleida','rioja','lugo','madrid','malaga','murcia','navarra','ourense','asturias','palencia','laspalmas','pontevedra','salamanca','tenerife','cantabria','segovia','sevilla','soria','tarragona','teruel','toledo','valencia','valladolid','bizkaia','zamora','zaragoza','ceuta','melilla'];
+state.cp=load('hv.cp',null);
+const cpIn=document.getElementById('cp'),cpOpts=document.getElementById('cpOpts'),cpHint=document.getElementById('cpHint');
+let cpData=null;
+async function cpLoad(){if(!cpData){const r=await fetch(import.meta.env.BASE_URL+'cp.json');if(!r.ok)throw new Error('cp');cpData=await r.json()}return cpData}
+function setCp(v){state.cp=v;save('hv.cp',v);drawCp()}
+function drawCp(){
+  cpIn.value=state.cp?.cp||'';
+  const c=state.cp;cpHint.hidden=!c;
+  if(c)cpHint.textContent=`${c.name} (${ZONES[PROV_INE[c.prov]].name.split(' (')[0]})${c.alt!=null?` · ${c.alt} m de altitud`:''}`;
+  const opts=c?.opts||[];cpOpts.hidden=opts.length<2;
+  cpOpts.innerHTML=opts.length<2?'':opts.map(o=>`<button class="chip" type="button" data-cpm="${o.i}" aria-pressed="${o.i===c.i}">${esc(o.name)}</button>`).join('');
+}
+async function cpElevation(lat,lon){
+  const r=await fetch(`https://api.open-meteo.com/v1/elevation?latitude=${lat}&longitude=${lon}`);
+  if(!r.ok)throw new Error('elev');const j=await r.json();const e=j.elevation?.[0];
+  if(typeof e!=='number'||isNaN(e))throw new Error('elev');return Math.max(0,Math.round(e));
+}
+async function cpApply(code,i){
+  const d=await cpLoad();const [name,lat,lon,prov]=d.m[i];
+  const opts=(d.c[code]||[]).map(k=>({i:k,name:d.m[k][0]}));
+  let alt=null;try{alt=await cpElevation(lat,lon)}catch(e){}
+  setCp({cp:code,i,name,prov,alt,opts});
+  const z=PROV_INE[prov];if(z&&z!==state.zone){state.zone=z;save('hv.zone',z);drawZones()}
+  state.alt=alt;save('hv.alt',alt);drawAlt();renderAll();
+  toast(alt==null?`Calendario para ${name}. Sin conexión no puedo consultar la altitud: escríbela si la sabes.`:`Calendario ajustado a ${name} (${alt} m)`);
+}
+cpIn.addEventListener('input',async()=>{
+  const v=cpIn.value.replace(/\D/g,'').slice(0,5);if(v!==cpIn.value)cpIn.value=v;
+  if(v.length<5){cpOpts.hidden=true;cpHint.hidden=true;return}
+  if(state.cp?.cp===v)return drawCp();
+  try{const d=await cpLoad();const ms=d.c[v];
+    if(!ms){cpHint.hidden=false;cpHint.textContent='No encuentro ese código postal. Revisa los 5 números.';cpOpts.hidden=true;return}
+    await cpApply(v,ms[0]);cpIn.blur();
+  }catch(e){cpHint.hidden=false;cpHint.textContent='No se pudieron cargar los códigos postales. Inténtalo con conexión.'}
+});
+cpOpts.addEventListener('click',e=>{const b=e.target.closest('[data-cpm]');if(!b||!state.cp)return;cpApply(state.cp.cp,+b.dataset.cpm)});
+drawCp();
 zBtn.addEventListener('click',()=>zList.hidden?openZones():closeZones());
 zList.addEventListener('click',e=>{const li=e.target.closest('[data-z]');if(li)pickZone(li.dataset.z)});
 zList.addEventListener('keydown',e=>{

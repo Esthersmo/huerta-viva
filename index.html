@@ -50,7 +50,15 @@
     <section id="p-cal" class="tabpanel">
       <div class="panel">
         <p class="lede" id="calLede"></p>
-        <div class="altrow"><label for="alt">Altitud de tu huerto<input id="alt" type="number" inputmode="numeric" min="0" max="3000" step="10"> m</label><small id="altHint"></small></div>
+        <div class="altrow">
+          <div class="locrow">
+            <label for="cp">Código postal<input id="cp" type="text" inputmode="numeric" maxlength="5" autocomplete="postal-code" placeholder="11500"></label>
+            <label for="alt">Altitud<input id="alt" type="number" inputmode="numeric" min="0" max="3000" step="10"> m</label>
+          </div>
+          <div class="chips cpopts" id="cpOpts" hidden></div>
+          <small id="cpHint" hidden></small>
+          <small id="altHint"></small>
+        </div>
         <div class="chips" id="calGroups"></div>
         <div class="cal-gsel"><span>Mostrar</span><select id="calGroupSel" aria-label="Mostrar cultivos"></select></div>
         <div class="legend">
