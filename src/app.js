@@ -255,6 +255,7 @@ function renderCal(){
   document.getElementById('calLede').innerHTML=`<span>Toca un cultivo para abrir su ficha.</span>`;
   const groups=['todos',...Object.keys(GROUPS)];
   document.getElementById('calGroups').innerHTML=groups.map(g=>`<button class="chip" data-g="${g}" aria-pressed="${state.calGroup===g}">${g==='todos'?'Todos':GROUPS[g]}</button>`).join('');
+  const gs=document.getElementById('calGroupSel');if(gs&&gs.value!==state.calGroup){gs.value=state.calGroup;gs._cselDraw&&gs._cselDraw()}
   const list=SPECIES.filter(s=>!s.pot&&(state.calGroup==='todos'||s.g===state.calGroup));
   const nowCls=m=>m===curM?' now':'';
   let h=`<thead><tr><th class="name" scope="col">Cultivo</th>${MONTHS.map((m,i)=>`<th scope="col" class="${nowCls(i).trim()}" title="${MONTHS_L[i]}"><span class="ml">${m}</span><span class="ms" aria-hidden="true">${m[0]}</span></th>`).join('')}</tr></thead><tbody>`;
@@ -547,6 +548,10 @@ document.querySelectorAll('nav button').forEach(b=>b.addEventListener('click',()
 }));
 document.getElementById('remList').addEventListener('click',e=>{const m=e.target.closest('[data-remmore]');if(!m)return;const k=m.dataset.remmore;state.remMore[k]=!state.remMore[k];renderRem();if(!state.remMore[k])document.querySelector(`[data-remmore="${k}"]`)?.scrollIntoView({block:'nearest'})});
 document.getElementById('calGroups').addEventListener('click',e=>{const g=e.target.closest('[data-g]');if(!g)return;state.calGroup=g.dataset.g;renderCal()});
+// En el móvil los filtros del calendario van en un desplegable
+const calGroupSel=document.getElementById('calGroupSel');
+calGroupSel.innerHTML=`<option value="todos">Todos los cultivos</option>`+Object.entries(GROUPS).map(([g,l])=>`<option value="${g}">${l}</option>`).join('');
+calGroupSel.addEventListener('change',()=>{state.calGroup=calGroupSel.value;renderCal()});
 document.getElementById('cal').addEventListener('click',e=>{const r=e.target.closest('tr.crop');if(!r)return;openFicha(r.dataset.sp)});
 document.getElementById('plGroups').addEventListener('click',e=>{const g=e.target.closest('[data-g]');if(!g)return;state.plGroup=state.plGroup===g.dataset.g?'todos':g.dataset.g;renderPlants()});
 document.getElementById('locSeg').addEventListener('click',e=>{const b=e.target.closest('[data-loc]');if(!b)return;state.plLoc=b.dataset.loc;if(b.dataset.loc==='todas')state.plGroup='todos';renderPlants()});
@@ -583,14 +588,15 @@ function enhanceSelect(sel){
     if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();act=(act+(e.key==='ArrowDown'?1:n-1))%n;draw()}
     else if(e.key==='Enter'||e.key===' '){e.preventDefault();pick(act)}
     else if(e.key==='Escape'||e.key==='Tab'){close(e.key==='Escape')}});
-  document.addEventListener('click',e=>{if(!ul.hidden&&!wrap.contains(e.target))close()});
+  // e.target puede haberse sustituido al redibujar el botón: solo cuenta un clic de verdad fuera
+  document.addEventListener('click',e=>{if(!ul.hidden&&e.target.isConnected&&!wrap.contains(e.target))close()});
   sel.addEventListener('change',draw);sel._cselDraw=draw;draw();
 }
 function refreshSelects(){document.querySelectorAll('select[data-csel]').forEach(s=>s._cselDraw&&s._cselDraw())}
 const fSp=document.getElementById('fSp');
 fSp.innerHTML=Object.entries(GROUPS).map(([g,l])=>`<optgroup label="${l}">${SPECIES.filter(s=>s.g===g).map(s=>`<option value="${s.id}">${s.n}</option>`).join('')}</optgroup>`).join('');
 fSp.addEventListener('change',()=>{document.getElementById('fLoc').value=INDOOR.includes(fSp.value)?'interior':'exterior';refreshSelects()});
-enhanceSelect(fSp);enhanceSelect(document.getElementById('fLoc'));
+enhanceSelect(fSp);enhanceSelect(document.getElementById('fLoc'));enhanceSelect(calGroupSel);calGroupSel.parentNode.querySelector('.csel-btn').setAttribute('aria-label','Mostrar cultivos');
 const tipSp=document.getElementById('tipSp');tipSp.innerHTML=fSp.innerHTML;enhanceSelect(tipSp);
 tipSp.addEventListener('change',()=>{state.tipSel=tipSp.value;renderTips()});
 document.getElementById('tipMine').addEventListener('click',e=>{const b=e.target.closest('[data-tip]');if(!b)return;state.tipSel=b.dataset.tip;renderTips()});
