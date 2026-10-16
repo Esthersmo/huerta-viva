@@ -73,6 +73,7 @@ nav button{font:inherit;font-family:var(--display);font-size:1.25rem;font-weight
 @media (max-width:520px){nav{display:grid;grid-template-columns:1fr 1fr;gap:0 8px;overflow:visible}nav button{font-size:1rem;padding:8px 4px;text-align:center}}
 nav button[aria-selected="true"]{color:var(--ink);border-color:var(--sel)}
 .badge{display:inline-block;min-width:20px;padding:0 6px;border-radius:10px;background:var(--danger-bar);color:var(--surface);font-size:.75rem;text-align:center;margin-left:4px}
+.badge[hidden]{display:none}
 main .wrap{padding-block:20px 48px;display:flex;flex-direction:column;gap:20px}
 .panel{background:var(--panel);border:1px solid var(--panel-line);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
 .lede{color:var(--muted);margin:0;max-width:65ch}
