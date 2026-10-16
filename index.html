@@ -84,6 +84,10 @@
             <button data-loc="exterior" aria-pressed="false">Exterior</button>
           </div>
           <div class="chips" id="plGroups"></div>
+          <div class="m-filters">
+            <label class="tip-all">Ubicación<select id="plLocSel"><option value="todas">Todas</option><option value="interior">Interior</option><option value="exterior">Exterior</option></select></label>
+            <label class="tip-all">Tipo<select id="plGroupSel"></select></label>
+          </div>
         </div>
         <div id="plList"></div>
       </div>
@@ -95,6 +99,7 @@
         <p class="lede tip-lede">Elige una planta para ver cómo sembrarla y cuidarla.</p>
         <div class="tip-pick">
           <div class="chips" id="tipMine"></div>
+          <label class="tip-all tip-mine-sel">Mis plantas<select id="tipMineSel"></select></label>
           <label class="tip-all">Todas las especies<select id="tipSp"></select></label>
         </div>
         <div id="tipBody"></div>

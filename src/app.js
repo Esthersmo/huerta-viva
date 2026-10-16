@@ -439,6 +439,7 @@ function renderPlants(){
   // "Todas" = sin filtro de ubicación ni de tipo
   const all=state.plLoc==='todas'&&state.plGroup==='todos';
   document.querySelectorAll('#locSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.loc==='todas'?all:b.dataset.loc===state.plLoc));
+  for(const[id,v]of[['plLocSel',state.plLoc],['plGroupSel',state.plGroup]]){const el=document.getElementById(id);if(el&&el.value!==v){el.value=v;el._cselDraw&&el._cselDraw()}}
   const list=state.plants.filter(p=>(state.plLoc==='todas'||p.loc===state.plLoc)&&(state.plGroup==='todos'||SP[p.sp].g===state.plGroup));
   let h='';
   for(const g of Object.keys(GROUPS)){
@@ -496,6 +497,10 @@ function renderTips(){
   const s=SP[state.tipSel],t=TIPS[s.id]||{},z=zoneNow();
   document.getElementById('tipMine').innerHTML=mine.length?mine.map(id=>`<button class="chip" data-tip="${id}" aria-pressed="${id===s.id}">${SP[id].n}</button>`).join(''):'';
   const sel=document.getElementById('tipSp');if(sel.value!==s.id){sel.value=s.id;sel._cselDraw&&sel._cselDraw()}
+  const ms=document.getElementById('tipMineSel');
+  ms.innerHTML=(mine.includes(s.id)?'':'<option value="">Elige una de tus plantas</option>')+mine.map(id=>`<option value="${id}">${SP[id].n}</option>`).join('');
+  ms.value=mine.includes(s.id)?s.id:'';ms._cselDraw&&ms._cselDraw();
+  ms.closest('.tip-mine-sel').classList.toggle('empty',!mine.length);
   const st=s.pot?null:cellState(s,z,curM);
   const now=s.pot?`<p class="now semillero">Planta de maceta: se cuida todo el año.</p>`
     :s.tree?`<p class="now ${st||'no'}">${st?`En ${MONTHS_L[curM]} es buen momento para plantarlo en tu zona.`:treeWhy(s,z)||`En ${MONTHS_L[curM]} no es buen momento para plantarlo en tu zona.`}</p>`+(lowChill(s,z)?`<p class="tip chill">${chillTxt(s)}</p>`:'')
@@ -599,6 +604,13 @@ fSp.addEventListener('change',()=>{document.getElementById('fLoc').value=INDOOR.
 enhanceSelect(fSp);enhanceSelect(document.getElementById('fLoc'));enhanceSelect(calGroupSel);calGroupSel.parentNode.querySelector('.csel-btn').setAttribute('aria-label','Mostrar cultivos');
 const tipSp=document.getElementById('tipSp');tipSp.innerHTML=fSp.innerHTML;enhanceSelect(tipSp);
 tipSp.addEventListener('change',()=>{state.tipSel=tipSp.value;renderTips()});
+// En el móvil los filtros van en desplegables
+const plLocSel=document.getElementById('plLocSel'),plGroupSel=document.getElementById('plGroupSel'),tipMineSel=document.getElementById('tipMineSel');
+plGroupSel.innerHTML=`<option value="todos">Todos los tipos</option>`+Object.entries(GROUPS).map(([g,l])=>`<option value="${g}">${l}</option>`).join('');
+plLocSel.addEventListener('change',()=>{state.plLoc=plLocSel.value;renderPlants()});
+plGroupSel.addEventListener('change',()=>{state.plGroup=plGroupSel.value;renderPlants()});
+tipMineSel.addEventListener('change',()=>{if(tipMineSel.value){state.tipSel=tipMineSel.value;renderTips()}});
+enhanceSelect(plLocSel);enhanceSelect(plGroupSel);enhanceSelect(tipMineSel);
 document.getElementById('tipMine').addEventListener('click',e=>{const b=e.target.closest('[data-tip]');if(!b)return;state.tipSel=b.dataset.tip;renderTips()});
 document.getElementById('tipBody').addEventListener('click',e=>{const b=e.target.closest('#tipCal');if(!b)return;document.getElementById('t-cal').click();openFicha(b.dataset.crop)});
 renderTips();

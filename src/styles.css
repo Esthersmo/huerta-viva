@@ -90,6 +90,7 @@ main .wrap{padding-block:20px 48px;display:flex;flex-direction:column;gap:20px}
 table.cal{border-collapse:collapse;width:100%;min-width:720px;font-variant-numeric:tabular-nums}
 .cal .ms{display:none}
 .cal-gsel{display:none}
+.m-filters,.tip-all.tip-mine-sel{display:none}
 .cal th,.cal td{border-bottom:1px solid var(--panel-line);padding:0;text-align:center;font-size:.82rem}
 .cal thead th{background:var(--surface-2);padding:6px 2px;font-weight:700}
 .cal th.name{text-align:left;padding:6px 10px;min-width:130px;position:sticky;left:0;background:var(--panel);z-index:1}
@@ -293,7 +294,12 @@ form.add label{display:flex;flex-direction:column;gap:4px;font-size:.85rem;color
 /* Móvil: logo más pequeño y columna de cultivos estrecha para que quepa el año entero */
 @media (max-width:520px){
   h1{font-size:1.4rem}
-  #calGroups{display:none}
+  #calGroups,#locSeg,#plGroups,#tipMine{display:none}
+  .m-filters{display:flex;gap:10px;width:100%}
+  .m-filters .tip-all{flex:1 1 0;min-width:0}
+  .tip-all.tip-mine-sel{display:flex}
+  .tip-all.tip-mine-sel.empty{display:none}
+  .tip-pick .tip-all{flex:1 1 100%;min-width:0}
   .cal-gsel{display:flex;align-items:center;justify-content:center;gap:10px;font-size:.9rem;color:var(--muted);margin:4px auto 12px}
   .cal-gsel .csel{width:210px}
   table.cal{min-width:0;table-layout:fixed}
