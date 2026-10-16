@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Huerta Viva</title>
+<meta name="description" content="Calendario de siembra por provincia, riegos y cuidados de tus plantas.">
+<meta name="theme-color" content="#F6F3EE" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1D1913" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="icons/favicon.png" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Huerta Viva">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,600,100,1;1,9..144,600,100,1&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap">
+<script type="module" src="/src/main.js"></script>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="top">
+      <h1>Huerta <span>Viva</span></h1>
+      <div class="tools">
+        <div class="zone"><span id="zoneLbl">Tu provincia</span>
+          <div class="zsel">
+            <button type="button" id="zone" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="zoneLbl zone"><span id="zoneTxt"></span><span aria-hidden="true">▾</span></button>
+            <ul id="zoneList" role="listbox" aria-labelledby="zoneLbl" tabindex="-1" hidden></ul>
+          </div>
+        </div>
+        <div class="seg" id="themeSeg" role="group" aria-label="Apariencia">
+          <button data-theme-set="light" aria-pressed="true">Claro</button>
+          <button data-theme-set="dark" aria-pressed="false">Oscuro</button>
+        </div>
+      </div>
+    </div>
+    <nav role="tablist" aria-label="Secciones">
+      <button role="tab" id="t-cal" aria-selected="true" data-tab="cal">Calendario</button>
+      <button role="tab" id="t-pl" aria-selected="false" data-tab="pl">Mis plantas</button>
+      <button role="tab" id="t-rem" aria-selected="false" data-tab="rem">Recordatorios<span class="badge" id="remCount" hidden></span></button>
+      <button role="tab" id="t-tip" aria-selected="false" data-tab="tip">Consejos</button>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <!-- CALENDARIO -->
+    <section id="p-cal" class="tabpanel">
+      <div class="panel">
+        <p class="lede" id="calLede"></p>
+        <div class="altrow"><label for="alt">Altitud de tu huerto<input id="alt" type="number" inputmode="numeric" min="0" max="3000" step="10"> m</label><small id="altHint"></small></div>
+        <div class="chips" id="calGroups"></div>
+        <div class="legend">
+          <span><i style="background:var(--leaf-cell)"></i>Siembra directa o plantación</span>
+          <span><i style="background:repeating-linear-gradient(135deg,var(--sem-a,var(--seed)) 0 4px,var(--sem-b,var(--leaf-soft)) 4px 8px);border:1px solid var(--seed-ink)"></i>Semillero protegido</span>
+          <span><i style="outline:2px dotted var(--luz-mark,var(--luz));outline-offset:-3px;background:var(--luz-sample,var(--surface-2))"></i>Poca luz para ese cultivo</span>
+          <span><i style="box-shadow:inset 0 0 0 2px var(--sun)"></i>Mes actual</span>
+        </div>
+        <div class="scroll"><table class="cal" id="cal"></table></div>
+        <p class="note" style="text-align:center">Temperaturas medias y horas de sol aproximadas de cada capital de provincia, ajustadas a la altitud de tu huerto. La versión final usaría datos climáticos oficiales por municipio.</p>
+      </div>
+    </section>
+
+    <!-- MIS PLANTAS -->
+    <section id="p-pl" class="tabpanel" hidden>
+      <details class="panel addbox" id="addBox" style="margin-bottom:20px">
+        <summary><h2>Añadir planta</h2></summary>
+        <form class="add" id="addForm">
+          <label for="fName">Nombre<input id="fName" placeholder="Tomates del balcón"></label>
+          <label for="fSp">Especie<select id="fSp"></select></label>
+          <label for="fLoc">Ubicación<select id="fLoc"><option value="exterior">Exterior</option><option value="interior">Interior</option></select></label>
+          <label for="fDate">Sembrada o plantada<input id="fDate" type="date"></label>
+          <button class="btn primary" type="submit">Añadir planta</button>
+        </form>
+      </details>
+      <div class="panel">
+        <div class="filters">
+          <div class="seg" id="locSeg">
+            <button data-loc="todas" aria-pressed="true">Todas</button>
+            <button data-loc="interior" aria-pressed="false">Interior</button>
+            <button data-loc="exterior" aria-pressed="false">Exterior</button>
+          </div>
+          <div class="chips" id="plGroups"></div>
+        </div>
+        <div id="plList"></div>
+      </div>
+    </section>
+
+    <!-- CONSEJOS -->
+    <section id="p-tip" class="tabpanel" hidden>
+      <div class="panel">
+        <p class="lede tip-lede">Elige una planta para ver cómo sembrarla y cuidarla.</p>
+        <div class="tip-pick">
+          <div class="chips" id="tipMine"></div>
+          <label class="tip-all">Todas las especies<select id="tipSp"></select></label>
+        </div>
+        <div id="tipBody"></div>
+      </div>
+    </section>
+
+    <!-- RECORDATORIOS -->
+    <section id="p-rem" class="tabpanel" hidden>
+      <div class="panel">
+        <div class="avisos" id="avisos"></div>
+        <p class="lede" id="remLede"></p>
+        <div class="rem" id="remList"></div>
+      </div>
+    </section>
+  </div>
+</main>
+<dialog class="ficha" id="ficha" aria-labelledby="fichaTitle"><div class="in" id="fichaIn"></div></dialog>
+<div id="toast" hidden></div>
+</body>
+</html>
