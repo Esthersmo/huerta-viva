@@ -348,6 +348,12 @@ form.add label{display:flex;flex-direction:column;gap:4px;font-size:.85rem;color
   .cal .ms{display:inline}
   .cal .cell{height:24px;margin:3px 1px;border-radius:3px}
   .cell.semillero{background:repeating-linear-gradient(135deg,var(--sem-a,var(--seed)) 0 3px,var(--sem-b,var(--leaf-soft)) 3px 6px)}
+  /* «Tu zona» al editar: etiquetas en una columna y cajas alineadas en otra, del mismo ancho */
+  .zonebox .locrow{display:grid;grid-template-columns:auto 170px;gap:10px 14px;align-items:center;justify-content:center}
+  .zonebox .locrow>.zone,.zonebox .locrow>label{display:contents}
+  .zonebox .zsel{min-width:0;width:100%}
+  .zonebox .zsel>button{width:100%}
+  .zonebox .locrow input{width:100%;box-sizing:border-box;text-align:left}
   .calnow{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;margin-bottom:14px}
   .calnow h3{color:var(--carob-text)}
   .calnow .chips{justify-content:center}
