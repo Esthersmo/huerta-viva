@@ -341,3 +341,9 @@ form.add label{display:flex;flex-direction:column;gap:4px;font-size:.85rem;color
   .zonebox #cpHint{margin-top:6px}
 }
 
+/* Ordenador: avisos en una sola línea, frase + botón */
+@media (min-width:601px){
+  .avisos{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px 14px}
+  .avisos p{margin:0;max-width:none}
+}
+
