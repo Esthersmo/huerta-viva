@@ -337,10 +337,15 @@ form.add label{display:flex;flex-direction:column;gap:4px;font-size:.85rem;color
   .calnow{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;margin-bottom:14px}
   .calnow h3{color:var(--carob-text)}
   .calnow .chips{justify-content:center}
-  .cn-lbl{margin:6px 0 0;display:flex;align-items:center;gap:8px;font-size:.88rem;color:var(--muted)}
-  .cn-lbl i{width:16px;height:16px;border-radius:3px;display:inline-block}
-  .cn-dir{background:var(--leaf-cell)}
-  .cn-sem{background:repeating-linear-gradient(135deg,var(--sem-a,var(--seed)) 0 3px,var(--sem-b,var(--leaf-soft)) 3px 6px);border:1px solid var(--sem-line,var(--seed-ink))}
+  .cn-lbl{margin:0;display:flex;flex-direction:column;align-items:flex-start;gap:6px;font-size:.88rem;color:var(--muted)}
+  .cn-lbl span{display:flex;align-items:center;gap:8px}
+  .cn-lbl i,.calnow .chip i{width:14px;height:14px;border-radius:3px;display:inline-block;flex:none}
+  .calnow .chip{display:inline-flex;align-items:center;gap:6px}
+  .calnow .chip i{width:10px;height:10px;border-radius:2px}
+  .cn-lbl .cn-dir,.chip.cn-dir i{background:var(--leaf-cell)}
+  .cn-lbl .cn-sem,.chip.cn-sem i{background:repeating-linear-gradient(135deg,var(--sem-a,var(--seed)) 0 3px,var(--sem-b,var(--leaf-soft)) 3px 6px);border:1px solid var(--sem-line,var(--seed-ink))}
+  .cn-grp{width:100%;box-sizing:border-box;background:var(--card);border:1px solid var(--card-line);border-radius:12px;padding:10px 12px 12px;box-shadow:var(--tip-shadow)}
+  .cn-grp h4{margin:0 0 8px;font-family:var(--display);font-weight:500;font-size:.95rem;color:var(--carob-text)}
   .cn-none{margin:0;color:var(--muted);font-size:.9rem}
   .yearbtn{display:block;margin:4px auto 14px}
   #p-cal:not(.showyear) .legend,#p-cal:not(.showyear) .calhint,#p-cal:not(.showyear) .scroll{display:none}

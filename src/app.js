@@ -273,12 +273,15 @@ function renderCal(){
   }
   document.getElementById('cal').innerHTML=h+'</tbody>';
   // Móvil: lo que se puede sembrar o plantar este mes, antes de la tabla del año
-  const dir=list.filter(s=>cellState(s,z,curM)==='directa'),sem=list.filter(s=>cellState(s,z,curM)==='semillero');
-  const chips=a=>a.map(s=>`<button class="chip" type="button" data-sp="${s.id}">${s.n}</button>`).join('');
+  const now=list.map(s=>({s,st:cellState(s,z,curM)})).filter(o=>o.st==='directa'||o.st==='semillero');
+  const anySem=now.some(o=>o.st==='semillero');
+  const chip=o=>`<button class="chip cn-${o.st==='directa'?'dir':'sem'}" type="button" data-sp="${o.s.id}"><i></i>${o.s.n}</button>`;
   document.getElementById('calNow').innerHTML=`<h3>Qué sembrar en ${MONTHS_L[curM]}</h3>`+
-    (dir.length?`<p class="cn-lbl"><i class="cn-dir"></i>Siembra directa o plantación</p><div class="chips">${chips(dir)}</div>`:'')+
-    (sem.length?`<p class="cn-lbl"><i class="cn-sem"></i>En semillero protegido</p><div class="chips">${chips(sem)}</div>`:'')+
-    (dir.length||sem.length?'':`<p class="cn-none">Este mes no toca sembrar nada de este grupo en tu zona.</p>`);
+    (now.length?`<p class="cn-lbl"><span><i class="cn-dir"></i>Siembra directa o plantación</span>${anySem?'<span><i class="cn-sem"></i>En semillero protegido</span>':''}</p>`+
+      Object.keys(GROUPS).map(g=>{const a=now.filter(o=>o.s.g===g);if(!a.length)return '';
+        a.sort((x,y)=>(x.st===y.st?0:x.st==='directa'?-1:1));
+        return `<section class="cn-grp"><h4>${GROUPS[g]}</h4><div class="chips">${a.map(chip).join('')}</div></section>`}).join('')
+    :`<p class="cn-none">Este mes no toca sembrar nada de este grupo en tu zona.</p>`);
   const f=document.getElementById('ficha');if(f.open&&state.mode==='crop')renderFicha();
 }
 function renderFicha(){
