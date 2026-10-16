@@ -88,6 +88,7 @@ main .wrap{padding-block:20px 48px;display:flex;flex-direction:column;gap:20px}
 .legend i{display:inline-block;width:14px;height:14px;border-radius:3px;vertical-align:-2px;margin-right:6px}
 .scroll{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
 table.cal{border-collapse:collapse;width:100%;min-width:720px;font-variant-numeric:tabular-nums}
+.cal .ms{display:none}
 .cal th,.cal td{border-bottom:1px solid var(--panel-line);padding:0;text-align:center;font-size:.82rem}
 .cal thead th{background:var(--surface-2);padding:6px 2px;font-weight:700}
 .cal th.name{text-align:left;padding:6px 10px;min-width:130px;position:sticky;left:0;background:var(--panel);z-index:1}
@@ -287,3 +288,19 @@ form.add label{display:flex;flex-direction:column;gap:4px;font-size:.85rem;color
 .avisos p{margin:0 auto 12px;max-width:52ch}
 .avisos-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
 .avisos .btn.act{background:var(--act-bg);border-color:var(--act-line);color:var(--act-ink)}
+
+/* Móvil: logo más pequeño y columna de cultivos estrecha para que quepa el año entero */
+@media (max-width:520px){
+  h1{font-size:1.4rem}
+  table.cal{min-width:0;table-layout:fixed}
+  .cal th.name{min-width:0;width:78px;padding:6px 4px 6px 8px;white-space:normal;overflow-wrap:anywhere;line-height:1.15}
+  .cal thead th.name{font-size:.86rem}
+  .cal tbody tr.crop th.name{font-size:.78rem;padding-block:7px}
+  .cal tr.clim th.name{font-size:.66rem}
+  .cal tr.clim td{font-size:.64rem;letter-spacing:-.02em}
+  .cal thead th{font-size:.8rem;padding:6px 0}
+  .cal .ml{display:none}
+  .cal .ms{display:inline}
+  .cal .cell{height:24px;margin:3px 1px;border-radius:3px}
+  .cell.semillero{background:repeating-linear-gradient(135deg,var(--sem-a,var(--seed)) 0 3px,var(--sem-b,var(--leaf-soft)) 3px 6px)}
+}

@@ -257,7 +257,7 @@ function renderCal(){
   document.getElementById('calGroups').innerHTML=groups.map(g=>`<button class="chip" data-g="${g}" aria-pressed="${state.calGroup===g}">${g==='todos'?'Todos':GROUPS[g]}</button>`).join('');
   const list=SPECIES.filter(s=>!s.pot&&(state.calGroup==='todos'||s.g===state.calGroup));
   const nowCls=m=>m===curM?' now':'';
-  let h=`<thead><tr><th class="name" scope="col">Cultivo</th>${MONTHS.map((m,i)=>`<th scope="col" class="${nowCls(i).trim()}">${m}</th>`).join('')}</tr></thead><tbody>`;
+  let h=`<thead><tr><th class="name" scope="col">Cultivo</th>${MONTHS.map((m,i)=>`<th scope="col" class="${nowCls(i).trim()}" title="${MONTHS_L[i]}"><span class="ml">${m}</span><span class="ms" aria-hidden="true">${m[0]}</span></th>`).join('')}</tr></thead><tbody>`;
   h+=`<tr class="clim"><th class="name" scope="row">Temp. media °C</th>${z.t.map((t,i)=>`<td class="${nowCls(i).trim()}">${Math.round(t)}</td>`).join('')}</tr>`;
   h+=`<tr class="clim"><th class="name" scope="row">Horas de sol/día</th>${z.sun.map((s,i)=>`<td class="${nowCls(i).trim()}">${s}</td>`).join('')}</tr>`;
   for(const s of list){
