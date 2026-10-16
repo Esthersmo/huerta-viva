@@ -210,6 +210,9 @@ let state={tipSel:null,mode:'crop',plantSel:null,photoBig:null,zone:(z=>OLD_ZONE
 if(load('hv.seedV',1)<2){const have=new Set(state.plants.map(p=>p.id));EXAMPLES.filter(e=>['e7','e8','e9','e10'].includes(e.id)&&!have.has(e.id)).forEach(e=>state.plants.push(e));save('hv.plants',state.plants);save('hv.seedV',2)}
 if(load('hv.seedV',1)<3){if(!state.plants.some(p=>p.id==='e11')){state.plants.push(EXAMPLES.find(e=>e.id==='e11'));save('hv.plants',state.plants)}save('hv.seedV',3)}
 if(load('hv.seedV',1)<4){const e=state.plants.find(p=>p.id==='e11');if(e){e.log=e.log||{};e.log.poda=e.log.poda||ago(200);save('hv.plants',state.plants)}save('hv.seedV',4)}
+// Las plantas nuevas se creaban con todos los cuidados anotados el día de siembra y salían como «hechos».
+// La fecha de siembra ya es la referencia si no hay registro, así que se quitan esas anotaciones automáticas.
+if(load('hv.seedV',1)<5){for(const p of state.plants){if(p.ej||!p.log)continue;for(const a of Object.keys(p.log))if(p.log[a]===p.sown)delete p.log[a]}save('hv.plants',state.plants);save('hv.seedV',5)}
 
 // ---------- Calendario ----------
 function cellState(s,z,m){
@@ -405,7 +408,7 @@ ficha.addEventListener('click',e=>{
   if(e.target.closest('#fichaAdd')){
     // Se añade al momento con el nombre de la especie; la ficha se abre en edición para cambiarle el nombre
     const sp=SP[state.sel],n=state.plants.filter(p=>p.sp===sp.id).length,d=iso(today);
-    const np={id:'p'+Date.now(),name:sp.n+(n?` ${n+1}`:''),sp:sp.id,loc:INDOOR.includes(sp.id)?'interior':'exterior',sown:d,log:{riego:d,abono:d,sustrato:d,poda:d}};
+    const np={id:'p'+Date.now(),name:sp.n+(n?` ${n+1}`:''),sp:sp.id,loc:INDOOR.includes(sp.id)?'interior':'exterior',sown:d,log:{}};
     state.plants.push(np);save('hv.plants',state.plants);state.plGroup='todos';state.plLoc='todas';
     document.getElementById('t-pl').click();renderPlants();renderRem();
     openPlant(np.id);state.editing=true;renderPlantFicha();toast(`Añadido a tus plantas: ${np.name}`)}
@@ -660,7 +663,7 @@ document.getElementById('addForm').addEventListener('submit',e=>{
   e.preventDefault();
   const name=document.getElementById('fName').value.trim()||SP[fSp.value].n;
   const sown=document.getElementById('fDate').value||iso(today);
-  const p={id:'p'+Date.now(),name,sp:fSp.value,loc:document.getElementById('fLoc').value,sown,log:{riego:sown,abono:sown,sustrato:sown,poda:sown}};
+  const p={id:'p'+Date.now(),name,sp:fSp.value,loc:document.getElementById('fLoc').value,sown,log:{}};
   state.plants.push(p);save('hv.plants',state.plants);e.target.reset();document.getElementById('fDate').value=iso(today);refreshSelects();
   state.plGroup='todos';state.plLoc='todas';renderPlants();renderRem();toast(`${name} añadida`);try{if(!matchMedia("(min-width:601px)").matches)document.getElementById("addBox").open=false}catch(e){}
 });
