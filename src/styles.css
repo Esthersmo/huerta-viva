@@ -295,6 +295,9 @@ form.add label{display:flex;flex-direction:column;gap:4px;font-size:.85rem;color
 @media (max-width:520px){
   h1{font-size:1.4rem}
   #calGroups,#locSeg,#plGroups,#tipMine{display:none}
+  .tools{width:100%}
+  #themeSeg{margin-left:auto}
+  #p-cal .legend{display:flex;flex-direction:column;align-items:flex-start;gap:8px;width:max-content;margin-inline:auto}
   .m-filters{display:flex;gap:10px;width:100%}
   .m-filters .tip-all{flex:1 1 0;min-width:0}
   .tip-all.tip-mine-sel{display:flex}

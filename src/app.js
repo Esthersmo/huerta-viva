@@ -342,7 +342,7 @@ function renderPlantFicha(){
    <section class="pf-sec">
      <div class="pf-sh"><h3>Diario de fotos${ph.length?` <small>${ph.length}</small>`:''}</h3><div class="pf-btns">
        ${ph.length?`<button class="btn" id="photoEditToggle" aria-pressed="${!!state.photoEdit}">${state.photoEdit?'Listo':'Editar fotos'}</button>`:''}
-       <label class="btn primary upl" for="photoIn">Añadir foto<input type="file" id="photoIn" accept="image/*" capture="environment"></label></div></div>
+       <label class="btn primary upl" for="photoIn">Añadir foto<input type="file" id="photoIn" accept="image/*"></label></div></div>
      ${big?`${state.photoEdit?`<p class="tip">Cambia la fecha de cada foto o bórrala. Se ordenan solas de la más antigua a la más reciente.</p>`:''}
        <figure class="big"><img src="${big.src}" alt="${esc(p.name)} el ${fdate(big.date)}"><figcaption><b>Día ${daysSince(p,big.date)}</b> · ${fdate(big.date)}</figcaption></figure>
        <div class="pgrid${state.photoEdit?' editing':''}">${ph.map(x=>`<figure class="ph"><button class="th" data-photo="${x.id}" aria-pressed="${x===big}" aria-label="Ver foto del día ${daysSince(p,x.date)}"><img src="${x.src}" alt=""></button>
