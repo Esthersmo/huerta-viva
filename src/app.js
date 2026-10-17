@@ -163,12 +163,14 @@ const SPECIES=[
  {id:'geranio',n:'Geranio',g:'ornamental',pot:1,care:{riego:3,abono:15,sustrato:730}},
  {id:'potos',n:'Potos',g:'ornamental',pot:1,care:{riego:7,abono:30,sustrato:730}},
  {id:'monstera',n:'Monstera',g:'ornamental',pot:1,care:{riego:8,abono:30,sustrato:730}},
- {id:'sansevieria',n:'Sansevieria',g:'ornamental',pot:1,care:{riego:18,abono:60,sustrato:1095}},
+ {id:'sansevieria',n:'Sansevieria (lengua de suegra)',g:'ornamental',pot:1,care:{riego:18,abono:60,sustrato:1095}},
  {id:'cinta',n:'Cinta',g:'ornamental',pot:1,care:{riego:5,abono:30,sustrato:730}},
  {id:'orquidea',n:'Orquídea',g:'ornamental',pot:1,care:{riego:8,abono:15,sustrato:730}},
  {id:'calathea',n:'Calathea',g:'ornamental',pot:1,care:{riego:5,abono:30,sustrato:730}},
  {id:'zamioculca',n:'Zamioculca',g:'ornamental',pot:1,care:{riego:15,abono:60,sustrato:1095}},
  {id:'cactus',n:'Cactus y crasas',g:'ornamental',pot:1,care:{riego:15,abono:60,sustrato:1095}},
+ {id:'plectranto',n:'Planta del dinero',g:'ornamental',pot:1,care:{riego:5,abono:30,sustrato:730}},
+ {id:'gollum',n:'Oreja de Shrek',g:'ornamental',pot:1,care:{riego:15,abono:60,sustrato:1095}},
  {id:'aloe',n:'Aloe vera',g:'aromatica',pot:1,care:{riego:14,abono:60,sustrato:730}}
 ];
 const SP=Object.fromEntries(SPECIES.map(s=>[s.id,s]));
@@ -271,10 +273,12 @@ const TIPS={
  arandano:{s:'En cepellón en invierno, en un sitio con tierra ácida o en maceta grande con sustrato para plantas ácidas.',r:'Frecuente, mejor con agua de lluvia o sin cal; no tolera que se seque.',l:'Sol; en el sur, algo de sombra a mediodía.',t:'Muy ácido (pH 4,5–5,5), suelto y con mucha materia orgánica. En suelo calizo no prospera.',a:'Abono para acidófilas en primavera.',p:'Pájaros (protégelos con malla) y clorosis si el agua tiene cal.',c:'Cuando están azules del todo y se sueltan con facilidad.',b:'Otras plantas de suelo ácido, como fresas.',e:'Suelos calizos y riego con agua dura.',o:'Final del invierno: quita ramas viejas, débiles o cruzadas desde el cuarto año.',k:'Planta al menos dos variedades distintas: polinizan mejor y dan más fruta.'},
  pitaya:{s:'Esqueje de 30 cm dejado secar una semana, plantado en primavera junto a un poste o muro para trepar.',r:'Escaso, como un cactus; algo más en floración y fruto.',l:'Sol; en zonas muy cálidas, algo de sombra en verano.',t:'Suelto y muy drenado, con materia orgánica.',a:'Abono equilibrado en primavera y verano.',p:'Podredumbre por exceso de agua y cochinilla.',c:'Unos 30–50 días tras la floración, cuando la piel cambia de color por completo.',b:'—',e:'—',o:'Tras la cosecha: quita tallos que se cruzan o cuelgan hasta el suelo.',k:'Florece de noche: si no cuaja, poliniza a mano con un pincel al anochecer.'},
  azofaifo:{s:'Raíz desnuda o cepellón en invierno.',r:'Muy poco una vez establecido: aguanta sequía y calor extremo.',l:'Pleno sol.',t:'Cualquiera, incluso pobre, calizo o algo salino.',a:'Casi no necesita.',p:'Casi ninguna.',c:'En otoño, cuando la piel se mancha de marrón: crujiente como una manzana. Si se arrugan, saben a dátil.',b:'—',e:'—',o:'Final del invierno: aclara la copa y quita los hijuelos de la base.',k:'Es de los frutales más resistentes que hay: ideal para un rincón seco donde nada más prospera.'},
- algodon:{s:'Siembra directa a 3 cm con la tierra ya caliente, 2–3 semillas cada 40 cm. Remoja la semilla un día antes.',r:'Moderado; abundante en floración y menos al abrirse las cápsulas.',l:'Pleno sol y mucho calor.',t:'Profundo y bien drenado.',a:'Compost al sembrar.',p:'Pulgón, mosca blanca y oruga de la cápsula.',c:'Cuando las cápsulas se abren y asoma el algodón, a finales de verano u otoño.',b:'Tagete, girasol.',e:'—',k:'Muy decorativo: flores amarillas o rosadas y cápsulas blancas que duran meses en ramo seco.'}
+ algodon:{s:'Siembra directa a 3 cm con la tierra ya caliente, 2–3 semillas cada 40 cm. Remoja la semilla un día antes.',r:'Moderado; abundante en floración y menos al abrirse las cápsulas.',l:'Pleno sol y mucho calor.',t:'Profundo y bien drenado.',a:'Compost al sembrar.',p:'Pulgón, mosca blanca y oruga de la cápsula.',c:'Cuando las cápsulas se abren y asoma el algodón, a finales de verano u otoño.',b:'Tagete, girasol.',e:'—',k:'Muy decorativo: flores amarillas o rosadas y cápsulas blancas que duran meses en ramo seco.'},
+ plectranto:{s:'Esqueje de tallo en primavera o verano: enraíza enseguida, incluso en un vaso de agua.',r:'Cuando la tierra esté seca en superficie; menos en invierno.',l:'Luz indirecta abundante; aguanta poca luz pero crece más lacia.',t:'Sustrato universal con buen drenaje.',a:'Abono verde cada mes en primavera y verano.',p:'Cochinilla y podredumbre por exceso de riego.',c:'Planta de hoja colgante; da espigas de florecillas blancas en otoño.',b:'—',e:'—',k:'Su nombre botánico es Plectranthus verticillatus. Pinza las puntas para que se vuelva más tupida.'},
+ gollum:{s:'Esqueje de rama o de hoja; deja secar el corte unos días antes de plantar.',r:'Escaso: deja secar el sustrato del todo entre riegos; casi nada en invierno.',l:'Mucha luz, con algo de sol directo; con sol las puntas se ponen rojizas.',t:'Sustrato de cactus y crasas.',a:'Abono de cactus 2–3 veces en verano.',p:'Cochinilla algodonosa y podredumbre.',c:'Planta de hoja; de adulta puede dar flores blancas o rosadas en invierno.',b:'—',e:'—',k:'Es una variedad del árbol de jade (Crassula ovata «Gollum»), que también se considera planta del dinero.'}
 };
 
-const INDOOR=['potos','monstera','sansevieria','cinta','orquidea','calathea','zamioculca'];
+const INDOOR=['potos','monstera','sansevieria','cinta','orquidea','calathea','zamioculca','plectranto','gollum'];
 const ACTIONS={riego:'Riego',abono:'Abonado',sustrato:'Sustrato',poda:'Poda'};
 const VERB={riego:'Regar',abono:'Abonar',sustrato:'Cambiar sustrato',poda:'Podar'};
 // Intervalos largos en años (poda, sustrato)
