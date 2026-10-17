@@ -392,7 +392,7 @@ function renderCal(){
     h+=`<tr class="crop${state.sel===s.id?' sel':''}" data-sp="${s.id}"><th class="name" scope="row">${nm(s.n)}</th>`;
     for(let m=0;m<12;m++){const st=cellState(s,z,m);const luz=st&&!s.tree&&z.sun[m]<s.sun?' luz':'';
       const tip=st==='directa'?(s.tree?'Plantación':'Siembra directa'):st==='semillero'?'Semillero protegido':'No recomendado';
-      h+=`<td class="${nowCls(m).trim()}"><div class="cell ${st}${luz}" title="${s.n}, ${MONTHS_L[m]}: ${tip}${luz?' (poca luz)':''}"></div></td>`}
+      h+=`<td class="${nowCls(m).trim()}"><div class="cell ${st}${luz}" title="${s.n}, ${MONTHS_L[m]}: ${tip}${luz?' (pocas horas de sol)':''}"></div></td>`}
     h+='</tr>';
   }
   document.getElementById('cal').innerHTML=h+'</tbody>';
@@ -443,7 +443,7 @@ function renderFicha(){
      ${c.sustrato?`<div class="fact"><span>Sustrato en maceta</span><strong>Renovar cada ${Math.round(c.sustrato/30)} meses</strong></div>`:''}
    </div>
    ${lowChill(s,z)?`<p class="tip chill">${chillTxt(s)}</p>`:''}
-   ${dark.length?`<p class="tip">Poca luz en ${ranges(dark)}: elige el rincón más soleado.</p>`:''}
+   ${dark.length?`<p class="tip">En ${ranges(dark).toLowerCase()} hay menos horas de sol de las que necesita (${s.sun} h al día), así que plántalo en el rincón más soleado que tengas.</p>`:''}
    <p class="tip">El riego se ajusta solo al calor del mes en tu zona.</p>
    ${mine.length?`<div><p class="tip" style="margin-bottom:6px">Tus plantas de ${s.n.toLowerCase()}:</p><div class="mine">${mine.map(p=>`<button class="btn" data-open="${p.id}">${esc(p.name)} · fotos (${(photos[p.id]||[]).length})</button>`).join('')}</div></div>`:''}
    <button class="btn primary" id="fichaAdd">Añadir a mis plantas</button>`;
