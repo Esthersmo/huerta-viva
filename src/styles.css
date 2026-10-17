@@ -368,6 +368,8 @@ form.add label{display:flex;flex-direction:column;gap:4px;font-size:.85rem;color
   .cn-lbl .cn-dir,.chip.cn-dir i{background:var(--leaf-cell)}
   .cn-lbl .cn-sem,.chip.cn-sem i{background:repeating-linear-gradient(135deg,var(--sem-a,var(--seed)) 0 3px,var(--sem-b,var(--leaf-soft)) 3px 6px);border:1px solid var(--sem-line,var(--seed-ink))}
   .cn-grp{width:100%;box-sizing:border-box;background:var(--card);border:1px solid var(--card-line);border-radius:12px;padding:10px 12px 12px;box-shadow:var(--tip-shadow)}
+  .cn-grp .chips{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .cn-grp .chip{justify-content:flex-start;text-align:left;width:100%;box-sizing:border-box;padding:6px 12px;border-radius:14px;line-height:1.2}
   .cn-grp h4{margin:0 0 8px;font-family:var(--display);font-weight:500;font-size:.95rem;color:var(--carob-text)}
   .cn-none{margin:0;color:var(--muted);font-size:.9rem}
   .yearbtn{display:block;margin:4px auto 14px}

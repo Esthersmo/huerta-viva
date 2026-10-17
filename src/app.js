@@ -407,7 +407,7 @@ function renderCal(){
   document.getElementById('calNow').innerHTML=`<h3>Qué sembrar en ${MONTHS_L[curM]}</h3>`+
     (now.length?`<p class="cn-lbl"><span><i class="cn-dir"></i>Siembra directa o plantación</span>${anySem?'<span><i class="cn-sem"></i>En semillero protegido</span>':''}</p>`+
       Object.keys(GROUPS).map(g=>{const a=now.filter(o=>o.s.g===g);if(!a.length)return '';
-        a.sort((x,y)=>(x.st===y.st?0:x.st==='directa'?-1:1));
+        a.sort((x,y)=>(x.st===y.st?x.s.n.localeCompare(y.s.n,'es'):x.st==='directa'?-1:1));
         return `<section class="cn-grp"><h4>${GROUPS[g]}</h4><div class="chips">${a.map(chip).join('')}</div></section>`}).join('')
     :`<p class="cn-none">Este mes no toca sembrar nada de este grupo en tu zona.</p>`);
   const f=document.getElementById('ficha');if(f.open&&state.mode==='crop')renderFicha();
