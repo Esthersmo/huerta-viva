@@ -65,7 +65,7 @@ const OLD_ZONES={sur:'sevilla',med:'valencia',centro:'madrid',norte:'asturias',c
 // Clima de la zona elegida, ajustado a la altitud del huerto (unos 0,65 °C menos por cada 100 m)
 function zoneNow(){const b=ZONES[state.zone]||ZONES.sevilla;const a=state.alt;if(a==null||isNaN(a)||a===b.alt)return b;
   const d=(a-b.alt)*0.0065;return {...b,t:b.t.map(x=>Math.round((x-d)*10)/10)}}
-const GROUPS={alimentario:'Cultivos alimentarios',frutal:'Árboles frutales',aromatica:'Aromáticas y medicinales',forrajero:'Cultivos forrajeros',ornamental:'Ornamentales'};
+const GROUPS={alimentario:'Cultivos alimentarios',frutal:'Frutales',aromatica:'Aromáticas y medicinales',forrajero:'Cultivos forrajeros',ornamental:'Ornamentales'};
 // tMin/tMax: media mensual del aire para sembrar fuera; sun: horas de sol/día deseables; days: días a cosecha o floración
 // care: días entre riegos (base), abono, cambio de sustrato
 const SPECIES=[
@@ -131,7 +131,7 @@ const SPECIES=[
  {id:'alheli',n:'Alhelí',g:'ornamental',tMin:8,tMax:20,sun:5,seed:1,days:100,care:{riego:4,abono:30,sustrato:365}},
  {id:'antirrino',n:'Boca de dragón',g:'ornamental',tMin:9,tMax:22,sun:6,seed:1,days:100,care:{riego:4,abono:30,sustrato:365}},
  {id:'algodon',n:'Algodón',g:'ornamental',tMin:19,tMax:30,sun:8,seed:0,days:150,care:{riego:5,abono:30,sustrato:365}},
- // Árboles frutales: tMin/tMax marcan la época de plantación (reposo invernal o primavera templada); yrs: años hasta la primera cosecha
+ // Frutales (árboles y arbustos): tMin/tMax marcan la época de plantación (reposo invernal o primavera templada); yrs: años hasta la primera cosecha
  // chill: el mes más frío de la zona no debe pasar de esta media (necesitan frío invernal); frost: el mes más frío debe llegar al menos a esta media (no aguantan heladas)
  {id:'manzano',dec:1,lc:'Anna, Dorsett Golden o Ein Shemer',n:'Manzano',g:'frutal',tree:1,tMin:4,tMax:13,sun:6,seed:0,yrs:3,chill:10,pm:'Final del invierno',care:{riego:7,abono:90,sustrato:0,poda:365}},
  {id:'peral',dec:1,lc:'Flordahome, Hood o perales asiáticos (nashi)',n:'Peral',g:'frutal',tree:1,tMin:4,tMax:13,sun:6,seed:0,yrs:4,chill:10.5,pm:'Final del invierno',care:{riego:7,abono:90,sustrato:0,poda:365}},
