@@ -18,7 +18,7 @@
   --ok:#B7C9A5; --ok-bar:#809671; --ok-soft:#2F3628;
   --warn:#E8CD86; --warn-bar:#BF9D47; --warn-soft:#3D3420;
   --danger:#E8A592; --danger-bar:#B9705C; --danger-soft:#47291F;
-  --card:#4A3D2C; --card-line:#6A5841; --luz:#D2AB80; --carob-text:#C9AD86; --carob:#725C3A; --carob-ink:#F6F3EE; --title-viva:#A9BC97; --title-ficha:#B7C9A5; --sel:#A9BC97; --tip-bg:#4A3D2C; --tipk-bg:#27221A; --tip-line:#6A5841; --tip-shadow:none; --sel-ink:#27221A; --foot-line:#8C7148; --del-bg:#2C1A13; --del-line:#B9705C; --del-ink:#E8A592; --act-bg:#27221A; --act-line:#4A4134; --act-ink:#C9AD86; --panel:#27221A; --panel-line:#4A4134; --sem-a:#D2AB80; --sem-b:#8C7148; --sem-line:#E5D2B8; --luz-mark:#1D1913; --luz-sample:#809671; --deco-op:.07; color-scheme:dark}}
+  --card:#4A3D2C; --card-line:#6A5841; --luz:#D2AB80; --carob-text:#C9AD86; --carob:#725C3A; --carob-ink:#F6F3EE; --title-viva:#A9BC97; --title-ficha:#B7C9A5; --sel:#A9BC97; --tip-bg:#4A3D2C; --tipk-bg:#27221A; --tip-line:#6A5841; --tip-shadow:none; --sel-ink:#27221A; --foot-line:#8C7148; --del-bg:#2C1A13; --del-line:#B9705C; --del-ink:#E8A592; --act-bg:#27221A; --act-line:#4A4134; --act-ink:#C9AD86; --panel:#27221A; --panel-line:#4A4134; --sem-a:#D2AB80; --sem-b:#8C7148; --sem-line:#E5D2B8; --luz-mark:#1D1913; --luz-sample:#809671; --deco-op:.07; --grp-bg:#4A5440; --grp-line:#5E6A51; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#1D1913; --surface:#27221A; --surface-2:#332C22; --ink:#EFE8DC; --muted:#BCAF99; --line:#4A4134;
   --leaf:#A9BC97; --leaf-soft:#4A5440; --leaf-cell:#809671; --seed:#4A3D2C; --seed-ink:#D2AB80;
@@ -26,7 +26,7 @@
   --ok:#B7C9A5; --ok-bar:#809671; --ok-soft:#2F3628;
   --warn:#E8CD86; --warn-bar:#BF9D47; --warn-soft:#3D3420;
   --danger:#E8A592; --danger-bar:#B9705C; --danger-soft:#47291F;
-  --card:#4A3D2C; --card-line:#6A5841; --luz:#D2AB80; --carob-text:#C9AD86; --carob:#725C3A; --carob-ink:#F6F3EE; --title-viva:#A9BC97; --title-ficha:#B7C9A5; --sel:#A9BC97; --tip-bg:#4A3D2C; --tipk-bg:#27221A; --tip-line:#6A5841; --tip-shadow:none; --sel-ink:#27221A; --foot-line:#8C7148; --del-bg:#2C1A13; --del-line:#B9705C; --del-ink:#E8A592; --act-bg:#27221A; --act-line:#4A4134; --act-ink:#C9AD86; --panel:#27221A; --panel-line:#4A4134; --sem-a:#D2AB80; --sem-b:#8C7148; --sem-line:#E5D2B8; --luz-mark:#1D1913; --luz-sample:#809671; --deco-op:.07; color-scheme:dark}
+  --card:#4A3D2C; --card-line:#6A5841; --luz:#D2AB80; --carob-text:#C9AD86; --carob:#725C3A; --carob-ink:#F6F3EE; --title-viva:#A9BC97; --title-ficha:#B7C9A5; --sel:#A9BC97; --tip-bg:#4A3D2C; --tipk-bg:#27221A; --tip-line:#6A5841; --tip-shadow:none; --sel-ink:#27221A; --foot-line:#8C7148; --del-bg:#2C1A13; --del-line:#B9705C; --del-ink:#E8A592; --act-bg:#27221A; --act-line:#4A4134; --act-ink:#C9AD86; --panel:#27221A; --panel-line:#4A4134; --sem-a:#D2AB80; --sem-b:#8C7148; --sem-line:#E5D2B8; --luz-mark:#1D1913; --luz-sample:#809671; --deco-op:.07; --grp-bg:#4A5440; --grp-line:#5E6A51; color-scheme:dark}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5}
 .wrap{max-width:980px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
@@ -109,8 +109,8 @@ table.cal{border-collapse:collapse;width:100%;min-width:720px;font-variant-numer
 .cal tr.clim th.name{background:var(--surface-2);font-weight:400;color:var(--muted);font-size:.9rem}
 .cal .now{box-shadow:inset 0 0 0 2px var(--sun)}
 .cal tbody tr.crop{cursor:pointer}
-.cal tr.grp th{text-align:left;padding:16px 10px 6px;font-family:var(--display);font-weight:600;font-size:1.05rem;color:var(--carob-text);background:var(--panel);border-bottom:1px solid var(--panel-line)}
-.cal tbody tr.grp:first-child th{padding-top:10px}
+.cal tr.grp th{text-align:left;padding:9px 12px;font-family:var(--display);font-weight:700;font-size:.9rem;letter-spacing:.07em;text-transform:uppercase;color:var(--carob-text);background:var(--grp-bg,var(--act-bg));border-top:6px solid var(--panel);border-bottom:1px solid var(--grp-line,var(--act-line))}
+.cal tbody tr.grp:first-child th{border-top-width:0}
 .cal tbody tr.crop th.name{font-size:.95rem;padding-block:8px;color:var(--carob-text)}
 .cal tbody tr.crop:hover th.name{color:var(--leaf)}
 .cal tbody tr.crop.sel th.name{color:var(--leaf);text-decoration:underline}
@@ -337,7 +337,7 @@ form.add label{display:flex;flex-direction:column;gap:4px;font-size:.85rem;color
   .cal-gsel .csel{width:210px}
   table.cal{min-width:0;table-layout:fixed}
   .cal th.name{min-width:0;width:96px;padding:6px 4px 6px 8px;white-space:normal;overflow-wrap:normal;hyphens:auto;line-height:1.15}
-  .cal tr.grp th{font-size:.9rem;padding:12px 8px 5px}
+  .cal tr.grp th{font-size:.78rem;padding:7px 8px}
   .cal thead th.name{font-size:.86rem}
   .cal tbody tr.crop th.name{font-size:.78rem;padding-block:7px}
   .cal tr.clim th.name{font-size:.66rem}

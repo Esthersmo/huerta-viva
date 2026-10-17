@@ -388,7 +388,7 @@ function renderCal(){
   // Con «Todos», un título de grupo antes de cada tipo de cultivo
   const gk=Object.keys(GROUPS);let lastG=null;
   for(const s of [...list].sort((a,b)=>gk.indexOf(a.g)-gk.indexOf(b.g))){
-    if(state.calGroup==='todos'&&s.g!==lastG){lastG=s.g;h+=`<tr class="grp"><th colspan="13" scope="colgroup">${GROUPS[s.g]}</th></tr>`}
+    if(state.calGroup==='todos'&&s.g!==lastG){lastG=s.g;h+=`<tr class="grp"><th colspan="13" scope="colgroup">${s.g==='alimentario'?'Alimentarios':GROUPS[s.g]}</th></tr>`}
     h+=`<tr class="crop${state.sel===s.id?' sel':''}" data-sp="${s.id}"><th class="name" scope="row">${nm(s.n)}</th>`;
     for(let m=0;m<12;m++){const st=cellState(s,z,m);const luz=st&&!s.tree&&z.sun[m]<s.sun?' luz':'';
       const tip=st==='directa'?(s.tree?'Plantación':'Siembra directa'):st==='semillero'?'Semillero protegido':'No recomendado';
