@@ -382,8 +382,14 @@ function renderCal(){
   const list=SPECIES.filter(s=>!s.pot&&(state.calGroup==='todos'||s.g===state.calGroup));
   const nowCls=m=>m===curM?' now':'';
   let h=`<thead><tr><th class="name" scope="col">Cultivo</th>${MONTHS.map((m,i)=>`<th scope="col" class="${nowCls(i).trim()}" title="${MONTHS_L[i]}"><span class="ml">${m}</span><span class="ms" aria-hidden="true">${m[0]}</span></th>`).join('')}</tr></thead><tbody>`;
-  for(const s of list){
-    h+=`<tr class="crop${state.sel===s.id?' sel':''}" data-sp="${s.id}"><th class="name" scope="row">${s.n}</th>`;
+  // Guiones de corte para los nombres largos en la columna estrecha del móvil
+  const SHY={Pensamiento:'Pensa&shy;miento',Melocotonero:'Meloco&shy;tonero',Albaricoquero:'Albari&shy;coquero',Membrillero:'Membri&shy;llero'};
+  const nm=n=>n.split(' ').map(w=>SHY[w]||w).join(' ');
+  // Con «Todos», un título de grupo antes de cada tipo de cultivo
+  const gk=Object.keys(GROUPS);let lastG=null;
+  for(const s of [...list].sort((a,b)=>gk.indexOf(a.g)-gk.indexOf(b.g))){
+    if(state.calGroup==='todos'&&s.g!==lastG){lastG=s.g;h+=`<tr class="grp"><th colspan="13" scope="colgroup">${GROUPS[s.g]}</th></tr>`}
+    h+=`<tr class="crop${state.sel===s.id?' sel':''}" data-sp="${s.id}"><th class="name" scope="row">${nm(s.n)}</th>`;
     for(let m=0;m<12;m++){const st=cellState(s,z,m);const luz=st&&!s.tree&&z.sun[m]<s.sun?' luz':'';
       const tip=st==='directa'?(s.tree?'Plantación':'Siembra directa'):st==='semillero'?'Semillero protegido':'No recomendado';
       h+=`<td class="${nowCls(m).trim()}"><div class="cell ${st}${luz}" title="${s.n}, ${MONTHS_L[m]}: ${tip}${luz?' (poca luz)':''}"></div></td>`}

@@ -109,6 +109,8 @@ table.cal{border-collapse:collapse;width:100%;min-width:720px;font-variant-numer
 .cal tr.clim th.name{background:var(--surface-2);font-weight:400;color:var(--muted);font-size:.9rem}
 .cal .now{box-shadow:inset 0 0 0 2px var(--sun)}
 .cal tbody tr.crop{cursor:pointer}
+.cal tr.grp th{text-align:left;padding:16px 10px 6px;font-family:var(--display);font-weight:600;font-size:1.05rem;color:var(--carob-text);background:var(--panel);border-bottom:1px solid var(--panel-line)}
+.cal tbody tr.grp:first-child th{padding-top:10px}
 .cal tbody tr.crop th.name{font-size:.95rem;padding-block:8px;color:var(--carob-text)}
 .cal tbody tr.crop:hover th.name{color:var(--leaf)}
 .cal tbody tr.crop.sel th.name{color:var(--leaf);text-decoration:underline}
@@ -334,7 +336,8 @@ form.add label{display:flex;flex-direction:column;gap:4px;font-size:.85rem;color
   .cal-gsel{display:flex;align-items:center;justify-content:center;gap:10px;font-size:.9rem;color:var(--muted);margin:4px auto 12px}
   .cal-gsel .csel{width:210px}
   table.cal{min-width:0;table-layout:fixed}
-  .cal th.name{min-width:0;width:78px;padding:6px 4px 6px 8px;white-space:normal;overflow-wrap:anywhere;line-height:1.15}
+  .cal th.name{min-width:0;width:96px;padding:6px 4px 6px 8px;white-space:normal;overflow-wrap:normal;hyphens:auto;line-height:1.15}
+  .cal tr.grp th{font-size:.9rem;padding:12px 8px 5px}
   .cal thead th.name{font-size:.86rem}
   .cal tbody tr.crop th.name{font-size:.78rem;padding-block:7px}
   .cal tr.clim th.name{font-size:.66rem}
