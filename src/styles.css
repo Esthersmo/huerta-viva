@@ -152,6 +152,9 @@ table.cal{border-collapse:collapse;width:100%;min-width:720px;font-variant-numer
 .pf-id h2{font-size:1.5rem;line-height:1.15;margin-top:6px}
 .pf-row{display:flex;justify-content:space-between;align-items:center;gap:10px 16px;flex-wrap:wrap;padding-bottom:4px;margin-top:2px}
 .pf-row #editToggle{margin-left:auto}
+.pf-acts{display:flex;gap:8px;margin-left:auto}
+.pf-acts #editToggle{margin-left:0}
+.sharerow{display:flex;justify-content:center;margin-top:18px}
 .ficha h2{color:var(--title-ficha)}
 .pf-meta{display:flex;flex-wrap:wrap;gap:4px 18px;margin:2px 0 0}
 .pf-meta div{display:flex;flex-direction:column;align-items:center;text-align:center}

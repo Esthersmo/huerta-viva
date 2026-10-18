@@ -1,6 +1,7 @@
 import './styles.css';
 import {store} from './store.js';
 import {setupNotify,updateSchedule} from './notify.js';
+import {sharePlant,shareGarden} from './share.js';
 const ILUS=import.meta.env.BASE_URL+'ilus/';
 
 const MONTHS=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
@@ -469,7 +470,7 @@ function renderPlantFicha(){
    </div>
    <div class="pf-row">
        <dl class="pf-meta"><div><dt>Ubicación</dt><dd>${p.loc==='interior'?'Interior':'Exterior'}</dd></div><div><dt>Especie</dt><dd>${s.n}</dd></div><div><dt>${s.tree?'Plantación':'Siembra'}</dt><dd>${fdate(p.sown)}</dd></div><div><dt>Edad</dt><dd>${age===0?'Hoy':age>=365?`${(age/365).toFixed(1).replace('.0','').replace('.',',')} años`:`${age} días`}</dd></div></dl>
-       ${state.editing?'':`<button class="btn" id="editToggle" aria-expanded="false">Editar datos</button>`}
+       ${state.editing?'':`<span class="pf-acts"><button class="btn" id="sharePlantBtn">Compartir</button><button class="btn" id="editToggle" aria-expanded="false">Editar datos</button></span>`}
    </div>
    ${state.editing?`<section class="pf-sec"><div class="pf-sh"><h3>Editar datos</h3></div><form class="add edit" id="editForm">
        <label for="eName">Nombre<input id="eName" required value="${esc(p.name)}"></label>
@@ -843,4 +844,24 @@ layoutDeco();
 let decoW=innerWidth,decoT;addEventListener('resize',()=>{clearTimeout(decoT);decoT=setTimeout(()=>{if(Math.abs(innerWidth-decoW)>80){decoW=innerWidth;layoutDeco()}},300)});
 function padHead(){const hd=document.querySelector('header');if(hd){document.body.style.paddingTop=hd.offsetHeight+'px';document.documentElement.style.scrollPaddingTop=hd.offsetHeight+12+'px'}}
 padHead();try{new ResizeObserver(padHead).observe(document.querySelector('header'))}catch(e){addEventListener('resize',padHead)}
+// ---------- Compartir como imagen ----------
+const relTxt=d=>{const n=Math.round((today-parse(d))/DAY);return n<=0?'hoy':n===1?'ayer':`hace ${n} días`};
+const decoFor=id=>DECO[id]?decoUrl(id):null;
+async function shareBusy(btn,fn){if(btn.disabled)return;const t=btn.textContent;btn.disabled=true;btn.textContent='Preparando…';
+  try{const r=await fn();if(r==='downloaded')toast('Imagen guardada en descargas')}catch(e){toast('No se pudo crear la imagen')}
+  btn.disabled=false;btn.textContent=t}
+ficha.addEventListener('click',e=>{const b=e.target.closest('#sharePlantBtn');if(!b)return;
+  const p=state.plants.find(x=>x.id===state.plantSel);if(!p)return;const s=SP[p.sp];
+  const ph=(photos[p.id]||[]).slice().sort((a,b)=>a.date<b.date?-1:1);const big=ph.find(x=>x.id===state.photoBig)||ph[ph.length-1];
+  const age=daysSince(p,iso(today));
+  const care=Object.keys(ACTIONS).filter(a=>s.care&&s.care[a]&&p.log&&p.log[a]).map(a=>`${ACTIONS[a]} ${relTxt(p.log[a])}`);
+  shareBusy(b,()=>sharePlant({name:p.name,species:s.n,loc:p.loc==='interior'?'Interior':'Exterior',
+    sownTxt:`${s.tree?'Plantada':'Sembrada'} el ${fdate(p.sown)}`,ageTxt:age===0?'hoy':age===1?'1 día':`${age} días`,
+    photo:big?{src:big.src,caption:`Día ${daysSince(p,big.date)}`}:null,care:care.length?[care.join(' · ')]:[],deco:decoFor(s.id)}));
+});
+document.getElementById('shareGarden').addEventListener('click',e=>{
+  const zone=state.cp?.name||ZONES[state.zone]?.name.split(' (')[0]||'';
+  const plants=state.plants.map(p=>{const ph=(photos[p.id]||[]).slice().sort((a,b)=>a.date<b.date?-1:1);return {name:p.name,species:SP[p.sp]?.n||'',photo:ph.length?ph[ph.length-1].src:null,deco:decoFor(p.sp)}});
+  shareBusy(e.currentTarget,()=>shareGarden({zone,plants}));
+});
 setupNotify();
