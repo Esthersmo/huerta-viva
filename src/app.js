@@ -398,10 +398,6 @@ function renderCal(){
     h+='</tr>';
   }
   document.getElementById('cal').innerHTML=h+'</tbody>';
-  // Clima de la zona: dato informativo dentro de «Tu zona»
-  document.getElementById('zoneClim').innerHTML=`<table><thead><tr><th scope="col"></th>${MONTHS.map((m,i)=>`<th scope="col" class="${nowCls(i).trim()}" title="${MONTHS_L[i]}"><span class="ml">${m}</span><span class="ms" aria-hidden="true">${m[0]}</span></th>`).join('')}</tr></thead><tbody>
-    <tr><th scope="row"><span class="ml">Temp. media °C</span><span class="ms">Temp. °C</span></th>${z.t.map((t,i)=>`<td class="${nowCls(i).trim()}">${Math.round(t)}</td>`).join('')}</tr>
-    <tr><th scope="row"><span class="ml">Horas de sol/día</span><span class="ms">Sol h/día</span></th>${z.sun.map((x,i)=>`<td class="${nowCls(i).trim()}">${x}</td>`).join('')}</tr></tbody></table>`;
   // Móvil: lo que se puede sembrar o plantar este mes, antes de la tabla del año
   const now=list.map(s=>({s,st:cellState(s,z,curM)})).filter(o=>o.st==='directa'||o.st==='semillero');
   const anySem=now.some(o=>o.st==='semillero');
