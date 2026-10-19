@@ -57,7 +57,9 @@ export function initPlan(ctx) {
       const s = SP[p.sp]; if (!s) continue;
       const g = GCOL[s.g] || 'ali', on = sel === p.id;
       if (s.tree) { const r = canopy(p); h += `<div class="canopy" style="left:${pct(p.pos.x - r, W)};top:${pct(p.pos.y - r, H)};width:${pct(r * 2, W)};height:${pct(r * 2, H)}"></div>`; }
-      h += `<div class="pi pt g-${g}${s.tree ? ' tree' : ''}${on ? ' sel' : ''}${badIds.has(p.id) ? ' foe' : ''}" data-pid="${esc(p.id)}" tabindex="0" role="button" aria-label="${esc(p.name)}" style="left:${pct(p.pos.x, W)};top:${pct(p.pos.y, H)}"><span class="dot">${ab(s)}</span><span class="nm">${esc(p.name)}</span></div>`;
+      // Un ! rojo si tiene alguna tarea atrasada (las que salen en rojo en Recordatorios)
+      const late = ctx.overdue?.(p)?.length;
+      h += `<div class="pi pt g-${g}${s.tree ? ' tree' : ''}${on ? ' sel' : ''}${badIds.has(p.id) ? ' foe' : ''}" data-pid="${esc(p.id)}" tabindex="0" role="button" aria-label="${esc(p.name)}${late ? ' · tiene tareas atrasadas' : ''}" style="left:${pct(p.pos.x, W)};top:${pct(p.pos.y, H)}"><span class="dot">${ab(s)}${late ? '<span class="late" aria-hidden="true">!</span>' : ''}</span><span class="nm">${esc(p.name)}</span></div>`;
     }
     plan.querySelectorAll('.pi,.canopy').forEach(e => e.remove());
     plan.insertAdjacentHTML('beforeend', h);
@@ -95,6 +97,7 @@ export function initPlan(ctx) {
     const bad = near.filter(q => r.bad.has(q.sp)), good = near.filter(q => r.good.has(q.sp)), h = holder(p);
     card.innerHTML = `<p class="k">${s.tree ? 'Frutal' : 'Planta'}</p><h3>${esc(p.name)}</h3>
       <p class="sub">${h ? `En ${esc(h.name)}` : 'En el suelo'}${s.tree && h?.k === 'pot' && h.w < .8 ? ' · un árbol necesita una maceta grande, de 80 cm o más' : ''}</p>
+      ${(late => late?.length ? `<p class="alert">Atrasado: ${late.join(', ')}.</p>` : '')(ctx.overdue?.(p))}
       ${bad.length ? `<p class="alert">Tiene cerca ${bad.map(q => esc(q.name)).join(' y ')}, a menos de ${num(NEAR)} m, y no se llevan bien. Mejor separarlas.</p>` : ''}
       ${good.length ? `<p class="sub good">Buena compañía cerca: ${good.map(q => esc(q.name)).join(', ')}.</p>` : ''}
       ${s.tree ? `<p class="sub">El círculo de puntos es la copa: lo que pongas debajo tendrá sombra.</p>` : ''}

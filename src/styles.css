@@ -564,3 +564,6 @@ html.plan-noscroll,html.plan-noscroll body{overflow:hidden}
 .planbox.full .plan-deco{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:0}
 .planbox.full .plan-deco img{position:absolute;opacity:var(--deco-op,.13);user-select:none}
 .planbox.full .plan-body{z-index:1}
+.plan .dot{position:relative}
+.plan .late{position:absolute;top:-5px;right:-6px;width:15px;height:15px;border-radius:50%;background:var(--danger);color:var(--card);font:800 .66rem/15px var(--body);text-align:center;border:1.5px solid var(--card);pointer-events:none}
+@media (max-width:600px){.plan .late{width:12px;height:12px;line-height:12px;font-size:.56rem;top:-4px;right:-5px}}

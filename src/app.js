@@ -991,7 +991,7 @@ document.getElementById('addForm').addEventListener('submit',e=>{
   dropExamples();state.plants.push(p);save('hv.plants',state.plants);e.target.reset();document.getElementById('fDate').value=iso(today);refreshSelects();
   state.plGroup='todos';state.plLoc='todas';renderPlants();renderRem();toast(`${name} añadida`);try{if(!matchMedia("(min-width:601px)").matches)document.getElementById("addBox").open=false}catch(e){}
 });
-var planUI=initPlan({plants:()=>state.plants,savePlants:()=>save('hv.plants',state.plants),SP,REL,esc,toast,enhance:enhanceSelect,openPlant:id=>openPlant(id)});
+var planUI=initPlan({overdue:p=>dues(p).filter(x=>x.left<0).map(x=>`${ACTIONS[x.a].toLowerCase()} (${leftTxt(x.left).toLowerCase()})`),plants:()=>state.plants,savePlants:()=>save('hv.plants',state.plants),SP,REL,esc,toast,enhance:enhanceSelect,openPlant:id=>openPlant(id)});
 renderAll();
 // Apariencia: claro por defecto; la elección se recuerda en este navegador
 function setTheme(t){document.documentElement.setAttribute('data-theme',t);document.querySelectorAll('#themeSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.themeSet===t))}
