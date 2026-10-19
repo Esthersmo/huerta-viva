@@ -106,10 +106,15 @@
       </details>
       <details class="panel planbox" id="planBox" style="margin-bottom:20px">
         <summary><h2>Plano del huerto</h2></summary>
+        <div class="plan-tabs" id="planTabs" aria-label="Tus huertos"></div>
+        <div class="plan-garden">
+          <label for="planGName">Nombre<input id="planGName" maxlength="30"></label>
+          <span class="plan-size"><label for="planW">Medidas</label><input id="planW" inputmode="decimal" aria-label="Ancho del huerto en metros"> × <input id="planH" inputmode="decimal" aria-label="Largo del huerto en metros"> m</span>
+          <button class="btn del" type="button" id="planGRm" hidden>Quitar huerto</button>
+        </div>
         <div class="plan-tools">
           <button class="btn primary" type="button" id="planBed">+ Bancal</button>
           <button class="btn" type="button" id="planPot">+ Maceta</button>
-          <span class="plan-size"><label for="planW">Medidas</label><input id="planW" inputmode="decimal" aria-label="Ancho del huerto en metros"> × <input id="planH" inputmode="decimal" aria-label="Largo del huerto en metros"> m</span>
         </div>
         <div class="plan-grid">
           <div class="plan-main">

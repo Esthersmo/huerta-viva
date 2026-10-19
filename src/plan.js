@@ -1,5 +1,6 @@
 // Plano del huerto: bancales y macetas a escala (en metros) y cada planta colocada en su sitio.
-// Las posiciones de las plantas se guardan en la propia planta (p.pos) y el resto en hv.plan; las dos cosas se sincronizan.
+// Puede haber varios huertos (patio, azotea…), cada uno con sus medidas y su disposición.
+// Las posiciones de las plantas se guardan en la propia planta (p.pos, con el huerto en p.pos.h) y el resto en hv.plan; las dos cosas se sincronizan.
 import {store} from './store.js';
 
 const KEY = 'hv.plan', NEAR = 1.2; // a esta distancia o menos (m) dos plantas se consideran juntas
@@ -13,15 +14,21 @@ export function initPlan(ctx) {
   const {SP, REL, esc} = ctx;
   const el = id => document.getElementById(id);
   const box = el('planBox'), plan = el('plan'), svg = el('planLines');
-  let pl = load(), sel = null, drag = null;
+  let all = load(), pl = current(), sel = null, drag = null;
 
   function load() {
     let v = null; try { v = JSON.parse(store.getItem(KEY) || 'null'); } catch (e) {}
-    return v && Array.isArray(v.beds) ? {w: v.w || 8, h: v.h || 6, beds: v.beds} : {w: 8, h: 6, beds: []};
+    if (v && Array.isArray(v.list) && v.list.length) return v;
+    // Antes había un solo huerto: pasa a ser el primero de la lista
+    const one = {id: 'h1', name: 'Mi huerto', w: v?.w || 8, h: v?.h || 6, beds: Array.isArray(v?.beds) ? v.beds : []};
+    return {cur: one.id, list: [one]};
   }
-  const save = () => { try { store.setItem(KEY, JSON.stringify(pl)); } catch (e) {} };
+  function current() { return all.list.find(x => x.id === all.cur) || all.list[0]; }
+  const save = () => { try { store.setItem(KEY, JSON.stringify(all)); } catch (e) {} };
   const plants = () => ctx.plants();
-  const placed = () => plants().filter(p => p.pos);
+  // Las plantas colocadas antes de haber varios huertos son del primero
+  const gardenOf = p => p.pos && (all.list.some(x => x.id === p.pos.h) ? p.pos.h : all.list[0].id);
+  const placed = () => plants().filter(p => p.pos && gardenOf(p) === pl.id);
   const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
   const inside = (pos, b) => b.k === 'bed' ? pos.x >= b.x && pos.x <= b.x + b.w && pos.y >= b.y && pos.y <= b.y + b.h
     : dist(pos, {x: b.x + b.w / 2, y: b.y + b.w / 2}) <= b.w / 2 + .05;
@@ -32,11 +39,14 @@ export function initPlan(ctx) {
   const foes = () => { const out = [], ps = placed(); for (let i = 0; i < ps.length; i++) for (let j = i + 1; j < ps.length; j++) if (dist(ps[i].pos, ps[j].pos) <= NEAR && badPair(ps[i], ps[j])) out.push([ps[i], ps[j]]); return out; };
   const ab = s => s.n.normalize('NFD').replace(/[̀-ͯ]/g, '').slice(0, 2).toUpperCase();
 
+  // La cuadrícula de 1 m en píxeles enteros, para que no se pierdan líneas al redondear
+  function gridSize() { const r = plan.getBoundingClientRect(); if (r.width) plan.style.backgroundSize = `${r.width / pl.w}px ${r.width / pl.w}px`; }
+  try { new ResizeObserver(gridSize).observe(plan); } catch (e) {}
   function draw(keepInfo) {
     if (!box.open) return;
     const {w: W, h: H} = pl, pct = (v, t) => v / t * 100 + '%';
     plan.style.aspectRatio = `${W}/${H}`;
-    plan.style.backgroundSize = `${100 / W}% ${100 / H}%`;
+    gridSize();
     svg.setAttribute('viewBox', `0 0 ${W * 100} ${H * 100}`);
     const bad = foes(), badIds = new Set(bad.flat().map(p => p.id));
     let h = '';
@@ -56,7 +66,7 @@ export function initPlan(ctx) {
   function drawTray() {
     const un = plants().filter(p => !p.pos && SP[p.sp]);
     el('planTray').innerHTML = un.length ? un.map(p => `<button type="button" class="g-${GCOL[SP[p.sp].g] || 'ali'}" data-place="${esc(p.id)}"><span class="dot">${ab(SP[p.sp])}</span>${esc(p.name)}</button>`).join('')
-      : '<p class="note">Todas tus plantas están en el plano.</p>';
+      : `<p class="note">Todas tus plantas están colocadas${all.list.length > 1 ? ' en tus huertos' : ' en el plano'}.</p>`;
   }
   function drawInfo() {
     const card = el('planInfo'), b = pl.beds.find(x => x.id === sel), p = plants().find(x => x.id === sel);
@@ -84,7 +94,9 @@ export function initPlan(ctx) {
       ${bad.length ? `<p class="alert">Tiene cerca ${bad.map(q => esc(q.name)).join(' y ')}, a menos de ${num(NEAR)} m, y no se llevan bien. Mejor separarlas.</p>` : ''}
       ${good.length ? `<p class="sub good">Buena compañía cerca: ${good.map(q => esc(q.name)).join(', ')}.</p>` : ''}
       ${s.tree ? `<p class="sub">El círculo de puntos es la copa: lo que pongas debajo tendrá sombra.</p>` : ''}
+      ${all.list.length > 1 ? `<label class="pf">Pasar a otro huerto<select id="planMove"><option value="">Elige huerto</option>${all.list.filter(x => x !== pl).map(x => `<option value="${esc(x.id)}">${esc(x.name)}</option>`).join('')}</select></label>` : ''}
       <div class="row"><button class="btn act" type="button" id="planOpen">Ver ficha</button><button class="btn" type="button" id="planOut">Sacar del plano</button></div>`;
+    if (el('planMove')) ctx.enhance?.(el('planMove'));
   }
 
   // Arrastrar con el dedo o el ratón. Al mover un bancal o una maceta, sus plantas van con él.
@@ -103,7 +115,7 @@ export function initPlan(ctx) {
     const m = at(e), {o, b} = drag, w = b ? b.w : 0, h = b ? (b.k === 'pot' ? b.w : b.h) : 0;
     o.x = Math.max(0, Math.min(pl.w - w, Math.round((m.x - drag.dx) * 10) / 10));
     o.y = Math.max(0, Math.min(pl.h - h, Math.round((m.y - drag.dy) * 10) / 10));
-    for (const k of drag.kids) k.q.pos = {x: +(o.x + k.dx).toFixed(2), y: +(o.y + k.dy).toFixed(2)};
+    for (const k of drag.kids) k.q.pos = {x: +(o.x + k.dx).toFixed(2), y: +(o.y + k.dy).toFixed(2), h: pl.id};
     drag.moved = true; draw();
   });
   const end = () => { if (!drag) return; const {moved, b, kids} = drag; drag = null; if (moved) { if (b) save(); if (!b || kids.length) ctx.savePlants(); } draw(); };
@@ -121,9 +133,9 @@ export function initPlan(ctx) {
     const cx = pl.w / 2, cy = pl.h / 2, taken = placed().map(q => q.pos);
     for (let r = 0; r < Math.max(pl.w, pl.h); r += .6) for (let a = 0; a < 360; a += r ? 45 : 360) {
       const x = +(cx + r * Math.cos(a * Math.PI / 180)).toFixed(1), y = +(cy + r * Math.sin(a * Math.PI / 180)).toFixed(1);
-      if (x >= .2 && y >= .2 && x <= pl.w - .2 && y <= pl.h - .2 && !taken.some(q => dist(q, {x, y}) < .5)) return {x, y};
+      if (x >= .2 && y >= .2 && x <= pl.w - .2 && y <= pl.h - .2 && !taken.some(q => dist(q, {x, y}) < .5)) return {x, y, h: pl.id};
     }
-    return {x: +cx.toFixed(1), y: +cy.toFixed(1)};
+    return {x: +cx.toFixed(1), y: +cy.toFixed(1), h: pl.id};
   }
   const nextName = (k, base) => { let n = pl.beds.filter(b => b.k === k).length + 1; while (pl.beds.some(b => b.name === `${base} ${n}`)) n++; return `${base} ${n}`; };
   el('planBed').addEventListener('click', () => { const {x, y} = free(2, 1); const b = {id: 'b' + Date.now(), k: 'bed', name: nextName('bed', 'Bancal'), x, y, w: 2, h: 1}; pl.beds.push(b); sel = b.id; save(); draw(); });
@@ -140,6 +152,11 @@ export function initPlan(ctx) {
     if (t.id === 'planRm') { const b = pl.beds.find(x => x.id === sel); pl.beds = pl.beds.filter(x => x !== b); sel = null; save(); draw(); ctx.toast(`${b.name} quitado del plano`); }
   });
   el('planInfo').addEventListener('change', e => {
+    if (e.target.id === 'planMove' && e.target.value) {
+      const p = plants().find(x => x.id === sel), to = all.list.find(x => x.id === e.target.value);
+      all.cur = to.id; pl = to; p.pos = spot(); save(); ctx.savePlants(); drawGardens(); draw();
+      ctx.toast(`${p.name} pasada a ${to.name}`); return;
+    }
     const b = pl.beds.find(x => x.id === sel); if (!b) return;
     if (e.target.id === 'planName') { b.name = e.target.value.trim().slice(0, 30) || b.name; save(); draw(true); }
     if (['planSize', 'planBW', 'planBH'].includes(e.target.id)) {
@@ -150,14 +167,39 @@ export function initPlan(ctx) {
       if (b.k === 'bed') { el('planBW').value = num(b.w); el('planBH').value = num(b.h); }
     }
   });
-  // Medidas del huerto
-  const wIn = el('planW'), hIn = el('planH');
-  const drawSize = () => { wIn.value = pl.w; hIn.value = pl.h; };
+  // Huertos: pestañas, nombre y medidas del que se está viendo
+  const wIn = el('planW'), hIn = el('planH'), nIn = el('planGName');
+  const drawSize = () => { wIn.value = pl.w; hIn.value = pl.h; nIn.value = pl.name; el('planGRm').hidden = all.list.length < 2; };
+  function drawGardens() {
+    el('planTabs').innerHTML = all.list.map(x => `<button type="button" data-garden="${esc(x.id)}" aria-pressed="${x === pl}">${esc(x.name)}</button>`).join('')
+      + '<button type="button" class="add" id="planGAdd">+ Huerto</button>';
+    drawSize();
+  }
+  el('planTabs').addEventListener('click', e => {
+    const t = e.target.closest('[data-garden]');
+    if (t) { all.cur = t.dataset.garden; pl = current(); sel = null; save(); drawGardens(); draw(); return; }
+    if (e.target.closest('#planGAdd')) {
+      let n = all.list.length + 1; while (all.list.some(x => x.name === `Huerto ${n}`)) n++;
+      const g = {id: 'h' + Date.now(), name: `Huerto ${n}`, w: 4, h: 3, beds: []};
+      all.list.push(g); all.cur = g.id; pl = g; sel = null; save(); drawGardens(); draw();
+      nIn.focus(); nIn.select(); ctx.toast('Huerto nuevo: ponle nombre y medidas');
+    }
+  });
+  nIn.addEventListener('change', () => { pl.name = nIn.value.trim().slice(0, 30) || pl.name; save(); drawGardens(); });
+  // Quitar un huerto en dos toques: el primero pide confirmación
+  el('planGRm').addEventListener('click', e => {
+    const b = e.currentTarget;
+    if (!b.dataset.sure) { b.dataset.sure = '1'; b.textContent = `¿Quitar ${pl.name}? Toca otra vez`; setTimeout(() => { delete b.dataset.sure; b.textContent = 'Quitar huerto'; }, 4000); return; }
+    delete b.dataset.sure; b.textContent = 'Quitar huerto';
+    const gone = pl; for (const p of plants()) if (p.pos && gardenOf(p) === gone.id) delete p.pos;
+    all.list = all.list.filter(x => x !== gone); all.cur = all.list[0].id; pl = current(); sel = null;
+    save(); ctx.savePlants(); drawGardens(); draw(); ctx.toast(`${gone.name} quitado. Sus plantas siguen en Mis plantas, sin colocar.`);
+  });
   const setSize = () => { const c = v => Math.max(1, Math.min(60, Math.round((+String(v).replace(',', '.') || 1) * 2) / 2)); pl.w = c(wIn.value); pl.h = c(hIn.value); drawSize(); save(); draw(); };
   wIn.addEventListener('change', setSize); hIn.addEventListener('change', setSize);
   box.addEventListener('toggle', () => draw());
-  drawSize();
+  drawGardens();
 
   // Desde fuera: cuando cambian las plantas o llegan datos de otro dispositivo
-  return {draw, reload() { pl = load(); drawSize(); if (sel && !pl.beds.some(b => b.id === sel) && !plants().some(p => p.id === sel)) sel = null; draw(); }};
+  return {draw, reload() { all = load(); pl = current(); drawGardens(); if (sel && !pl.beds.some(b => b.id === sel) && !plants().some(p => p.id === sel)) sel = null; draw(); }};
 }

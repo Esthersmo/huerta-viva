@@ -532,3 +532,14 @@ form.add label{display:flex;flex-direction:column;gap:4px;font-size:.85rem;color
 .plan-card .pf-size{display:flex;align-items:center;gap:6px;color:var(--muted)}
 .plan-card .pf-size input{width:4.2em;text-align:center;padding:8px 4px;border-radius:8px;border:1px solid var(--card-line);background:var(--surface);color:var(--ink);font:inherit}
 .plan .pot{min-width:14px;min-height:14px}
+.plan-tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.plan-tabs button{font:500 .9rem var(--body);border-radius:999px;padding:6px 14px;border:1px solid var(--card-line);background:var(--card);color:var(--ink);cursor:pointer}
+.plan-tabs button[aria-pressed="true"]{background:var(--sel);border-color:var(--sel);color:var(--sel-ink)}
+.plan-tabs button.add{border-style:dashed;background:transparent;color:var(--carob-text)}
+.plan-garden{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;margin-bottom:12px;color:var(--muted);font-size:.9rem}
+.plan-garden>label{display:flex;align-items:center;gap:6px}
+.plan-garden #planGName{width:11em;padding:6px 10px;border-radius:8px;border:1px solid var(--card-line);background:var(--card);color:var(--ink);font:inherit}
+.plan-garden .plan-size{margin-left:0}
+.plan-garden .btn.del{background:var(--del-bg);border-color:var(--del-line);color:var(--del-ink);margin-left:auto}
+.plan-garden .btn.del[hidden]{display:none}
+@media (max-width:600px){.plan-garden .btn.del{margin-left:0}}
