@@ -106,6 +106,7 @@
       </details>
       <details class="panel planbox" id="planBox" style="margin-bottom:20px">
         <summary><h2>Plano del huerto</h2></summary>
+        <div class="plan-body">
         <div class="plan-tabs" id="planTabs" aria-label="Tus huertos"></div>
         <div class="plan-garden">
           <label for="planGName">Nombre<input id="planGName" maxlength="30"></label>
@@ -115,7 +116,9 @@
         <div class="plan-tools">
           <button class="btn primary" type="button" id="planBed">+ Bancal</button>
           <button class="btn" type="button" id="planPot">+ Maceta</button>
+          <button class="btn plan-fs" type="button" id="planFull" aria-pressed="false">Pantalla completa</button>
         </div>
+        <p class="note plan-turn">Gira el móvil para ver el plano más grande.</p>
         <div class="plan-grid">
           <div class="plan-main">
             <div class="plan" id="plan"><svg id="planLines" preserveAspectRatio="none" aria-hidden="true"></svg><p class="note plan-empty" id="planEmpty">Añade tus bancales y macetas y coloca en ellos tus plantas.</p></div>
@@ -125,6 +128,7 @@
             <div class="plan-card" id="planInfo"></div>
             <div class="plan-card"><p class="k">Sin colocar</p><div class="plan-tray" id="planTray"></div></div>
           </div>
+        </div>
         </div>
       </details>
       <div class="panel">

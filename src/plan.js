@@ -62,6 +62,7 @@ export function initPlan(ctx) {
     svg.innerHTML = bad.map(([a, b]) => `<line x1="${a.pos.x * 100}" y1="${a.pos.y * 100}" x2="${b.pos.x * 100}" y2="${b.pos.y * 100}" vector-effect="non-scaling-stroke"/>`).join('');
     el('planEmpty').hidden = !!(pl.beds.length || placed().length);
     drawTray(); if (keepInfo !== true) drawInfo();
+    if (box.classList.contains('full')) requestAnimationFrame(() => fit());
   }
   function drawTray() {
     const un = plants().filter(p => !p.pos && SP[p.sp]);
@@ -198,6 +199,32 @@ export function initPlan(ctx) {
   const setSize = () => { const c = v => Math.max(1, Math.min(60, Math.round((+String(v).replace(',', '.') || 1) * 2) / 2)); pl.w = c(wIn.value); pl.h = c(hIn.value); drawSize(); save(); draw(); };
   wIn.addEventListener('change', setSize); hIn.addEventListener('change', setSize);
   box.addEventListener('toggle', () => draw());
+
+  // Pantalla completa: el plano ocupa toda la pantalla; en Android además se gira a horizontal.
+  // En iPhone no hay pantalla completa para webs, así que se amplía dentro de la app y se gira el móvil a mano.
+  const fsBtn = el('planFull'), main = plan.parentElement;
+  const isFull = () => box.classList.contains('full');
+  function fit() {
+    if (!isFull()) { plan.style.width = ''; return; }
+    const r = main.getBoundingClientRect(); plan.style.width = Math.min(r.width, r.height * pl.w / pl.h) + 'px'; gridSize();
+  }
+  function setFull(on) {
+    box.open = true; box.classList.toggle('full', on); document.documentElement.classList.toggle('plan-noscroll', on);
+    fsBtn.textContent = on ? 'Salir' : 'Pantalla completa'; fsBtn.setAttribute('aria-pressed', on);
+    if (on) {
+      const req = box.requestFullscreen || box.webkitRequestFullscreen;
+      try { Promise.resolve(req?.call(box)).then(() => screen.orientation?.lock?.('landscape')).catch(() => {}); } catch (e) {}
+    } else if (document.fullscreenElement || document.webkitFullscreenElement) {
+      try { (document.exitFullscreen || document.webkitExitFullscreen).call(document); } catch (e) {}
+    }
+    draw(); requestAnimationFrame(fit);
+  }
+  fsBtn.addEventListener('click', () => setFull(!isFull()));
+  const fsOff = () => { if (isFull() && !(document.fullscreenElement || document.webkitFullscreenElement)) setFull(false); };
+  document.addEventListener('fullscreenchange', fsOff); document.addEventListener('webkitfullscreenchange', fsOff);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && isFull()) setFull(false); });
+  addEventListener('resize', () => requestAnimationFrame(fit));
+  try { new ResizeObserver(() => fit()).observe(main); } catch (e) {}
   drawGardens();
 
   // Desde fuera: cuando cambian las plantas o llegan datos de otro dispositivo
