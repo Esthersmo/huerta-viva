@@ -31,12 +31,12 @@ function wrap(c, txt, x, y, maxW, lh, maxLines = 2, align = 'left') {
   }
   c.fillText(line, x, y); return y + lh;
 }
-function frame(c) {
-  c.fillStyle = C.bg; c.fillRect(0, 0, W, H);
-  c.fillStyle = C.card; c.strokeStyle = C.line; c.lineWidth = 3; rr(c, 50, 50, W - 100, H - 100, 44); c.fill(); c.stroke();
+function frame(c, h = H) {
+  c.fillStyle = C.bg; c.fillRect(0, 0, W, h);
+  c.fillStyle = C.card; c.strokeStyle = C.line; c.lineWidth = 3; rr(c, 50, 50, W - 100, h - 100, 44); c.fill(); c.stroke();
 }
-function footer(c) {
-  const y = H - 110;
+function footer(c, h = H) {
+  const y = h - 110;
   c.strokeStyle = C.line; c.lineWidth = 2; c.beginPath(); c.moveTo(100, y - 50); c.lineTo(W - 100, y - 50); c.stroke();
   c.textAlign = 'left'; c.fillStyle = C.ink; c.font = '600 46px Fraunces'; c.fillText('Sembra', 100, y);
   const w = c.measureText('Sembra').width; c.fillStyle = C.matcha; c.font = 'italic 600 46px Fraunces'; c.fillText('día', 100 + w, y);
@@ -85,8 +85,15 @@ export async function sharePlant(d) {
 // d: {zone, plants:[{name, species, photo, deco}]}
 export async function shareGarden(d) {
   await fonts();
-  const cv = document.createElement('canvas'); cv.width = W; cv.height = H; const c = cv.getContext('2d');
-  frame(c);
+  // Si hay plano, la imagen se alarga hacia abajo para dibujar cada huerto debajo de las plantas
+  const plans = (d.plans || []).slice(0, 3), PW = W - 200;
+  const ph = plans.map(g => Math.min(760, PW * g.h / g.w));
+  const extra = plans.reduce((t, g, i) => t + 90 + ph[i] + 40, 0);
+  // Los planos van justo debajo de la última fila de plantas
+  const rows = Math.max(1, Math.ceil(Math.min(d.plants.length, 9) / 3)), gridEnd = 285 + rows * 281;
+  const HH = plans.length ? Math.max(H, gridEnd + extra + 220) : H;
+  const cv = document.createElement('canvas'); cv.width = W; cv.height = HH; const c = cv.getContext('2d');
+  frame(c, HH);
   c.textAlign = 'left'; c.fillStyle = C.carob; c.font = '700 72px "Bricolage Grotesque"'; c.fillText('Mi huerto', 100, 180);
   const n = d.plants.length;
   c.fillStyle = C.muted; c.font = '400 34px "DM Sans"'; c.fillText(`${n} ${n === 1 ? 'planta' : 'plantas'}${d.zone ? ' · ' + d.zone : ''}`, 100, 235);
@@ -105,6 +112,35 @@ export async function shareGarden(d) {
     c.font = '400 28px "DM Sans"'; c.fillText('plantas más', x + cw / 2, y + ch / 2 + 54);
   }
   if (!n) { c.fillStyle = C.muted; c.textAlign = 'center'; c.font = '400 34px "DM Sans"'; c.fillText('Aún no hay plantas', W / 2, 600); }
-  footer(c);
+  let py = gridEnd;
+  plans.forEach((g, i) => { py += 90; c.textAlign = 'left'; c.fillStyle = C.carob; c.font = '700 44px "Bricolage Grotesque"'; c.fillText(plans.length > 1 ? g.name : `Plano · ${g.name}`, 100, py - 24); drawPlan(c, g, 100, py, PW, ph[i]); py += ph[i] + 40; });
+  footer(c, HH);
   return send(cv, 'sembradia-mi-huerto.png', 'Mi huerto', `Mi huerto en Sembradía: ${n} ${n === 1 ? 'planta' : 'plantas'}`);
+}
+
+// El plano del huerto a escala, con los mismos colores que en la app
+const PC = {ground: '#E7E1D3', grid: 'rgba(114,92,58,.15)', soil: '#B79A72', soilEdge: '#8C7148', pot: '#C98E68', potEdge: '#9E6A4A', canopy: 'rgba(128,150,113,.28)', canopyEdge: 'rgba(95,118,81,.6)',
+  ali: '#809671', aro: '#B3B792', fru: '#D2AB80', orn: '#D9B3A5', for: '#C8BE8E'};
+function drawPlan(c, g, x0, y0, w0, h0) {
+  const s = Math.min(w0 / g.w, h0 / g.h), w = g.w * s, h = g.h * s, x = x0 + (w0 - w) / 2, y = y0;
+  c.save(); rr(c, x, y, w, h, 20); c.fillStyle = PC.ground; c.fill(); c.clip();
+  c.strokeStyle = PC.grid; c.lineWidth = 2; c.beginPath();
+  for (let i = 1; i < g.w; i++) { c.moveTo(x + i * s, y); c.lineTo(x + i * s, y + h); }
+  for (let i = 1; i < g.h; i++) { c.moveTo(x, y + i * s); c.lineTo(x + w, y + i * s); }
+  c.stroke();
+  for (const b of g.beds) {
+    if (b.k === 'pot') { const r = Math.max(10, b.w * s / 2); c.beginPath(); c.arc(x + (b.x + b.w / 2) * s, y + (b.y + b.w / 2) * s, r, 0, 7); c.fillStyle = PC.pot; c.fill(); c.lineWidth = 3; c.strokeStyle = PC.potEdge; c.stroke(); }
+    else {
+      rr(c, x + b.x * s, y + b.y * s, b.w * s, b.h * s, 12); c.fillStyle = PC.soil; c.fill(); c.lineWidth = 3; c.strokeStyle = PC.soilEdge; c.stroke();
+      c.fillStyle = 'rgba(46,38,24,.6)'; c.font = '600 22px "Bricolage Grotesque"'; c.textAlign = 'left';
+      const tw = c.measureText(b.name).width; if (tw + 20 < b.w * s) { rr(c, x + b.x * s + 8, y + b.y * s + 8, tw + 16, 30, 8); c.fill(); c.fillStyle = '#F6F3EE'; c.fillText(b.name, x + b.x * s + 16, y + b.y * s + 31); }
+    }
+  }
+  for (const p of g.plants) if (p.tree) { c.beginPath(); c.arc(x + p.x * s, y + p.y * s, p.r * s, 0, 7); c.fillStyle = PC.canopy; c.fill(); c.setLineDash([8, 6]); c.lineWidth = 2; c.strokeStyle = PC.canopyEdge; c.stroke(); c.setLineDash([]); }
+  for (const p of g.plants) {
+    const r = p.tree ? 28 : 22, cx = x + p.x * s, cy = y + p.y * s;
+    c.beginPath(); c.arc(cx, cy, r, 0, 7); c.fillStyle = PC[p.g] || PC.ali; c.fill(); c.lineWidth = 3; c.strokeStyle = 'rgba(46,38,24,.35)'; c.stroke();
+    c.fillStyle = '#2E2618'; c.font = `700 ${p.tree ? 20 : 17}px "Bricolage Grotesque"`; c.textAlign = 'center'; c.fillText(p.ab, cx, cy + 6);
+  }
+  c.restore(); rr(c, x, y, w, h, 20); c.lineWidth = 2; c.strokeStyle = C.line; c.stroke();
 }

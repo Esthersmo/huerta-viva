@@ -159,6 +159,7 @@ const SPECIES=[
  {id:'nogal',dec:1,lc:'Chandler o Serr, aunque producirá poco',n:'Nogal',g:'frutal',tree:1,tMin:4,tMax:13,sun:7,seed:0,yrs:6,chill:9,pm:'Final del verano, solo lo justo',care:{riego:10,abono:120,sustrato:0,poda:730}},
  {id:'mango',n:'Mango',g:'frutal',tree:1,tMin:18,tMax:26,sun:8,seed:0,yrs:4,frost:11,pm:'Tras la cosecha',care:{riego:6,abono:60,sustrato:0,poda:365}},
  {id:'aguacate',n:'Aguacate',g:'frutal',tree:1,tMin:15,tMax:24,sun:6,seed:0,yrs:4,frost:11,pm:'Tras la cosecha, poda ligera',care:{riego:4,abono:60,sustrato:0,poda:365}},
+ {id:'platanera',n:'Platanera',g:'frutal',tree:1,tMin:16,tMax:27,sun:7,seed:0,yrs:2,frost:11,pm:'Tras la cosecha, corta el tallo que dio la piña',care:{riego:3,abono:30,sustrato:0,poda:365}},
  {id:'albaricoquero',dec:1,lc:'Canino o Palabras',n:'Albaricoquero',g:'frutal',tree:1,tMin:5,tMax:14,sun:7,seed:0,yrs:3,chill:11,pm:'Tras la cosecha, en verano',care:{riego:7,abono:90,sustrato:0,poda:365}},
  {id:'membrillero',dec:1,n:'Membrillero',g:'frutal',tree:1,tMin:5,tMax:14,sun:6,seed:0,yrs:3,chill:13,pm:'Final del invierno',care:{riego:7,abono:90,sustrato:0,poda:365}},
  {id:'mandarino',n:'Mandarino',g:'frutal',tree:1,tMin:13,tMax:22,sun:7,seed:0,yrs:3,frost:9,pm:'Primavera, tras la cosecha',care:{riego:5,abono:45,sustrato:0,poda:365}},
@@ -232,6 +233,7 @@ const TIPS={
  nogal:{o:'Casi no necesita. Si hace falta, a final de verano, porque en invierno y primavera sangra mucha savia.',s:'Raíz desnuda en invierno, con mucho espacio: llega a 15–20 m.',r:'Regular los primeros años.',l:'Pleno sol.',t:'Profundo, fresco y fértil.',a:'Compost cada invierno.',p:'Bacteriosis y carpocapsa.',c:'En otoño, cuando la cáscara verde se abre y la nuez cae.',b:'—',e:'Huertos y frutales cerca: sus raíces frenan a otras plantas.',k:'Plántalo lejos de casas y del huerto; es un árbol para muchos años.'},
  mango:{o:'Tras la cosecha: despunta las ramas para que salgan más brotes y mantenerlo a una altura cómoda.',s:'En cepellón a finales de primavera, en el rincón más cálido y resguardado.',r:'Regular de joven; menos antes de florecer para que dé más flor.',l:'Pleno sol.',t:'Suelto, profundo y muy drenado.',a:'Abono equilibrado en primavera y verano.',p:'Oídio en la flor y antracnosis.',c:'En verano-otoño, cuando cede al tacto y huele dulce.',b:'—',e:'Heladas y viento frío.',k:'Solo prospera en costas sin heladas, como la Axarquía o Canarias.'},
  aguacate:{s:'En cepellón en primavera; plántalo sin romper el cepellón, sus raíces son muy delicadas.',r:'Frecuente y ligero; no soporta el encharcamiento.',l:'Sol con algo de resguardo de joven.',t:'Muy suelto y aireado, nada arcilloso.',a:'Abono rico en nitrógeno en primavera y verano.',p:'Podredumbre de raíz por exceso de agua.',c:'Se cosecha duro y madura fuera del árbol en unos días.',b:'—',e:'Suelos pesados.',o:'Mínima tras la cosecha: solo para controlar la altura y quitar ramas secas.',k:'Para tener fruto fiable, mejor dos variedades que se polinicen (por ejemplo, Hass y Bacon).'},
+ platanera:{s:'Planta un hijuelo con raíz (de 1 m más o menos) a finales de primavera, con la tierra ya caliente.',r:'Abundante y frecuente en verano: tiene hojas enormes y pierde mucha agua. Menos en invierno, sin encharcar.',l:'Pleno sol, resguardada del viento, que rompe las hojas.',t:'Profundo, rico en materia orgánica y muy drenado.',a:'Mucho abono: estiércol o compost en primavera y abono rico en potasio en verano.',p:'Picudo de la platanera, cochinilla y trips.',c:'Unos 12–15 meses después de plantarla. Corta la piña entera cuando los plátanos estén llenos y aún verdes; maduran colgados en casa.',b:'—',e:'Heladas, viento y frío por debajo de 10 °C.',o:'Cada tallo da fruto una sola vez: tras cosechar, córtalo a ras de suelo. Deja crecer solo uno o dos hijuelos para el año siguiente.',k:'Solo prospera en costas sin heladas, como Canarias, la costa de Málaga o Granada. En maceta muy grande puede vivir en un patio soleado.'},
  monstera:{s:'Esqueje con raíz aérea y al menos un nudo.',r:'Cuando la mitad superior del sustrato esté seca.',l:'Luz indirecta brillante.',t:'Sustrato aireado con corteza y perlita.',a:'Abono verde cada mes en primavera y verano.',p:'Cochinilla y araña roja.',c:'Las hojas nuevas salen más abiertas con buena luz.',b:'—',e:'—',k:'Ponle un tutor de musgo para que trepe y haga hojas grandes.'},
  sansevieria:{s:'Hijuelos o esquejes de hoja.',r:'Muy poco: cada 2–3 semanas, y casi nada en invierno.',l:'De sombra a sol suave.',t:'Sustrato de cactus o muy drenante.',a:'Muy poco.',p:'Podredumbre por exceso de riego.',c:'Planta de hoja, casi indestructible.',b:'—',e:'—',k:'Ante la duda, no la riegues.'},
  aloe:{s:'Hijuelos que salen de la base.',r:'Escaso; deja secar del todo entre riegos.',l:'Mucho sol o luz intensa.',t:'Sustrato de cactus.',a:'Muy poco.',p:'Podredumbre y cochinilla.',c:'Corta las hojas exteriores para usar su gel.',b:'—',e:'—',k:'Si las hojas se ponen rojizas o marrones, le está dando demasiado sol directo.'},
@@ -511,15 +513,17 @@ function harvSec(p){
   if(!canHarv(p))return '';
   const list=(p.harv||[]).slice().sort((a,b)=>a.d<b.d?1:-1),last=list[0];
   const open=state.harvMore===p.id,shown=open?list:list.slice(0,3),tot=harvTot(list,YEAR);
+  // Al corregir una cosecha, el mismo formulario se rellena con sus datos
+  const ed=list.find(h=>h.id===state.harvEdit),ref=ed||last;
   return `<section class="pf-sec" id="harvSec"><div class="pf-sh"><h3>Cosechas${list.length?` <small>${list.length}</small>`:''}</h3></div>
     <form class="harvf" id="harvForm">
-      <label for="hQ">Cantidad<input id="hQ" type="number" inputmode="decimal" min="0" step="any" required placeholder="1,5"></label>
-      <label for="hU">Unidad<select id="hU">${Object.entries(HARV_U).map(([k,v])=>`<option value="${k}"${(last?.u||'kg')===k?' selected':''}>${v}</option>`).join('')}</select></label>
-      <label for="hD">Fecha<input id="hD" type="date" value="${iso(today)}" min="${esc(p.sown)}" max="${iso(today)}"></label>
-      <button class="btn primary" type="submit">Anotar</button>
+      <label for="hQ">Cantidad<input id="hQ" type="number" inputmode="decimal" min="0" step="any" required placeholder="1,5"${ed?` value="${ed.q}"`:''}></label>
+      <label for="hU">Unidad<select id="hU">${Object.entries(HARV_U).map(([k,v])=>`<option value="${k}"${(ref?.u||'kg')===k?' selected':''}>${v}</option>`).join('')}</select></label>
+      <label for="hD">Fecha<input id="hD" type="date" value="${ed?esc(ed.d):iso(today)}" min="${esc(p.sown)}" max="${iso(today)}"></label>
+      ${ed?`<button class="btn primary" type="submit">Guardar</button><button class="btn" type="button" id="harvCancel">Cancelar</button>`:'<button class="btn primary" type="submit">Anotar</button>'}
     </form>
     ${tot?`<p class="harvtot">En ${YEAR} has cosechado <strong>${tot}</strong>.</p>`:'<p class="tip">Anota lo que vayas recogiendo y verás cuánto te da cada planta a lo largo de la temporada.</p>'}
-    ${list.length?`<ul class="harvl">${shown.map(h=>`<li><span>${fdate(h.d)}</span><strong>${num(h.q)} ${h.u==='ud'?(h.q===1?'unidad':'unidades'):h.u==='manojo'?(h.q===1?'manojo':'manojos'):h.u}</strong><button class="rm" type="button" data-rmharv="${esc(h.id)}" aria-label="Borrar la cosecha del ${fdate(h.d)}">×</button></li>`).join('')}</ul>
+    ${list.length?`<ul class="harvl">${shown.map(h=>`<li${h===ed?' class="ed"':''}><span>${fdate(h.d)}</span><strong>${num(h.q)} ${h.u==='ud'?(h.q===1?'unidad':'unidades'):h.u==='manojo'?(h.q===1?'manojo':'manojos'):h.u}</strong><button class="edh" type="button" data-edharv="${esc(h.id)}" aria-label="Corregir la cosecha del ${fdate(h.d)}">Editar</button><button class="rm" type="button" data-rmharv="${esc(h.id)}" aria-label="Borrar la cosecha del ${fdate(h.d)}">×</button></li>`).join('')}</ul>
       ${list.length>3?`<button class="btn remmore rm-soon" type="button" id="harvMore">${open?'Ver menos':`Ver ${list.length-3} más`}</button>`:''}`:''}
   </section>`;
 }
@@ -598,7 +602,7 @@ function renderPlantFicha(){
   if(state.editing){document.getElementById('eSp').value=p.sp;document.getElementById('eLoc').value=p.loc;enhanceSelect(document.getElementById('eSp'));enhanceSelect(document.getElementById('eLoc'));const n=document.getElementById('eName');n.focus();n.select()}
 }
 function openPlant(id){
-  state.mode='plant';state.plantSel=id;state.photoBig=null;state.editing=false;state.photoEdit=false;renderPlantFicha();
+  state.mode='plant';state.plantSel=id;state.harvEdit=null;state.photoBig=null;state.editing=false;state.photoEdit=false;renderPlantFicha();
   const f=document.getElementById('ficha');if(!f.open){try{f.showModal()}catch(e){f.setAttribute('open','')}}
   f.scrollTop=0;
 }
@@ -614,8 +618,10 @@ ficha.addEventListener('submit',e=>{
     const p=state.plants.find(x=>x.id===state.plantSel),q=parseFloat(String(document.getElementById('hQ').value).replace(',','.'));
     if(!p||!(q>0))return;
     const u=document.getElementById('hU').value,d=document.getElementById('hD').value||iso(today);
-    p.harv=[...(p.harv||[]),{id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),d,q,u}];
-    save('hv.plants',state.plants);renderPlantFicha();renderPlants();toast(`Cosecha anotada: ${num(q)} ${HARV_U[u]} de ${p.name}`);
+    const ed=(p.harv||[]).find(h=>h.id===state.harvEdit);
+    if(ed){p.harv=p.harv.map(h=>h===ed?{...h,d,q,u}:h);state.harvEdit=null}
+    else p.harv=[...(p.harv||[]),{id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),d,q,u}];
+    save('hv.plants',state.plants);renderPlantFicha();renderPlants();toast(ed?'Cosecha corregida':`Cosecha anotada: ${num(q)} ${HARV_U[u]} de ${p.name}`);
     document.getElementById('hQ')?.focus();return}
   if(e.target.id!=='editForm')return;e.preventDefault();
   const p=state.plants.find(x=>x.id===state.plantSel);const name=document.getElementById('eName').value.trim();if(!p||!name)return;
@@ -646,6 +652,8 @@ ficha.addEventListener('click',e=>{
   if(e.target===ficha||e.target.closest('#fichaClose')){ficha.close();return}
   if(e.target.closest('#photoEditToggle')){state.photoEdit=!state.photoEdit;renderPlantFicha();return}
   if(e.target.closest('#harvMore')){state.harvMore=state.harvMore===state.plantSel?null:state.plantSel;renderPlantFicha();return}
+  const eh=e.target.closest('[data-edharv]');if(eh){state.harvEdit=eh.dataset.edharv;renderPlantFicha();const f=document.getElementById('harvForm');f?.scrollIntoView({block:'center'});document.getElementById('hQ')?.focus({preventScroll:true});return}
+  if(e.target.closest('#harvCancel')){state.harvEdit=null;renderPlantFicha();return}
   const rh=e.target.closest('[data-rmharv]');if(rh){const p=state.plants.find(x=>x.id===state.plantSel);if(p){p.harv=(p.harv||[]).filter(h=>h.id!==rh.dataset.rmharv);save('hv.plants',state.plants);renderPlantFicha();renderPlants();toast('Cosecha borrada')}return}
   if(e.target.closest('#editToggle')){state.editing=!state.editing;renderPlantFicha();return}
   if(e.target.closest('#editCancel')){state.editing=false;renderPlantFicha();return}
@@ -713,11 +721,15 @@ function renderPlantsList(){
     }
     h+='</div>';
   }
-  const byS={};for(const p of state.plants)if((p.harv||[]).some(x=>x.d.startsWith(YEAR)))(byS[p.sp]=byS[p.sp]||[]).push(...p.harv);
-  const hs=Object.entries(byS).map(([sp,l])=>[SP[sp].n,harvTot(l,YEAR)]).sort((a,b)=>a[0].localeCompare(b[0],'es'));
-  document.getElementById('harvTitle').textContent=`Mis cosechas de ${YEAR}`;
+  // Cosechas por años: se elige el año en el desplegable (por defecto, el actual)
+  const years=[...new Set([YEAR,...state.plants.flatMap(p=>(p.harv||[]).map(x=>x.d.slice(0,4)))])].sort().reverse();
+  if(!years.includes(state.harvY))state.harvY=YEAR;
+  const hy=document.getElementById('harvYear'),hyOpts=years.map(y=>`<option value="${y}"${y===state.harvY?' selected':''}>Cosecha ${y}</option>`).join('');
+  if(hy.innerHTML!==hyOpts){hy.innerHTML=hyOpts;hy.value=state.harvY;hy._cselDraw?.()}
+  const Y=state.harvY,byS={};for(const p of state.plants)if((p.harv||[]).some(x=>x.d.startsWith(Y)))(byS[p.sp]=byS[p.sp]||[]).push(...p.harv);
+  const hs=Object.entries(byS).map(([sp,l])=>[SP[sp].n,harvTot(l,Y)]).sort((a,b)=>a[0].localeCompare(b[0],'es'));
   document.getElementById('harvSum').innerHTML=hs.length?`<ul>${hs.map(([n,t])=>`<li><span>${n}</span><strong>${t}</strong></li>`).join('')}</ul>`
-    :'<p class="note">Cuando anotes lo que recoges en la ficha de cada planta, aquí verás cuánto llevas este año de cada cultivo.</p>';
+    :Y===YEAR?'<p class="note">Cuando anotes lo que recoges en la ficha de cada planta, aquí verás cuánto llevas este año de cada cultivo.</p>':`<p class="note">No hay cosechas anotadas en ${Y}.</p>`;
   document.getElementById('plList').innerHTML=h||'<p class="lede" style="text-align:center;margin-inline:auto">No hay plantas con estos filtros. Añade una arriba.</p>';
 }
 function renderRem(){
@@ -992,6 +1004,7 @@ document.getElementById('addForm').addEventListener('submit',e=>{
   dropExamples();state.plants.push(p);save('hv.plants',state.plants);e.target.reset();document.getElementById('fDate').value=iso(today);refreshSelects();
   state.plGroup='todos';state.plLoc='todas';renderPlants();renderRem();toast(`${name} añadida`);try{if(!matchMedia("(min-width:601px)").matches)document.getElementById("addBox").open=false}catch(e){}
 });
+const harvYear=document.getElementById('harvYear');enhanceSelect(harvYear);harvYear.addEventListener('change',()=>{state.harvY=harvYear.value;renderPlants()});
 var planUI=initPlan({overdue:p=>dues(p).filter(x=>x.left<0).map(x=>`${ACTIONS[x.a].toLowerCase()} (${leftTxt(x.left).toLowerCase()})`),plants:()=>state.plants,savePlants:()=>save('hv.plants',state.plants),SP,REL,esc,toast,enhance:enhanceSelect,openPlant:id=>openPlant(id)});
 renderAll();
 // Apariencia: claro por defecto; la elección se recuerda en este navegador
@@ -1042,7 +1055,7 @@ ficha.addEventListener('click',e=>{const b=e.target.closest('#sharePlantBtn');if
 document.getElementById('shareGarden').addEventListener('click',e=>{
   const zone=state.cp?.name||ZONES[state.zone]?.name.split(' (')[0]||'';
   const plants=state.plants.map(p=>{const ph=(photos[p.id]||[]).slice().sort((a,b)=>a.date<b.date?-1:1);return {name:p.name,species:SP[p.sp]?.n||'',photo:ph.length?ph[ph.length-1].src:null,deco:decoFor(p.sp)}});
-  shareBusy(e.currentTarget,()=>shareGarden({zone,plants}));
+  shareBusy(e.currentTarget,()=>shareGarden({zone,plants,plans:planUI.snapshot()}));
 });
 setupNotify();
 // Cuando llegan cambios de la nube (otro dispositivo) se recarga todo desde el almacén

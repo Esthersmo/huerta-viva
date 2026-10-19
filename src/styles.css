@@ -455,11 +455,11 @@ form.add label{display:flex;flex-direction:column;gap:4px;font-size:.85rem;color
 .harvf .btn{padding:8px 14px}
 .harvtot{margin:0;text-align:center}
 .harvl{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
-.harvl li{display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 8px 6px 12px}
+.harvl li{display:grid;grid-template-columns:1fr auto auto auto;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 8px 6px 12px}
 .harvl li span{color:var(--muted)}
 .harvl .rm{width:26px;height:26px;border-radius:50%;border:1px solid var(--del-line);background:var(--del-bg);color:var(--del-ink);cursor:pointer;line-height:1}
 .card .harvc{margin:4px 0 0;font-size:.82rem;color:var(--ok);font-weight:700}
-.harvpanel h2{margin:0 0 12px}
+
 .harvsum{background:var(--card);border:1px solid var(--card-line);border-radius:12px;padding:12px 16px;margin:0}
 .harvsum .note{text-align:center}
 .harvsum h3{font-family:var(--display);font-size:1.05rem;color:var(--carob-text);margin:0 0 8px;text-align:center}
@@ -569,3 +569,9 @@ html.plan-noscroll,html.plan-noscroll body{overflow:hidden}
 .plan .dot{position:relative}
 .plan .late{position:absolute;top:-5px;right:-6px;width:15px;height:15px;border-radius:50%;background:var(--danger);color:var(--card);font:800 .66rem/15px var(--body);text-align:center;border:1.5px solid var(--card);pointer-events:none}
 @media (max-width:600px){.plan .late{width:12px;height:12px;line-height:12px;font-size:.56rem;top:-4px;right:-5px}}
+.harvl .edh{font:500 .8rem var(--body);background:none;border:1px solid var(--card-line);border-radius:999px;padding:3px 10px;color:var(--carob-text);cursor:pointer}
+.harvl li.ed{border-color:var(--carob-text);background:var(--warn-soft)}
+.harvhead{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.harvhead h2{margin:0}
+.harvyear{min-width:170px}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}

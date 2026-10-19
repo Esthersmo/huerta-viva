@@ -34,9 +34,9 @@ export function initPlan(ctx) {
   const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
   const inside = (pos, b) => b.k === 'bed' ? pos.x >= b.x && pos.x <= b.x + b.w && pos.y >= b.y && pos.y <= b.y + b.h
     : dist(pos, {x: b.x + b.w / 2, y: b.y + b.w / 2}) <= b.w / 2 + .05;
-  const holder = p => p.pos && pl.beds.find(b => inside(p.pos, b));
+  const holder = (p, g = pl) => p.pos && g.beds.find(b => inside(p.pos, b));
   // Un frutal en maceta tiene la copa a la medida de la maceta
-  const canopy = p => { const h = holder(p); return h && h.k === 'pot' ? Math.max(.35, h.w * .75) : CANOPY; };
+  const canopy = (p, g = pl) => { const h = holder(p, g); return h && h.k === 'pot' ? Math.max(.35, h.w * .75) : CANOPY; };
   const badPair = (a, b) => REL[a.sp]?.bad.has(b.sp);
   const foes = () => { const out = [], ps = placed(); for (let i = 0; i < ps.length; i++) for (let j = i + 1; j < ps.length; j++) if (dist(ps[i].pos, ps[j].pos) <= NEAR && badPair(ps[i], ps[j])) out.push([ps[i], ps[j]]); return out; };
   const ab = s => s.n.normalize('NFD').replace(/[̀-ͯ]/g, '').slice(0, 2).toUpperCase();
@@ -268,5 +268,13 @@ export function initPlan(ctx) {
   drawGardens();
 
   // Desde fuera: cuando cambian las plantas o llegan datos de otro dispositivo
-  return {draw, reload() { all = load(); pl = current(); drawGardens(); if (sel && !pl.beds.some(b => b.id === sel) && !plants().some(p => p.id === sel)) sel = null; draw(); }};
+  // Para la imagen de compartir: cada huerto con algo dibujado, con sus piezas y plantas
+  function snapshot() {
+    return all.list.map(g => {
+      const ps = plants().filter(p => p.pos && gardenOf(p) === g.id && SP[p.sp]);
+      return {name: g.name, w: g.w, h: g.h, beds: g.beds.map(b => ({k: b.k, name: b.name, x: b.x, y: b.y, w: b.w, h: b.k === 'pot' ? b.w : b.h})),
+        plants: ps.map(p => ({x: p.pos.x, y: p.pos.y, ab: ab(SP[p.sp]), g: GCOL[SP[p.sp].g] || 'ali', tree: !!SP[p.sp].tree, r: SP[p.sp].tree ? canopy(p, g) : 0}))};
+    }).filter(g => g.beds.length || g.plants.length);
+  }
+  return {draw, snapshot, reload() { all = load(); pl = current(); drawGardens(); if (sel && !pl.beds.some(b => b.id === sel) && !plants().some(p => p.id === sel)) sel = null; draw(); }};
 }
