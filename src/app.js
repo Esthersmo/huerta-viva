@@ -668,9 +668,9 @@ function drawWx(){
   if(fr&&fr.min<=FROST_C){const ps=state.plants.filter(tender).map(p=>esc(p.name));
     alerts.push(['frost',`<strong>Riesgo de helada ${dayName(fr.date)}</strong> (mínima de ${Math.round(fr.min)}&nbsp;°C).`+(ps.length?` Protege por la noche ${ps.length>4?`${ps.slice(0,4).join(', ')} y ${ps.length-4} más`:ps.length>1?`${ps.slice(0,-1).join(', ')} y ${ps[ps.length-1]}`:ps[0]}: cúbrelas con manta térmica o mete las macetas dentro.`:' Las plantas de verano y los frutales tropicales lo pasan mal.')])}
   const hot=hottest(wx,t);
-  if(hot&&hot.max>=HEAT_C)alerts.push(['heat',`<strong>Calor fuerte ${dayName(hot.date)}</strong> (máxima de ${Math.round(hot.max)}&nbsp;°C). Riega a primera hora o al atardecer y vigila las macetas, que se secan antes. He adelantado los riegos de fuera.`]);
+  if(hot&&hot.max>=HEAT_C)alerts.push(['heat',`<strong>Calor fuerte ${dayName(hot.date)}</strong> (máxima de ${Math.round(hot.max)}&nbsp;°C). Riega a primera hora o al atardecer y vigila las macetas, que se secan antes. Los riegos de fuera se adelantan.`]);
   const wet=state.plants.filter(p=>p.loc==='exterior').flatMap(dues).filter(x=>x.rain);
-  if(wet.length){const r=wet[0].rain;alerts.push(['rain',`<strong>Ha llovido ${mm(r.rain)} ${dayName(r.date)==='hoy'?'hoy':`el ${fday(r.date)}`}.</strong> Cuenta como riego: he retrasado el de ${wet.length===1?esc(wet[0].p.name):`${wet.length} plantas de fuera`}.`])}
+  if(wet.length){const r=wet[0].rain;alerts.push(['rain',`<strong>Ha llovido ${mm(r.rain)} ${dayName(r.date)==='hoy'?'hoy':`el ${fday(r.date)}`}.</strong> Cuenta como riego: se retrasa el de ${wet.length===1?esc(wet[0].p.name):`${wet.length} plantas de fuera`}.`])}
   const upd=new Date(wx.at),old=Date.now()-wx.at>12*3600e3;
   el.innerHTML=`<div class="wxhd"><h3>El tiempo en ${esc(wxPlace())}</h3></div>
     <div class="wxdays">${days.map(d=>{const[ic,tx]=sky(d.code);return `<div class="wxd${d.date===t?' now':''}" title="${tx}"><span class="wn">${shortDay(d.date)}</span><span class="wi" role="img" aria-label="${tx}">${ic}</span><span class="wt"><b>${Math.round(d.max)}°</b> ${Math.round(d.min)}°</span><span class="wr">${d.rain>=1?mm(d.rain):''}</span></div>`}).join('')}</div>
