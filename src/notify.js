@@ -2,10 +2,12 @@
 // La app guarda en el dispositivo la lista de próximas tareas (hv.sched) para que el
 // service worker pueda avisar también con la app cerrada donde el navegador lo permite.
 import { registerSW } from 'virtual:pwa-register';
-import { store } from './store.js';
+import { store, onStoreChange } from './store.js';
+import { cloudOn, client, currentUser, onCloud, onBeforeSignOut } from './cloud.js';
+import { SUPABASE_URL } from './cloud-config.js';
 
 const todayIso = () => { const d = new Date(); return new Date(d.getTime() - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 10); };
-let swReg = null, installEvt = null;
+let swReg = null, installEvt = null, pushOn = false, pushTimer = null;
 
 export function dueToday(sched) {
   const t = todayIso();
@@ -42,6 +44,41 @@ async function registerPeriodic() {
   } catch (e) {}
 }
 
+// ---- Avisos desde el servidor: llegan aunque la app esté cerrada (también en el iPhone). Necesitan cuenta ----
+const canPush = () => cloudOn && swReg && 'PushManager' in window && 'Notification' in window && Notification.permission === 'granted';
+const b64 = s => { const p = '='.repeat((4 - s.length % 4) % 4), r = atob((s + p).replace(/-/g, '+').replace(/_/g, '/')); return Uint8Array.from(r, c => c.charCodeAt(0)); };
+async function savePush(sub) {
+  const c = await client();
+  const sched = JSON.parse(store.getItem('hv.sched') || '[]');
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Madrid';
+  const {error} = await c.from('avisos').upsert({endpoint: sub.endpoint, sub: sub.toJSON(), sched, tz, updated_at: new Date().toISOString()}, {onConflict: 'endpoint'});
+  if (error) throw error;
+}
+export async function enablePush() {
+  if (!canPush() || !currentUser()) { pushOn = false; drawBox(); return; }
+  try {
+    let sub = await swReg.pushManager.getSubscription();
+    if (!sub) {
+      const r = await fetch(`${SUPABASE_URL}/functions/v1/avisos`);
+      const {publicKey} = await r.json();
+      sub = await swReg.pushManager.subscribe({userVisibleOnly: true, applicationServerKey: b64(publicKey)});
+    }
+    await savePush(sub);
+    pushOn = true;
+  } catch (e) { console.warn('Avisos del servidor', e); pushOn = false; }
+  drawBox();
+}
+// Cada vez que cambian las próximas tareas, el servidor se queda con la lista nueva
+function schedChanged() {
+  if (!pushOn) return;
+  clearTimeout(pushTimer);
+  pushTimer = setTimeout(async () => { try { const sub = await swReg.pushManager.getSubscription(); if (sub) await savePush(sub); } catch (e) {} }, 3000);
+}
+async function disablePush() {
+  try { const sub = await swReg?.pushManager.getSubscription(); if (sub) { const c = await client(); await c.from('avisos').delete().eq('endpoint', sub.endpoint); } } catch (e) {}
+  pushOn = false;
+}
+
 const standalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
 const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
@@ -51,7 +88,9 @@ function drawBox() {
   const canNotify = 'Notification' in window && 'serviceWorker' in navigator;
   const perm = canNotify ? Notification.permission : 'unsupported';
   let txt, btns = '';
-  if (perm === 'granted') txt = 'Avisos activados: te avisaremos de los riegos y cuidados que toquen cada día.';
+  if (perm === 'granted' && pushOn) txt = 'Avisos activados: cada mañana te avisaremos de los riegos y cuidados del día, aunque tengas la app cerrada.';
+  else if (perm === 'granted' && cloudOn && !currentUser()) txt = 'Avisos activados mientras usas la app. Para recibirlos también con la app cerrada, entra en tu cuenta con el botón de arriba.';
+  else if (perm === 'granted') txt = 'Avisos activados: te avisaremos de los riegos y cuidados que toquen cada día.';
   else if (perm === 'denied') txt = 'Los avisos están bloqueados. Puedes permitirlos en los ajustes del navegador para esta página.';
   else if (!canNotify && isIOS() && !standalone()) txt = 'Para recibir avisos en el iPhone, añade la app a tu pantalla de inicio desde el botón Compartir.';
   else if (!canNotify) txt = 'Este navegador no permite avisos.';
@@ -65,7 +104,7 @@ export function setupNotify() {
   if ('serviceWorker' in navigator) {
     registerSW({
       immediate: true,
-      onRegisteredSW(_url, reg) { swReg = reg || null; registerPeriodic(); maybeNotify(); },
+      onRegisteredSW(_url, reg) { swReg = reg || null; registerPeriodic(); maybeNotify(); if (currentUser()) enablePush(); },
     });
   }
   addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvt = e; drawBox(); });
@@ -73,10 +112,15 @@ export function setupNotify() {
   document.addEventListener('click', async e => {
     if (e.target.closest('[data-notif]')) {
       await Notification.requestPermission();
-      drawBox(); registerPeriodic(); maybeNotify();
+      drawBox(); registerPeriodic(); maybeNotify(); enablePush();
     } else if (e.target.closest('[data-install]') && installEvt) {
       installEvt.prompt(); await installEvt.userChoice; installEvt = null; drawBox();
     }
   });
+  onStoreChange(k => { if (k === 'hv.sched') schedChanged(); });
+  // Al entrar en la cuenta se activan los avisos del servidor; al salir se quitan
+  let was = null;
+  onCloud((_s, u) => { const id = u?.id || null; if (id === was) return; was = id; if (id) enablePush(); else { pushOn = false; drawBox(); } });
+  onBeforeSignOut(disablePush);
   drawBox();
 }

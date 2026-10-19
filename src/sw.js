@@ -5,7 +5,7 @@ import { CacheFirst, StaleWhileRevalidate } from 'workbox-strategies';
 self.skipWaiting();
 cleanupOutdatedCaches();
 precacheAndRoute(self.__WB_MANIFEST);
-registerRoute(new NavigationRoute(createHandlerBoundToURL('index.html')));
+registerRoute(new NavigationRoute(createHandlerBoundToURL('index.html'), { denylist: [/privacidad\.html$/] }));
 // Códigos postales: se descargan la primera vez que se usan
 registerRoute(({ url }) => url.pathname.endsWith('/cp.json'), new StaleWhileRevalidate({ cacheName: 'cp' }));
 // Tipografías de Google: disponibles sin conexión después de la primera visita
@@ -38,6 +38,18 @@ async function dailyCheck() {
   });
 }
 self.addEventListener('periodicsync', e => { if (e.tag === 'hv-daily') e.waitUntil(dailyCheck()); });
+
+// Avisos que manda el servidor (iPhone y cualquier navegador, con la app cerrada)
+self.addEventListener('push', e => {
+  let d = {};
+  try { d = e.data ? e.data.json() : {}; } catch (err) {}
+  e.waitUntil((async () => {
+    try { await put(await kv(), 'hv.notified', d.date || todayIso()); } catch (err) {}
+    await self.registration.showNotification(d.title || 'Huerta Viva', {
+      body: d.body || '', tag: 'hv-daily', icon: 'icons/icon-192.png', badge: 'icons/badge-96.png',
+    });
+  })());
+});
 
 self.addEventListener('notificationclick', e => {
   e.notification.close();

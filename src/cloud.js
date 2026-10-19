@@ -26,10 +26,10 @@ const canon = v => Array.isArray(v) ? v.map(canon) : v && typeof v === 'object' 
 const same = (a, b) => JSON.stringify(canon(a)) === JSON.stringify(canon(b));
 const empty = () => ({plants: {}, photos: {}, zona: null});
 
-async function client() {
+export async function client() {
   if (!sb) {
     const {createClient} = await import('@supabase/supabase-js');
-    sb = createClient(SUPABASE_URL, SUPABASE_KEY, {auth: {persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, storageKey: AUTH_KEY}});
+    sb = createClient(SUPABASE_URL, SUPABASE_KEY, {auth: {persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: 'pkce', storageKey: AUTH_KEY}});
   }
   return sb;
 }
@@ -165,15 +165,29 @@ export async function initCloud(refresh) {
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') schedule(300); });
   addEventListener('online', () => schedule(300));
   // Sin sesión guardada no hace falta cargar Supabase al abrir la app
-  let had = false; try { had = !!localStorage.getItem(AUTH_KEY); } catch (e) {}
+  // (o si se vuelve de entrar con Google, que trae ?code= en la dirección)
+  const back = new URLSearchParams(location.search).has('code');
+  let had = back; try { had = had || !!localStorage.getItem(AUTH_KEY); } catch (e) {}
   if (!had) { setStatus({state: 'off'}); return; }
   const c = await client();
   const {data} = await c.auth.getSession();
   user = data.session?.user || null;
+  if (back) { const u = new URL(location.href); u.searchParams.delete('code'); history.replaceState(null, '', u); if (user) onLogin(); }
   setStatus({state: user ? 'idle' : 'off'});
   if (user) schedule(0);
 }
 
+let onLogin = () => {};
+export const setOnLogin = fn => { onLogin = fn; };
+// Entrar con Google: la página va a Google y vuelve con ?code=, que initCloud recoge
+export async function googleEnabled() {
+  try { const r = await fetch(`${SUPABASE_URL}/auth/v1/settings`, {headers: {apikey: SUPABASE_KEY}}); return !!(await r.json()).external?.google; } catch (e) { return false; }
+}
+export async function signInGoogle() {
+  const c = await client();
+  const {error} = await c.auth.signInWithOAuth({provider: 'google', options: {redirectTo: location.origin + location.pathname}});
+  if (error) throw error;
+}
 export async function sendCode(email) {
   const c = await client();
   const {error} = await c.auth.signInWithOtp({email, options: {shouldCreateUser: true}});
@@ -187,8 +201,11 @@ export async function verifyCode(email, token) {
   setStatus({state: 'idle'});
   await syncNow();
 }
+let beforeOut = async () => {};
+export const onBeforeSignOut = fn => { beforeOut = fn; };
 export async function signOut() {
   const c = await client();
+  try { await beforeOut(); } catch (e) {}
   await c.auth.signOut({scope: 'local'});
   user = null; firstChoice = null; clearTimeout(timer);
   try { store.setItem('hv.syncBase', 'null'); } catch (e) {}

@@ -1,8 +1,8 @@
 // Ventana «Mi cuenta»: entrar con el correo y un código, ver el estado de la sincronización, salir o borrar la cuenta.
-import {cloudOn, initCloud, onCloud, currentUser, setMergeAsker, sendCode, verifyCode, syncNow, signOut, deleteAccount} from './cloud.js';
+import {cloudOn, initCloud, onCloud, currentUser, setMergeAsker, setOnLogin, googleEnabled, signInGoogle, sendCode, verifyCode, syncNow, signOut, deleteAccount} from './cloud.js';
 
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
-let step = 'email', email = '', busy = false, msg = '', st = {state: 'off'}, ask = null;
+let step = 'email', email = '', busy = false, msg = '', st = {state: 'off'}, ask = null, google = null;
 
 function errText(e) {
   const m = (e?.message || String(e)).toLowerCase();
@@ -49,6 +49,7 @@ export function initAccount({refresh, toast}) {
         <p class="tip">Tus plantas, riegos, fotos y tu zona se guardan en tu cuenta y aparecen en cualquier móvil u ordenador donde entres con este correo.</p>
         <div class="acts"><button class="btn" type="button" id="acctSync"${st.state === 'syncing' ? ' disabled' : ''}>Sincronizar ahora</button>
         <button class="btn" type="button" id="acctOut">Cerrar sesión</button></div>
+        <p class="tip"><a href="privacidad.html" target="_blank" rel="noopener">Política de privacidad</a></p>
         <details class="danger"><summary>Borrar mi cuenta</summary>
           <p class="tip">Se borran de la nube tu huerto y tus fotos, y no se puede deshacer. Lo que hay en este dispositivo se queda.</p>
           <button class="btn warn" type="button" id="acctDel">Borrar mi cuenta para siempre</button></details>`;
@@ -57,7 +58,8 @@ export function initAccount({refresh, toast}) {
         <form id="acctForm" class="acform"><label for="acctEmail">Correo electrónico</label>
         <input id="acctEmail" type="email" autocomplete="email" inputmode="email" required value="${esc(email)}" placeholder="tu@correo.com">
         <button class="btn primary" ${busy ? 'disabled' : ''}>${busy ? 'Enviando…' : 'Enviarme un código'}</button></form>
-        <p class="tip">Sin contraseñas: cada vez que entres te mandaremos un código al correo.</p>`;
+        ${google ? `<p class="or">o</p><button class="btn gbtn" type="button" id="acctGoogle"><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>Entrar con Google</button>` : ''}
+        <p class="tip">Sin contraseñas: cada vez que entres te mandaremos un código al correo. Al entrar aceptas la <a href="privacidad.html" target="_blank" rel="noopener">política de privacidad</a>.</p>`;
     } else {
       h += `<p>Te hemos enviado un código a <strong>${esc(email)}</strong>. Escríbelo aquí:</p>
         <form id="acctForm" class="acform"><label for="acctCode">Código</label>
@@ -68,15 +70,20 @@ export function initAccount({refresh, toast}) {
     if (msg) h += `<p class="acmsg" role="alert">${esc(msg)}</p>`;
     body.innerHTML = h;
   }
-  function open() { msg = ''; draw(); try { dlg.showModal(); } catch (e) { dlg.setAttribute('open', ''); } }
+  function open() {
+    msg = '';
+    if (google === null) googleEnabled().then(g => { google = g; const i = document.getElementById('acctEmail'); if (i) email = i.value; if (dlg.open) draw(); });
+    draw(); try { dlg.showModal(); } catch (e) { dlg.setAttribute('open', ''); } }
 
   btn.addEventListener('click', open);
+  setOnLogin(() => toast('¡Dentro! Tu huerto ya se guarda en tu cuenta'));
   setMergeAsker((nl, nr) => new Promise(res => { ask = {nl, nr, res}; busy = false; if (!dlg.open) open(); else draw(); }));
   dlg.addEventListener('click', async e => {
     const mg = e.target.closest('[data-merge]');
     if (mg && ask) { const r = ask.res; ask = null; draw(); r(mg.dataset.merge); return; }
     if (ask) return; // Hay que elegir antes de cerrar
     if (e.target === dlg || e.target.closest('#acctClose')) { dlg.close(); return; }
+    if (e.target.closest('#acctGoogle')) { try { await signInGoogle(); } catch (err) { msg = errText(err); draw(); } return; }
     if (e.target.closest('#acctBack')) { step = 'email'; msg = ''; draw(); return; }
     if (e.target.closest('#acctSync')) { syncNow(); return; }
     if (e.target.closest('#acctOut')) { await signOut(); toast('Has cerrado sesión. Tus plantas siguen en este dispositivo.'); draw(); return; }
