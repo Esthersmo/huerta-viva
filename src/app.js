@@ -715,8 +715,9 @@ function renderPlantsList(){
   }
   const byS={};for(const p of state.plants)if((p.harv||[]).some(x=>x.d.startsWith(YEAR)))(byS[p.sp]=byS[p.sp]||[]).push(...p.harv);
   const hs=Object.entries(byS).map(([sp,l])=>[SP[sp].n,harvTot(l,YEAR)]).sort((a,b)=>a[0].localeCompare(b[0],'es'));
-  const box=document.getElementById('harvSum');box.hidden=!hs.length;
-  box.innerHTML=hs.length?`<h3>Tus cosechas de ${YEAR}</h3><ul>${hs.map(([n,t])=>`<li><span>${n}</span><strong>${t}</strong></li>`).join('')}</ul>`:'';
+  document.getElementById('harvTitle').textContent=`Mis cosechas de ${YEAR}`;
+  document.getElementById('harvSum').innerHTML=hs.length?`<ul>${hs.map(([n,t])=>`<li><span>${n}</span><strong>${t}</strong></li>`).join('')}</ul>`
+    :'<p class="note">Cuando anotes lo que recoges en la ficha de cada planta, aquí verás cuánto llevas este año de cada cultivo.</p>';
   document.getElementById('plList').innerHTML=h||'<p class="lede" style="text-align:center;margin-inline:auto">No hay plantas con estos filtros. Añade una arriba.</p>';
 }
 function renderRem(){
