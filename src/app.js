@@ -494,6 +494,33 @@ function openFicha(id){
 }
 function daysSince(p,d){return Math.max(0,Math.round((parse(d)-parse(p.sown))/DAY))}
 function fdate(d){return parse(d).toLocaleDateString('es-ES',{day:'numeric',month:'short',year:'numeric'})}
+// ---------- Cosechas ----------
+const HARV_U={kg:'kg',g:'g',ud:'unidades',manojo:'manojos'};
+const canHarv=p=>SP[p.sp]&&SP[p.sp].g!=='ornamental';
+const num=n=>n.toLocaleString('es-ES',{maximumFractionDigits:2});
+// Suma lo cosechado en un año: los kilos y gramos juntos, y aparte unidades y manojos
+function harvTot(list,y){
+  const t={kg:0,ud:0,manojo:0};
+  for(const h of list||[])if(!y||h.d.startsWith(y)){if(h.u==='g')t.kg+=h.q/1000;else t[h.u]=(t[h.u]||0)+h.q}
+  return [t.kg?`${num(t.kg)} kg`:'',t.ud?`${num(t.ud)} ${t.ud===1?'unidad':'unidades'}`:'',t.manojo?`${num(t.manojo)} ${t.manojo===1?'manojo':'manojos'}`:''].filter(Boolean).join(' y ');
+}
+const YEAR=String(today.getFullYear());
+function harvSec(p){
+  if(!canHarv(p))return '';
+  const list=(p.harv||[]).slice().sort((a,b)=>a.d<b.d?1:-1),last=list[0];
+  const open=state.harvMore===p.id,shown=open?list:list.slice(0,3),tot=harvTot(list,YEAR);
+  return `<section class="pf-sec" id="harvSec"><div class="pf-sh"><h3>Cosechas${list.length?` <small>${list.length}</small>`:''}</h3></div>
+    <form class="harvf" id="harvForm">
+      <label for="hQ">Cantidad<input id="hQ" type="number" inputmode="decimal" min="0" step="any" required placeholder="1,5"></label>
+      <label for="hU">Unidad<select id="hU">${Object.entries(HARV_U).map(([k,v])=>`<option value="${k}"${(last?.u||'kg')===k?' selected':''}>${v}</option>`).join('')}</select></label>
+      <label for="hD">Fecha<input id="hD" type="date" value="${iso(today)}" min="${esc(p.sown)}" max="${iso(today)}"></label>
+      <button class="btn primary" type="submit">Anotar</button>
+    </form>
+    ${tot?`<p class="harvtot">En ${YEAR} has cosechado <strong>${tot}</strong>.</p>`:'<p class="tip">Anota lo que vayas recogiendo y verás cuánto te da cada planta a lo largo de la temporada.</p>'}
+    ${list.length?`<ul class="harvl">${shown.map(h=>`<li><span>${fdate(h.d)}</span><strong>${num(h.q)} ${h.u==='ud'?(h.q===1?'unidad':'unidades'):h.u==='manojo'?(h.q===1?'manojo':'manojos'):h.u}</strong><button class="rm" type="button" data-rmharv="${esc(h.id)}" aria-label="Borrar la cosecha del ${fdate(h.d)}">×</button></li>`).join('')}</ul>
+      ${list.length>3?`<button class="btn remmore rm-soon" type="button" id="harvMore">${open?'Ver menos':`Ver ${list.length-3} más`}</button>`:''}`:''}
+  </section>`;
+}
 function compSec(p){
   const r=REL[p.sp],rot=rotNext(p.sp);if(!r.good.size&&!r.bad.size&&!rot)return '';
   const chip=(id,bad)=>{const has=mine(id,bad?p.loc:null).length;return `<span class="cmp${has?(bad?' warn':' have'):''}">${SP[id].n}${has?(bad?' · la tienes cerca':' · la tienes'):''}</span>`};
@@ -522,6 +549,7 @@ function renderPlantFicha(){
        <dl class="pf-meta"><div><dt>Ubicación</dt><dd>${p.loc==='interior'?'Interior':'Exterior'}</dd></div><div><dt>Especie</dt><dd>${s.n}</dd></div><div><dt>${s.tree?'Plantación':'Siembra'}</dt><dd>${fdate(p.sown)}</dd></div><div><dt>Edad</dt><dd>${age===0?'Hoy':age>=365?`${(age/365).toFixed(1).replace('.0','').replace('.',',')} años`:`${age} días`}</dd></div></dl>
        ${state.editing?'':`<span class="pf-acts"><button class="btn" id="sharePlantBtn">Compartir</button><button class="btn" id="editToggle" aria-expanded="false">Editar datos</button></span>`}
    </div>
+   ${state.editing?'':harvSec(p)}
    ${state.editing?'':compSec(p)}
    ${state.editing?`<section class="pf-sec"><div class="pf-sh"><h3>Editar datos</h3></div><form class="add edit" id="editForm">
        <label for="eName">Nombre<input id="eName" required value="${esc(p.name)}"></label>
@@ -545,6 +573,7 @@ function renderPlantFicha(){
    </section>
    <button class="btn pf-cal" id="fichaCrop" data-crop="${s.id}">${s.pot?'':'Ver calendario de '+(s.tree?'plantación':'siembra')+' de '+s.n.toLowerCase()}</button>`;
   if(s.pot)document.getElementById('fichaCrop').remove();
+  const hU=document.getElementById('hU');if(hU)enhanceSelect(hU);
   if(state.editing){document.getElementById('eSp').value=p.sp;document.getElementById('eLoc').value=p.loc;enhanceSelect(document.getElementById('eSp'));enhanceSelect(document.getElementById('eLoc'));const n=document.getElementById('eName');n.focus();n.select()}
 }
 function openPlant(id){
@@ -560,6 +589,13 @@ const ficha=document.getElementById('ficha');
 // Al tocar cualquier parte de un campo de fecha se abre el calendario (no solo el icono)
 document.addEventListener('click',e=>{const d=e.target.closest('input[type=date]');if(d&&!d.disabled&&d.showPicker){try{d.showPicker()}catch(err){}}});
 ficha.addEventListener('submit',e=>{
+  if(e.target.id==='harvForm'){e.preventDefault();
+    const p=state.plants.find(x=>x.id===state.plantSel),q=parseFloat(String(document.getElementById('hQ').value).replace(',','.'));
+    if(!p||!(q>0))return;
+    const u=document.getElementById('hU').value,d=document.getElementById('hD').value||iso(today);
+    p.harv=[...(p.harv||[]),{id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),d,q,u}];
+    save('hv.plants',state.plants);renderPlantFicha();renderPlants();toast(`Cosecha anotada: ${num(q)} ${HARV_U[u]} de ${p.name}`);
+    document.getElementById('hQ')?.focus();return}
   if(e.target.id!=='editForm')return;e.preventDefault();
   const p=state.plants.find(x=>x.id===state.plantSel);const name=document.getElementById('eName').value.trim();if(!p||!name)return;
   p.name=name;p.sp=document.getElementById('eSp').value;p.loc=document.getElementById('eLoc').value;p.sown=document.getElementById('eDate').value||p.sown;
@@ -588,6 +624,8 @@ ficha.addEventListener('focusout',e=>{if(!e.target.classList.contains('phDate'))
 ficha.addEventListener('click',e=>{
   if(e.target===ficha||e.target.closest('#fichaClose')){ficha.close();return}
   if(e.target.closest('#photoEditToggle')){state.photoEdit=!state.photoEdit;renderPlantFicha();return}
+  if(e.target.closest('#harvMore')){state.harvMore=state.harvMore===state.plantSel?null:state.plantSel;renderPlantFicha();return}
+  const rh=e.target.closest('[data-rmharv]');if(rh){const p=state.plants.find(x=>x.id===state.plantSel);if(p){p.harv=(p.harv||[]).filter(h=>h.id!==rh.dataset.rmharv);save('hv.plants',state.plants);renderPlantFicha();renderPlants();toast('Cosecha borrada')}return}
   if(e.target.closest('#editToggle')){state.editing=!state.editing;renderPlantFicha();return}
   if(e.target.closest('#editCancel')){state.editing=false;renderPlantFicha();return}
   const th=e.target.closest('[data-photo]');if(th){state.photoBig=th.dataset.photo;renderPlantFicha();return}
@@ -645,14 +683,18 @@ function renderPlants(){
       h+=`<article class="card">
        <div class="pills"><span class="pill ${p.loc==='interior'?'int':'ext'}">${p.loc}</span>${p.ej?'<span class="pill ej">Ejemplo</span>':''}</div>
        ${last?`<img class="thumb" src="${img(last.src)}" alt="">`:''}
-       <div><h3>${esc(p.name)}</h3><div class="sp">${SP[p.sp].n} · desde ${parse(p.sown).toLocaleDateString('es-ES',{day:'numeric',month:'short',year:'numeric'})}</div>${(f=>f.length?`<p class="foe">Mejor lejos de ${f.map(id=>SP[id].n.toLowerCase()).join(' y ')}, que la tienes en ${p.loc}</p>`:'')(foesNear(p))}</div>
+       <div><h3>${esc(p.name)}</h3><div class="sp">${SP[p.sp].n} · desde ${parse(p.sown).toLocaleDateString('es-ES',{day:'numeric',month:'short',year:'numeric'})}</div>${(t=>t?`<p class="harvc">Cosechado en ${YEAR}: ${t}</p>`:'')(harvTot(p.harv,YEAR))}${(f=>f.length?`<p class="foe">Mejor lejos de ${f.map(id=>SP[id].n.toLowerCase()).join(' y ')}, que la tienes en ${p.loc}</p>`:'')(foesNear(p))}</div>
        <div class="dues">${d.map(x=>`<div class="du"><span class="dl">${ACTIONS[x.a]}</span> <span class="dv">${ivTxt(x.iv)}</span> <span class="st ${leftCls(x.left)}">${leftTxt(x.left)}</span></div>`).join('')}</div>
-       <div class="care-acts">${d.map(x=>`<button class="btn act" data-act="${x.a}" data-id="${esc(p.id)}">${{riego:'Regada hoy',abono:'Abonada hoy',sustrato:'Sustrato cambiado',poda:'Podada hoy'}[x.a]}</button>`).join('')}</div>
+       <div class="care-acts">${d.map(x=>`<button class="btn act" data-act="${x.a}" data-id="${esc(p.id)}">${{riego:'Regada hoy',abono:'Abonada hoy',sustrato:'Sustrato cambiado',poda:'Podada hoy'}[x.a]}</button>`).join('')}${canHarv(p)&&!p.ej?`<button class="btn act harvb" data-harvest="${esc(p.id)}">Cosechar</button>`:''}</div>
        <div class="card-foot"><button class="btn" data-open="${esc(p.id)}">Ficha y fotos${ph.length?` (${ph.length})`:''}</button>
        <button class="btn ghost" data-del="${esc(p.id)}" aria-label="Quitar ${esc(p.name)}">Quitar</button></div></article>`;
     }
     h+='</div>';
   }
+  const byS={};for(const p of state.plants)if((p.harv||[]).some(x=>x.d.startsWith(YEAR)))(byS[p.sp]=byS[p.sp]||[]).push(...p.harv);
+  const hs=Object.entries(byS).map(([sp,l])=>[SP[sp].n,harvTot(l,YEAR)]).sort((a,b)=>a[0].localeCompare(b[0],'es'));
+  const box=document.getElementById('harvSum');box.hidden=!hs.length;
+  box.innerHTML=hs.length?`<h3>Tus cosechas de ${YEAR}</h3><ul>${hs.map(([n,t])=>`<li><span>${n}</span><strong>${t}</strong></li>`).join('')}</ul>`:'';
   document.getElementById('plList').innerHTML=h||'<p class="lede" style="text-align:center;margin-inline:auto">No hay plantas con estos filtros. Añade una arriba.</p>';
 }
 function renderRem(){
@@ -846,6 +888,7 @@ document.getElementById('locSeg').addEventListener('click',e=>{const b=e.target.
 document.addEventListener('click',e=>{
   const a=e.target.closest('[data-act]');
   const o=e.target.closest('[data-open]');if(o){openPlant(o.dataset.open);return}
+  const hv=e.target.closest('[data-harvest]');if(hv){openPlant(hv.dataset.harvest);const sec=document.getElementById('harvSec');sec?.scrollIntoView({block:'start'});document.getElementById('hQ')?.focus({preventScroll:true});return}
   if(a){const p=state.plants.find(x=>x.id===a.dataset.id);p.log=p.log||{};p.log[a.dataset.act]=iso(today);save('hv.plants',state.plants);renderPlants();renderRem();if(ficha.open&&state.mode==='plant')renderPlantFicha();toast(`${ACTIONS[a.dataset.act]} anotado: ${p.name}`);return}
   const d=e.target.closest('[data-del]');
   if(d){const p=state.plants.find(x=>x.id===d.dataset.del);state.plants=state.plants.filter(x=>x!==p);save('hv.plants',state.plants);renderPlants();renderRem();toast(`${p.name} quitada`)}

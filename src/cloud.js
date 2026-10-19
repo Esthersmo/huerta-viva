@@ -59,7 +59,9 @@ function mergeMap(base, loc, rem, both) {
 function mergePlant(l, r) {
   const log = {...(r.log || {})};
   for (const [a, d] of Object.entries(l.log || {})) if (!log[a] || d > log[a]) log[a] = d;
-  return {...r, ...l, log};
+  // Las cosechas anotadas en los dos sitios se juntan
+  const harv = [...new Map([...(r.harv || []), ...(l.harv || [])].map(h => [h.id, h])).values()];
+  return {...r, ...l, log, ...(harv.length ? {harv} : {})};
 }
 export function merge(base, loc, rem) {
   const first = !base; base = base || empty();

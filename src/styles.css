@@ -448,3 +448,20 @@ form.add label{display:flex;flex-direction:column;gap:4px;font-size:.85rem;color
 .cmp.have{background:var(--ok-soft);border-color:var(--ok-bar);color:var(--ok);font-weight:700}
 .cmp.warn{background:var(--danger-soft);border-color:var(--danger-bar);color:var(--danger);font-weight:700}
 .card .foe{margin:4px 0 0;font-size:.82rem;color:var(--danger);font-weight:700}
+/* Cosechas */
+.harvf{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1.2fr) auto;gap:8px;align-items:end}
+.harvf label{display:flex;flex-direction:column;gap:4px;font-size:.85rem;color:var(--muted)}
+.harvf input,.harvf select{font:inherit;font-size:.95rem;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);min-width:0}
+.harvf .btn{padding:8px 14px}
+.harvtot{margin:0;text-align:center}
+.harvl{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.harvl li{display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 8px 6px 12px}
+.harvl li span{color:var(--muted)}
+.harvl .rm{width:26px;height:26px;border-radius:50%;border:1px solid var(--del-line);background:var(--del-bg);color:var(--del-ink);cursor:pointer;line-height:1}
+.card .harvc{margin:4px 0 0;font-size:.82rem;color:var(--ok);font-weight:700}
+.harvsum{background:var(--card);border:1px solid var(--card-line);border-radius:12px;padding:12px 16px;margin:0 0 16px}
+.harvsum h3{font-family:var(--display);font-size:1.05rem;color:var(--carob-text);margin:0 0 8px;text-align:center}
+.harvsum ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px 18px}
+.harvsum li{display:flex;justify-content:space-between;gap:10px;border-bottom:1px dashed var(--line);padding:3px 0}
+@media (max-width:520px){.harvf{grid-template-columns:1fr 1fr}.harvf .btn{grid-column:1/-1}}
+.wx[hidden]{display:none}
