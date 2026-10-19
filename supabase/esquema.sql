@@ -1,4 +1,4 @@
--- Huerta Viva: base de datos para las cuentas.
+-- Sembradía: base de datos para las cuentas.
 -- Se pega entera en Supabase > SQL Editor > New query y se pulsa Run. Solo hace falta una vez.
 
 -- Un huerto por usuario: plantas, riegos, zona y datos de las fotos (sin la imagen)

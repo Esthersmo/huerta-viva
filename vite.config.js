@@ -34,8 +34,8 @@ export default defineConfig({
       injectRegister: false,
       injectManifest: { globPatterns: ['**/*.{js,css,html,png,webp,svg}'] },
       manifest: {
-        name: 'Huerta Viva',
-        short_name: 'Huerta Viva',
+        name: 'Sembradía',
+        short_name: 'Sembradía',
         description: 'Calendario de siembra por provincia, riegos y cuidados de tus plantas.',
         lang: 'es',
         start_url: './',

@@ -1,4 +1,4 @@
--- Huerta Viva: avisos diarios con la app cerrada.
+-- Sembradía: avisos diarios con la app cerrada.
 -- Se pega entera en Supabase > SQL Editor > New query y se pulsa Run, después de crear la función «avisos».
 
 -- Una fila por móvil u ordenador con los avisos activados: su dirección de avisos y las próximas tareas

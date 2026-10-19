@@ -1,4 +1,4 @@
-# Huerta Viva
+# Sembradía
 
 App web instalable (PWA) para planificar la siembra según tu provincia y llevar los riegos y cuidados de tus plantas.
 

@@ -38,8 +38,8 @@ function frame(c) {
 function footer(c) {
   const y = H - 110;
   c.strokeStyle = C.line; c.lineWidth = 2; c.beginPath(); c.moveTo(100, y - 50); c.lineTo(W - 100, y - 50); c.stroke();
-  c.textAlign = 'left'; c.fillStyle = C.ink; c.font = '600 46px Fraunces'; c.fillText('Huerta', 100, y);
-  const w = c.measureText('Huerta ').width; c.fillStyle = C.matcha; c.font = 'italic 600 46px Fraunces'; c.fillText('Viva', 100 + w, y);
+  c.textAlign = 'left'; c.fillStyle = C.ink; c.font = '600 46px Fraunces'; c.fillText('Sembra', 100, y);
+  const w = c.measureText('Sembra').width; c.fillStyle = C.matcha; c.font = 'italic 600 46px Fraunces'; c.fillText('día', 100 + w, y);
   c.textAlign = 'right'; c.fillStyle = C.muted; c.font = '400 28px "DM Sans"'; c.fillText(URL_TXT, W - 100, y - 4);
 }
 function noPhoto(c, x, y, w, h, r, letter, deco) {
@@ -79,7 +79,7 @@ export async function sharePlant(d) {
   c.fillStyle = C.muted; c.font = '400 30px "DM Sans"';
   for (const t of d.care.slice(0, 1)) y = wrap(c, t, px, y, pw, 40, 2);
   footer(c);
-  return send(cv, `huerta-viva-${slug(d.name)}.png`, d.name, `${d.name} (${d.species.toLowerCase()}) en mi huerto · Huerta Viva`);
+  return send(cv, `sembradia-${slug(d.name)}.png`, d.name, `${d.name} (${d.species.toLowerCase()}) en mi huerto · Sembradía`);
 }
 
 // d: {zone, plants:[{name, species, photo, deco}]}
@@ -106,5 +106,5 @@ export async function shareGarden(d) {
   }
   if (!n) { c.fillStyle = C.muted; c.textAlign = 'center'; c.font = '400 34px "DM Sans"'; c.fillText('Aún no hay plantas', W / 2, 600); }
   footer(c);
-  return send(cv, 'huerta-viva-mi-huerto.png', 'Mi huerto', `Mi huerto en Huerta Viva: ${n} ${n === 1 ? 'planta' : 'plantas'}`);
+  return send(cv, 'sembradia-mi-huerto.png', 'Mi huerto', `Mi huerto en Sembradía: ${n} ${n === 1 ? 'planta' : 'plantas'}`);
 }

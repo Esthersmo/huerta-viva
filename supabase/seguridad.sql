@@ -1,4 +1,4 @@
--- Huerta Viva: límites y protecciones. Se ejecuta después de esquema.sql y avisos.sql.
+-- Sembradía: límites y protecciones. Se ejecuta después de esquema.sql y avisos.sql.
 -- Se puede ejecutar más de una vez sin problema.
 
 -- 1. El cron manda una clave secreta que solo conoce la base de datos; sin ella la función no envía avisos

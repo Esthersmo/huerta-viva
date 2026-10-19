@@ -1,4 +1,4 @@
-// Huerta Viva: avisos diarios con la app cerrada (Web Push).
+// Sembradía: avisos diarios con la app cerrada (Web Push).
 // GET  → devuelve la clave pública con la que el móvil se apunta a los avisos.
 // POST → (solo el cron, con la cabecera x-cron-secret) manda a cada dispositivo sus tareas del día a partir de las 9 de su hora.
 // Las claves del servidor se crean solas la primera vez y se guardan en la tabla «ajustes», que solo lee el servidor.
@@ -60,7 +60,7 @@ Deno.serve(async (req) => {
     const primeras = tareas.slice(0, 3).join(", ");
     const body = tareas.length > 3 ? `${primeras} y ${tareas.length - 3} más` : primeras;
     try {
-      const d = webpush.generateRequestDetails(f.sub, JSON.stringify({ title: "Huerta Viva · tareas de hoy", body, date: fecha }), { TTL: 12 * 3600 });
+      const d = webpush.generateRequestDetails(f.sub, JSON.stringify({ title: "Sembradía · tareas de hoy", body, date: fecha }), { TTL: 12 * 3600 });
       const r = await fetch(d.endpoint, { method: d.method, headers: d.headers, body: d.body, redirect: "manual" });
       if (r.status === 404 || r.status === 410) await db.from("avisos").delete().eq("endpoint", f.endpoint); // El móvil ya no acepta avisos
       else if (r.ok) { await db.from("avisos").update({ ultimo: fecha }).eq("endpoint", f.endpoint); enviados++; }

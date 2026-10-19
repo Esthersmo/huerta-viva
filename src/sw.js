@@ -32,7 +32,7 @@ async function dailyCheck() {
   if (!items.length) return;
   await put(db, 'hv.notified', t);
   const shown = items.slice(0, 3).join(', ');
-  await self.registration.showNotification('Huerta Viva · tareas de hoy', {
+  await self.registration.showNotification('Sembradía · tareas de hoy', {
     body: items.length > 3 ? `${shown} y ${items.length - 3} más` : shown,
     tag: 'hv-daily', icon: 'icons/icon-192.png', badge: 'icons/badge-96.png',
   });
@@ -45,7 +45,7 @@ self.addEventListener('push', e => {
   try { d = e.data ? e.data.json() : {}; } catch (err) {}
   e.waitUntil((async () => {
     try { await put(await kv(), 'hv.notified', d.date || todayIso()); } catch (err) {}
-    await self.registration.showNotification(d.title || 'Huerta Viva', {
+    await self.registration.showNotification(d.title || 'Sembradía', {
       body: d.body || '', tag: 'hv-daily', icon: 'icons/icon-192.png', badge: 'icons/badge-96.png',
     });
   })());

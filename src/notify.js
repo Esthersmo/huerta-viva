@@ -31,7 +31,7 @@ async function maybeNotify() {
   const items = dueToday(JSON.parse(store.getItem('hv.sched') || '[]'));
   if (!items.length) return;
   store.setItem('hv.notified', todayIso());
-  swReg.showNotification('Huerta Viva · tareas de hoy', {
+  swReg.showNotification('Sembradía · tareas de hoy', {
     body: summary(items), tag: 'hv-daily', icon: 'icons/icon-192.png', badge: 'icons/badge-96.png',
   });
 }
