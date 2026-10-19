@@ -385,7 +385,10 @@ function rotNext(id){
   return {f,nf,now};
 }
 const mine=(id,loc)=>state.plants.filter(q=>q.sp===id&&(!loc||q.loc===loc));
-function foesNear(p){return [...REL[p.sp].bad].filter(id=>mine(id,p.loc).length)}
+// Dos plantas están cerca si en el plano están en el mismo huerto a 1,2 m o menos; si alguna no está en el plano, si comparten sitio (interior/exterior)
+const near=(a,b)=>a.pos&&b.pos?(a.pos.h||'h1')===(b.pos.h||'h1')&&Math.hypot(a.pos.x-b.pos.x,a.pos.y-b.pos.y)<=1.2:a.loc===b.loc;
+const mineNear=(id,p)=>state.plants.filter(q=>q.sp===id&&q.id!==p.id&&near(p,q));
+function foesNear(p){return [...REL[p.sp].bad].filter(id=>mineNear(id,p).length)}
 function cellState(s,z,m){
   if(directa(s,z,m)) return 'directa';
   // semillero: aún hace frío fuera, pero en 1-2 meses se podrá trasplantar
@@ -552,7 +555,7 @@ function renderSeeds(){
 }
 function compSec(p){
   const r=REL[p.sp],rot=rotNext(p.sp);if(!r.good.size&&!r.bad.size&&!rot)return '';
-  const chip=(id,bad)=>{const has=mine(id,bad?p.loc:null).length;return `<span class="cmp${has?(bad?' warn':' have'):''}">${SP[id].n}${has?(bad?' · la tienes cerca':' · la tienes'):''}</span>`};
+  const chip=(id,bad)=>{const has=(bad?mineNear(id,p):mine(id)).length;return `<span class="cmp${has?(bad?' warn':' have'):''}">${SP[id].n}${has?(bad?' · la tienes cerca':' · la tienes'):''}</span>`};
   const sort=ids=>[...ids].sort((a,b)=>mine(b).length-mine(a).length);
   return `<section class="pf-sec"><div class="pf-sh"><h3>Compañeras</h3></div>
     ${r.good.size?`<div class="cmprow"><p class="cmpl">Se lleva bien con</p><div class="cmps">${sort(r.good).map(id=>chip(id,0)).join('')}</div></div>`:''}
