@@ -5,6 +5,7 @@
 create table if not exists public.huertos (
   user_id uuid primary key default auth.uid() references auth.users on delete cascade,
   data jsonb not null default '{}',
+  rev integer not null default 0,
   updated_at timestamptz not null default now()
 );
 alter table public.huertos enable row level security;

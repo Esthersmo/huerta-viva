@@ -31,6 +31,10 @@ export async function initStore() {
   }
 }
 
+// Avisos de cambios (los usa la sincronización con la nube)
+const listeners = new Set();
+export const onStoreChange = fn => listeners.add(fn);
+
 export const store = {
   getItem(k) {
     if (db) return cache.has(k) ? cache.get(k) : null;
@@ -42,5 +46,6 @@ export const store = {
       cache.set(k, v);
       db.transaction(STORE, 'readwrite').objectStore(STORE).put(v, k);
     } else localStorage.setItem(k, v);
+    listeners.forEach(fn => fn(k));
   },
 };

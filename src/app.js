@@ -2,6 +2,7 @@ import './styles.css';
 import {store} from './store.js';
 import {setupNotify,updateSchedule} from './notify.js';
 import {sharePlant,shareGarden} from './share.js';
+import {initAccount} from './account.js';
 const ILUS=import.meta.env.BASE_URL+'ilus/';
 
 const MONTHS=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
@@ -873,3 +874,11 @@ document.getElementById('shareGarden').addEventListener('click',e=>{
   shareBusy(e.currentTarget,()=>shareGarden({zone,plants}));
 });
 setupNotify();
+// Cuando llegan cambios de la nube (otro dispositivo) se recarga todo desde el almacén
+function reloadFromStore(){
+  photos=load('hv.photos',{});state.plants=load('hv.plants',[]);
+  state.zone=(z=>OLD_ZONES[z]||(ZONES[z]?z:state.zone))(load('hv.zone',state.zone));state.alt=load('hv.alt',null);state.cp=load('hv.cp',null);
+  drawZones();drawAlt();drawCp();drawZoneBox();renderAll();refreshSelects();
+  if(ficha.open&&state.mode==='plant'){if(state.plants.some(p=>p.id===state.plantSel))renderPlantFicha();else ficha.close()}
+}
+initAccount({refresh:reloadFromStore,toast});

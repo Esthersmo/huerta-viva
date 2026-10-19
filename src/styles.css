@@ -398,3 +398,23 @@ form.add label{display:flex;flex-direction:column;gap:4px;font-size:.85rem;color
   .avisos p{margin:0;max-width:none}
 }
 
+/* Mi cuenta */
+.acct{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);display:inline-grid;place-items:center;cursor:pointer;padding:0;position:relative;flex:none}
+.acct[hidden]{display:none}
+.acct svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round}
+.acct.on{border-color:var(--sel);background:var(--sel);color:var(--sel-ink)}
+.acctdlg p{margin:0}
+.acform{display:flex;flex-direction:column;gap:8px}
+.acform label{font-size:.85rem;color:var(--muted)}
+.acform input{font-size:1rem;padding:10px 12px}
+.acform .btn{padding:10px 14px;font-size:.95rem}
+#acctCode{letter-spacing:.3em;font-size:1.3rem;text-align:center}
+.acctdlg .acts{display:flex;flex-wrap:wrap;gap:8px}
+.acctdlg .sync{border-radius:10px;padding:10px 12px;background:var(--surface-2);font-weight:500}
+.acctdlg .sync.ok{background:var(--ok-soft);color:var(--ok)}
+.acctdlg .sync.error{background:var(--danger-soft);color:var(--danger)}
+.acctdlg .lnk{font:inherit;background:none;border:0;padding:0;color:var(--ink);text-decoration:underline;cursor:pointer}
+.acctdlg .acmsg{color:var(--danger);font-weight:500}
+.acctdlg details.danger summary{cursor:pointer;color:var(--muted);font-size:.88rem}
+.acctdlg details.danger[open]{display:flex;flex-direction:column;gap:8px}
+.btn.warn{border-color:var(--danger-bar);color:var(--danger);align-self:flex-start}
