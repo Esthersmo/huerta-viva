@@ -204,17 +204,27 @@ export function initPlan(ctx) {
   // Con el teclado abierto: la pantalla completa se ajusta a la parte que queda visible
   // y la casilla en la que se escribe se lleva al centro, para verla bien
   const vv = window.visualViewport;
+  let kbTop = null, kbH = null, kbTimer = 0;
+  // Solo se mueve si de verdad cambió lo visible (más de unos píxeles), y una sola vez por cambio, para que no tiemble
   function fitKeyboard() {
-    if (!vv) return;
-    // El fondo sigue ocupando toda la pantalla (con las ilustraciones) y solo el contenido se ajusta a lo visible
-    const body = box.querySelector('.plan-body');
-    if (isFull()) { body.style.top = vv.offsetTop + 'px'; body.style.height = vv.height + 'px'; body.style.bottom = 'auto'; }
-    else body.style.top = body.style.height = body.style.bottom = '';
-    const a = document.activeElement;
-    if (a && a.tagName === 'INPUT' && box.contains(a)) a.scrollIntoView({block: 'center', behavior: 'smooth'});
+    // Se espera a que el teclado termine de abrirse antes de recolocar nada
+    clearTimeout(kbTimer);
+    kbTimer = setTimeout(() => {
+      if (!vv) return;
+      const body = box.querySelector('.plan-body');
+      if (isFull()) {
+        const t = Math.round(vv.offsetTop), h = Math.round(vv.height);
+        if (kbTop === null || Math.abs(t - kbTop) > 4 || Math.abs(h - kbH) > 4) { kbTop = t; kbH = h; body.style.top = t + 'px'; body.style.height = h + 'px'; body.style.bottom = 'auto'; }
+      } else if (kbTop !== null) { kbTop = kbH = null; body.style.top = body.style.height = body.style.bottom = ''; }
+      const a = document.activeElement;
+      if (a && a.tagName === 'INPUT' && box.contains(a)) {
+        const r = a.getBoundingClientRect(), top = vv.offsetTop, bottom = top + vv.height;
+        if (r.top < top + 8 || r.bottom > bottom - 8) a.scrollIntoView({block: 'center'});
+      }
+    }, 250);
   }
-  vv?.addEventListener('resize', fitKeyboard); vv?.addEventListener('scroll', () => isFull() && fitKeyboard());
-  box.addEventListener('focusin', e => { if (e.target.tagName === 'INPUT') setTimeout(fitKeyboard, 350); });
+  vv?.addEventListener('resize', fitKeyboard);
+  box.addEventListener('focusin', e => { if (e.target.tagName === 'INPUT') fitKeyboard(); });
   box.addEventListener('focusout', () => setTimeout(() => { if (!box.contains(document.activeElement)) fitKeyboard(); }, 100));
   // Al tocar un número se selecciona entero, para escribir el nuevo directamente
   box.addEventListener('focusin', e => { if (e.target.matches?.('#planW,#planH,#planBW,#planBH')) setTimeout(() => e.target.select(), 0); });
@@ -226,7 +236,8 @@ export function initPlan(ctx) {
   const isFull = () => box.classList.contains('full');
   function fit() {
     if (!isFull()) { plan.style.width = ''; return; }
-    const r = main.getBoundingClientRect(); plan.style.width = Math.min(r.width, r.height * pl.w / pl.h) + 'px'; gridSize();
+    const r = main.getBoundingClientRect(), w = Math.floor(Math.min(r.width, r.height * pl.w / pl.h));
+    if (Math.abs(w - parseFloat(plan.style.width || 0)) >= 2) { plan.style.width = w + 'px'; gridSize(); }
   }
   function setFull(on) {
     box.open = true; box.classList.toggle('full', on); document.documentElement.classList.toggle('plan-noscroll', on);
@@ -238,7 +249,7 @@ export function initPlan(ctx) {
       try { (document.exitFullscreen || document.webkitExitFullscreen).call(document); } catch (e) {}
     }
     const body = box.querySelector('.plan-body');
-    if (!on) body.style.top = body.style.height = body.style.bottom = '';
+    if (!on) { body.style.top = body.style.height = body.style.bottom = ''; kbTop = kbH = null; }
     // Las ilustraciones del fondo de la app, también en pantalla completa
     let deco = box.querySelector('.plan-deco');
     if (on) { if (!deco) { deco = document.createElement('div'); deco.className = 'plan-deco'; deco.setAttribute('aria-hidden', 'true'); box.prepend(deco); } deco.innerHTML = document.getElementById('deco')?.innerHTML || ''; }
