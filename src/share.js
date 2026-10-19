@@ -3,7 +3,7 @@
 // si el navegador no puede compartir archivos, la imagen se descarga.
 const W = 1080, H = 1350;
 const C = {bg: '#EFEBE2', card: '#FDFBF8', line: '#C9D0B0', carob: '#725C3A', green: '#5F7651', matcha: '#809671', ink: '#3D3121', muted: '#7A6A55', soft: '#E4E9D3'};
-const URL_TXT = 'esthersmo.github.io/huerta-viva';
+const URL_TXT = 'esthersmo.github.io/sembradia';
 
 async function fonts() {
   try {
