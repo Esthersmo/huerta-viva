@@ -25,6 +25,9 @@ const put = (k, v) => store.setItem(k, JSON.stringify(v));
 const canon = v => Array.isArray(v) ? v.map(canon) : v && typeof v === 'object' ? Object.fromEntries(Object.keys(v).sort().map(k => [k, canon(v[k])])) : v;
 const same = (a, b) => JSON.stringify(canon(a)) === JSON.stringify(canon(b));
 const empty = () => ({plants: {}, photos: {}, zona: null});
+// Los límites de la nube (500 fotos, fotos de hasta 600 KB, huerto de hasta 1 MB) se marcan para explicarlos en «Mi cuenta»
+const limite = (e, que) => Object.assign(e instanceof Error ? e : new Error(e?.message || String(e)), {limite: que});
+const esLimiteFoto = e => /row-level security|maximum allowed size|exceeded|mime/i.test(e?.message || '');
 
 export async function client() {
   if (!sb) {
@@ -105,7 +108,7 @@ async function syncOnce() {
     if (srcs[id] && !rem.photos[id]) {
       const blob = await (await fetch(srcs[id])).blob();
       const {error: e} = await c.storage.from(BUCKET).upload(path(id), blob, {upsert: true, contentType: 'image/jpeg'});
-      if (e) throw e;
+      if (e) throw esLimiteFoto(e) ? limite(e, 'fotos') : e;
     } else if (!srcs[id]) {
       const {data: blob, error: e} = await c.storage.from(BUCKET).download(path(id));
       if (e) throw e;
@@ -118,10 +121,10 @@ async function syncOnce() {
     const rev = (row?.rev || 0) + 1;
     if (!row) {
       const {error: e} = await c.from('huertos').insert({user_id: user.id, data, rev});
-      if (e) { if (e.code === '23505') return false; throw e; }
+      if (e) { if (e.code === '23505') return false; throw e.code === '23514' ? limite(e, 'huerto') : e; }
     } else {
       const {data: upd, error: e} = await c.from('huertos').update({data, rev, updated_at: new Date().toISOString()}).eq('user_id', user.id).eq('rev', row.rev).select('rev');
-      if (e) throw e;
+      if (e) throw e.code === '23514' ? limite(e, 'huerto') : e;
       if (!upd.length) return false; // Otro dispositivo guardó a la vez: se vuelve a empezar
     }
     const gone = Object.keys(rem.photos).filter(id => !m.photos[id]);
@@ -145,10 +148,10 @@ export function syncNow() {
     try {
       let ok = false;
       for (let i = 0; i < 4 && !ok; i++) ok = await syncOnce();
-      setStatus(ok ? {state: 'ok', at: new Date()} : {state: 'error', error: 'conflict'});
+      setStatus(ok ? {state: 'ok', at: new Date(), limite: null} : {state: 'error', error: 'conflict', limite: null});
     } catch (e) {
       console.warn('Sincronización', e);
-      setStatus({state: navigator.onLine === false ? 'offline' : 'error', error: e?.message || String(e)});
+      setStatus({state: navigator.onLine === false ? 'offline' : 'error', error: e?.message || String(e), limite: e?.limite || null});
     } finally {
       running = null;
       if (again) { again = false; schedule(500); }

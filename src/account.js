@@ -48,7 +48,10 @@ function statusLine() {
     syncing: 'Sincronizando…',
     ok: `Todo guardado en la nube ${when(st.at)}.`,
     offline: 'Sin conexión. Tus cambios se guardan en el móvil y se subirán al volver internet.',
-    error: 'No se ha podido sincronizar. Lo volveremos a intentar.',
+    error: {
+      fotos: 'No se han podido subir tus fotos nuevas: cada cuenta guarda como mucho 500 fotos. Borra alguna foto antigua y se sincronizará sola.',
+      huerto: 'Tu huerto ha llegado al tamaño máximo que se guarda en la nube. Borra plantas que ya no tengas y se sincronizará solo.',
+    }[st.limite] || 'No se ha podido sincronizar. Lo volveremos a intentar.',
     idle: 'Conectando…',
   }[st.state] || '';
 }
