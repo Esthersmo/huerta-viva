@@ -453,7 +453,7 @@ function renderFicha(){
    ${lowChill(s,z)?`<p class="tip chill">${chillTxt(s)}</p>`:''}
    ${dark.length?`<p class="tip">En ${ranges(dark).toLowerCase()} hay menos horas de sol de las que necesita (${s.sun} h al día), así que plántalo en el rincón más soleado que tengas.</p>`:''}
    <p class="tip">El riego se ajusta solo al calor del mes en tu zona.</p>
-   ${mine.length?`<div><p class="tip" style="margin-bottom:6px">Tus plantas de ${s.n.toLowerCase()}:</p><div class="mine">${mine.map(p=>`<button class="btn" data-open="${p.id}">${esc(p.name)} · fotos (${(photos[p.id]||[]).length})</button>`).join('')}</div></div>`:''}
+   ${mine.length?`<div><p class="tip" style="margin-bottom:6px">Tus plantas de ${s.n.toLowerCase()}:</p><div class="mine">${mine.map(p=>`<button class="btn" data-open="${esc(p.id)}">${esc(p.name)} · fotos (${(photos[p.id]||[]).length})</button>`).join('')}</div></div>`:''}
    <button class="btn primary" id="fichaAdd">Añadir a mis plantas</button>`;
 }
 function cap(t){return t.charAt(0).toUpperCase()+t.slice(1)}
@@ -485,7 +485,7 @@ function renderPlantFicha(){
        <label for="eName">Nombre<input id="eName" required value="${esc(p.name)}"></label>
        <label for="eSp">Especie<select id="eSp">${fSp.innerHTML}</select></label>
        <label for="eLoc">Ubicación<select id="eLoc"><option value="exterior">Exterior</option><option value="interior">Interior</option></select></label>
-       <label for="eDate">Sembrada o plantada<input id="eDate" type="date" value="${p.sown}" max="${iso(today)}"></label>
+       <label for="eDate">Sembrada o plantada<input id="eDate" type="date" value="${esc(p.sown)}" max="${iso(today)}"></label>
        <div style="display:flex;gap:8px;grid-column:1/-1"><button class="btn primary" type="submit">Guardar cambios</button><button class="btn" type="button" id="editCancel">Cancelar</button></div>
      </form></section>`:''}
    <section class="pf-sec">
@@ -493,10 +493,10 @@ function renderPlantFicha(){
        ${ph.length?`<button class="btn" id="photoEditToggle" aria-pressed="${!!state.photoEdit}">${state.photoEdit?'Listo':'Editar fotos'}</button>`:''}
        <label class="btn primary upl" for="photoIn">Añadir foto<input type="file" id="photoIn" accept="image/*"></label></div></div>
      ${big?`${state.photoEdit?`<p class="tip">Cambia la fecha de cada foto o bórrala. Se ordenan solas de la más antigua a la más reciente.</p>`:''}
-       <figure class="big"><img src="${big.src}" alt="${esc(p.name)} el ${fdate(big.date)}"><figcaption><b>Día ${daysSince(p,big.date)}</b> · ${fdate(big.date)}</figcaption></figure>
-       <div class="pgrid${state.photoEdit?' editing':''}">${ph.map(x=>`<figure class="ph"><button class="th" data-photo="${x.id}" aria-pressed="${x===big}" aria-label="Ver foto del día ${daysSince(p,x.date)}"><img src="${x.src}" alt=""></button>
-         ${state.photoEdit?`<button class="rm" data-rmphoto="${x.id}" aria-label="Borrar foto del día ${daysSince(p,x.date)}">×</button>
-         <figcaption>Día ${daysSince(p,x.date)}<input type="date" class="phDate" data-pid="${x.id}" value="${x.date}" min="${p.sown}" max="${iso(today)}" aria-label="Fecha de la foto del día ${daysSince(p,x.date)}"></figcaption>`
+       <figure class="big"><img src="${img(big.src)}" alt="${esc(p.name)} el ${fdate(big.date)}"><figcaption><b>Día ${daysSince(p,big.date)}</b> · ${fdate(big.date)}</figcaption></figure>
+       <div class="pgrid${state.photoEdit?' editing':''}">${ph.map(x=>`<figure class="ph"><button class="th" data-photo="${esc(x.id)}" aria-pressed="${x===big}" aria-label="Ver foto del día ${daysSince(p,x.date)}"><img src="${img(x.src)}" alt=""></button>
+         ${state.photoEdit?`<button class="rm" data-rmphoto="${esc(x.id)}" aria-label="Borrar foto del día ${daysSince(p,x.date)}">×</button>
+         <figcaption>Día ${daysSince(p,x.date)}<input type="date" class="phDate" data-pid="${esc(x.id)}" value="${esc(x.date)}" min="${esc(p.sown)}" max="${iso(today)}" aria-label="Fecha de la foto del día ${daysSince(p,x.date)}"></figcaption>`
          :`<figcaption>Día ${daysSince(p,x.date)}<small>${fd(x.date)}</small></figcaption>`}</figure>`).join('')}</div>
        <p class="tip">${ph.length>1&&ph[0].date!==ph[ph.length-1].date?`De la primera a la última foto han pasado ${daysSince(p,ph[ph.length-1].date)-daysSince(p,ph[0].date)} días.`:'Añade otra foto más adelante para ver cómo crece.'}</p>`
      :`<div class="empty-ph">Aún no hay fotos. Añade la primera y vuelve a hacer una cada pocas semanas para ver cómo crece.</div>`}
@@ -529,7 +529,7 @@ ficha.addEventListener('change',async e=>{
     const v=e.target.value,p=state.plants.find(x=>x.id===state.plantSel),it=(photos[state.plantSel]||[]).find(x=>x.id===e.target.dataset.pid);
     if(!it||!p||!/^\d{4}-\d{2}-\d{2}$/.test(v)||v<p.sown||v>iso(today)||v===it.date)return;
     it.date=v;savePhotos();state.photoBig=it.id;renderPlantFicha();renderPlants();
-    document.querySelector(`#ficha [data-photo="${it.id}"]`)?.scrollIntoView({block:'nearest',inline:'center'});
+    document.querySelector(`#ficha [data-photo="${esc(it.id)}"]`)?.scrollIntoView({block:'nearest',inline:'center'});
     toast(`Foto movida al día ${daysSince(p,v)}`);return}
   if(e.target.id!=='photoIn'||!e.target.files[0])return;
   const file=e.target.files[0],p=state.plants.find(x=>x.id===state.plantSel);
@@ -599,12 +599,12 @@ function renderPlants(){
       const ph=(photos[p.id]||[]).slice().sort((a,b)=>a.date<b.date?-1:1),last=ph[ph.length-1];
       h+=`<article class="card">
        <div class="pills"><span class="pill ${p.loc==='interior'?'int':'ext'}">${p.loc}</span>${p.ej?'<span class="pill ej">Ejemplo</span>':''}</div>
-       ${last?`<img class="thumb" src="${last.src}" alt="">`:''}
+       ${last?`<img class="thumb" src="${img(last.src)}" alt="">`:''}
        <div><h3>${esc(p.name)}</h3><div class="sp">${SP[p.sp].n} · desde ${parse(p.sown).toLocaleDateString('es-ES',{day:'numeric',month:'short',year:'numeric'})}</div></div>
        <div class="dues">${d.map(x=>`<div class="du"><span class="dl">${ACTIONS[x.a]}</span> <span class="dv">${ivTxt(x.iv)}</span> <span class="st ${leftCls(x.left)}">${leftTxt(x.left)}</span></div>`).join('')}</div>
-       <div class="care-acts">${d.map(x=>`<button class="btn act" data-act="${x.a}" data-id="${p.id}">${{riego:'Regada hoy',abono:'Abonada hoy',sustrato:'Sustrato cambiado',poda:'Podada hoy'}[x.a]}</button>`).join('')}</div>
-       <div class="card-foot"><button class="btn" data-open="${p.id}">Ficha y fotos${ph.length?` (${ph.length})`:''}</button>
-       <button class="btn ghost" data-del="${p.id}" aria-label="Quitar ${esc(p.name)}">Quitar</button></div></article>`;
+       <div class="care-acts">${d.map(x=>`<button class="btn act" data-act="${x.a}" data-id="${esc(p.id)}">${{riego:'Regada hoy',abono:'Abonada hoy',sustrato:'Sustrato cambiado',poda:'Podada hoy'}[x.a]}</button>`).join('')}</div>
+       <div class="card-foot"><button class="btn" data-open="${esc(p.id)}">Ficha y fotos${ph.length?` (${ph.length})`:''}</button>
+       <button class="btn ghost" data-del="${esc(p.id)}" aria-label="Quitar ${esc(p.name)}">Quitar</button></div></article>`;
     }
     h+='</div>';
   }
@@ -623,7 +623,7 @@ function renderRem(){
   const lim=(k,rows)=>rows.length<=REM_MAX?rows.join(''):(more[k]?rows:rows.slice(0,REM_MAX)).join('')+`<button class="btn remmore rm-${k}" data-remmore="${k}" aria-expanded="${!!more[k]}">${more[k]?'Ver menos':`Ver ${rows.length-REM_MAX} más`}</button>`;
   const row=x=>`<div class="rrow ${cls(x.left)}"><span class="bar"></span>
     <div><p><strong>${VERB[x.a]}</strong> ${esc(x.p.name)}</p><p class="sub">${tag(x.left)?`<span class="tag">${tag(x.left)}</span> · `:''}${leftTxt(x.left)} · última vez ${x.last.toLocaleDateString('es-ES',{day:'numeric',month:'short'})} · ${x.p.loc}</p></div>
-    <button class="btn" data-act="${x.a}" data-id="${x.p.id}">Hecho</button></div>`;
+    <button class="btn" data-act="${x.a}" data-id="${esc(x.p.id)}">Hecho</button></div>`;
   let h=['over','today','soon'].map(k=>lim(k,all.filter(x=>cls(x.left)===k).map(row))).join('')||'<p class="lede">No hay tareas pendientes esta semana.</p>';
   if(done.length)h+=`<p class="remhead">Hecho hoy</p>`+lim('done',done.map(x=>`<div class="rrow done"><span class="bar"></span>
     <div><p><strong>${ACTIONS[x.a]}</strong> ${esc(x.p.name)}</p><p class="sub"><span class="tag">Hecho</span> · ${x.p.loc}</p></div><span></span></div>`));
@@ -631,7 +631,9 @@ function renderRem(){
   // Próximas tareas para los avisos diarios
   updateSchedule(state.plants.flatMap(dues).map(x=>({date:iso(x.due),text:`${VERB[x.a]} ${x.p.name}`})));
 }
-function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+// Solo se pintan como imagen las fotos guardadas por la app (JPEG/PNG/WebP en base64)
+function img(s){return /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(s||'')?s:''}
 function renderAll(){renderCal();renderPlants();renderRem();renderTips()}
 // ---------- Consejos ----------
 const TIP_ROWS=[['s','Siembra'],['r','Riego'],['l','Luz'],['t','Suelo'],['a','Abonado'],['o','Poda'],['p','Plagas y problemas'],['c','Cosecha'],['b','Buenas compañeras'],['e','Mejor lejos de']];
@@ -639,10 +641,10 @@ function renderTips(){
   const mine=[...new Set(state.plants.map(p=>p.sp))].filter(id=>SP[id]);
   if(!state.tipSel||!SP[state.tipSel])state.tipSel=mine[0]||'tomate';
   const s=SP[state.tipSel],t=TIPS[s.id]||{},z=zoneNow();
-  document.getElementById('tipMine').innerHTML=mine.length?mine.map(id=>`<button class="chip" data-tip="${id}" aria-pressed="${id===s.id}">${SP[id].n}</button>`).join(''):'';
+  document.getElementById('tipMine').innerHTML=mine.length?mine.map(id=>`<button class="chip" data-tip="${esc(id)}" aria-pressed="${id===s.id}">${SP[id].n}</button>`).join(''):'';
   const sel=document.getElementById('tipSp');if(sel.value!==s.id){sel.value=s.id;sel._cselDraw&&sel._cselDraw()}
   const ms=document.getElementById('tipMineSel');
-  ms.innerHTML=(mine.includes(s.id)?'':'<option value="">Elige una de tus plantas</option>')+mine.map(id=>`<option value="${id}">${SP[id].n}</option>`).join('');
+  ms.innerHTML=(mine.includes(s.id)?'':'<option value="">Elige una de tus plantas</option>')+mine.map(id=>`<option value="${esc(id)}">${SP[id].n}</option>`).join('');
   ms.value=mine.includes(s.id)?s.id:'';ms._cselDraw&&ms._cselDraw();
   ms.closest('.tip-mine-sel').classList.toggle('empty',!mine.length);
   const st=s.pot?null:cellState(s,z,curM);
@@ -780,7 +782,7 @@ function enhanceSelect(sel){
   let act=0;const opts=()=>[...sel.options];
   const draw=()=>{const os=opts();btn.innerHTML=`<span>${sel.selectedOptions[0]?.text||''}</span><span aria-hidden="true">▾</span>`;
     let h='',last=null;os.forEach((o,i)=>{const g=o.parentNode.tagName==='OPTGROUP'?o.parentNode.label:null;if(g&&g!==last){h+=`<li class="grp" role="presentation">${g}</li>`;last=g}
-      h+=`<li class="opt${i===act?' act':''}" role="option" id="${id}-${i}" data-i="${i}" aria-selected="${o.selected}">${o.text}</li>`});
+      h+=`<li class="opt${i===act?' act':''}" role="option" id="${id}-${i}" data-i="${i}" aria-selected="${o.selected}">${esc(o.text)}</li>`});
     ul.innerHTML=h;ul.setAttribute('aria-activedescendant',`${id}-${act}`);ul.querySelector('.act')?.scrollIntoView({block:'nearest'})};
   const open=()=>{act=sel.selectedIndex;ul.hidden=false;draw();btn.setAttribute('aria-expanded','true');ul.focus()};
   const close=f=>{ul.hidden=true;btn.setAttribute('aria-expanded','false');if(f)btn.focus()};

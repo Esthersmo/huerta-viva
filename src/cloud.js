@@ -188,9 +188,9 @@ export async function signInGoogle() {
   const {error} = await c.auth.signInWithOAuth({provider: 'google', options: {redirectTo: location.origin + location.pathname}});
   if (error) throw error;
 }
-export async function sendCode(email) {
+export async function sendCode(email, captchaToken) {
   const c = await client();
-  const {error} = await c.auth.signInWithOtp({email, options: {shouldCreateUser: true}});
+  const {error} = await c.auth.signInWithOtp({email, options: {shouldCreateUser: true, captchaToken: captchaToken || undefined}});
   if (error) throw error;
 }
 export async function verifyCode(email, token) {

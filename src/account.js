@@ -1,11 +1,35 @@
 // Ventana «Mi cuenta»: entrar con el correo y un código, ver el estado de la sincronización, salir o borrar la cuenta.
+import {TURNSTILE_SITE_KEY} from './cloud-config.js';
 import {cloudOn, initCloud, onCloud, currentUser, setMergeAsker, setOnLogin, googleEnabled, signInGoogle, sendCode, verifyCode, syncNow, signOut, deleteAccount} from './cloud.js';
 
-const esc = s => String(s).replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
-let step = 'email', email = '', busy = false, msg = '', st = {state: 'off'}, ask = null, google = null;
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
+let step = 'email', email = '', busy = false, msg = '', st = {state: 'off'}, ask = null, google = null, captcha = null;
+
+// Captcha de Cloudflare Turnstile: casi siempre invisible; solo pide un clic si sospecha de un robot
+let tsLoad = null;
+function turnstile() {
+  tsLoad = tsLoad || new Promise((ok, ko) => {
+    const sc = document.createElement('script');
+    sc.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+    sc.async = true; sc.onload = () => ok(window.turnstile); sc.onerror = () => { tsLoad = null; ko(new Error('captcha')); };
+    document.head.append(sc);
+  });
+  return tsLoad;
+}
+async function mountCaptcha() {
+  const el = document.getElementById('acctCaptcha');
+  if (!el) return;
+  captcha = null;
+  try {
+    const ts = await turnstile();
+    if (!el.isConnected) return;
+    ts.render(el, {sitekey: TURNSTILE_SITE_KEY, language: 'es', appearance: 'interaction-only', callback: t => { captcha = t; }, 'expired-callback': () => { captcha = null; }});
+  } catch (e) {}
+}
 
 function errText(e) {
   const m = (e?.message || String(e)).toLowerCase();
+  if (m.includes('captcha')) return 'Estamos comprobando que no eres un robot. Espera un momento y vuelve a pulsar.';
   if (m.includes('rate limit') || m.includes('security purposes')) return 'Has pedido varios códigos seguidos. Espera un poco y vuelve a intentarlo.';
   if (m.includes('expired') || m.includes('invalid') || m.includes('token')) return 'El código no es correcto o ha caducado. Revísalo o pide otro.';
   if (m.includes('email')) return 'Revisa que el correo esté bien escrito.';
@@ -57,6 +81,7 @@ export function initAccount({refresh, toast}) {
       h += `<p>Entra con tu correo para guardar tu huerto en la nube y tenerlo en todos tus dispositivos. Si es la primera vez, la cuenta se crea sola.</p>
         <form id="acctForm" class="acform"><label for="acctEmail">Correo electrónico</label>
         <input id="acctEmail" type="email" autocomplete="email" inputmode="email" required value="${esc(email)}" placeholder="tu@correo.com">
+        ${TURNSTILE_SITE_KEY ? '<div id="acctCaptcha" class="captcha"></div>' : ''}
         <button class="btn primary" ${busy ? 'disabled' : ''}>${busy ? 'Enviando…' : 'Enviarme un código'}</button></form>
         ${google ? `<p class="or">o</p><button class="btn gbtn" type="button" id="acctGoogle"><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>Entrar con Google</button>` : ''}
         <p class="tip">Sin contraseñas: cada vez que entres te mandaremos un código al correo. Al entrar aceptas la <a href="privacidad.html" target="_blank" rel="noopener">política de privacidad</a>.</p>`;
@@ -69,6 +94,7 @@ export function initAccount({refresh, toast}) {
     }
     if (msg) h += `<p class="acmsg" role="alert">${esc(msg)}</p>`;
     body.innerHTML = h;
+    if (TURNSTILE_SITE_KEY && !u && !ask && step === 'email') mountCaptcha();
   }
   function open() {
     msg = '';
@@ -97,10 +123,12 @@ export function initAccount({refresh, toast}) {
     e.preventDefault(); if (busy) return;
     const code = document.getElementById('acctCode')?.value.trim();
     if (step === 'email') email = document.getElementById('acctEmail').value.trim();
+    const tok = captcha; // Se lee antes de repintar, que crea un captcha nuevo
     busy = true; msg = ''; draw();
     try {
       if (step === 'email') {
-        await sendCode(email); step = 'code';
+        if (TURNSTILE_SITE_KEY && !tok) throw new Error('captcha-pending');
+        await sendCode(email, tok); step = 'code';
       } else {
         await verifyCode(email, code);
         step = 'email'; toast('¡Dentro! Tu huerto ya se guarda en tu cuenta');
