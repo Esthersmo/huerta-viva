@@ -206,8 +206,10 @@ export function initPlan(ctx) {
   const vv = window.visualViewport;
   function fitKeyboard() {
     if (!vv) return;
-    if (isFull()) { box.style.top = vv.offsetTop + 'px'; box.style.height = vv.height + 'px'; box.style.bottom = 'auto'; }
-    else { box.style.top = box.style.height = box.style.bottom = ''; }
+    // El fondo sigue ocupando toda la pantalla (con las ilustraciones) y solo el contenido se ajusta a lo visible
+    const body = box.querySelector('.plan-body');
+    if (isFull()) { body.style.top = vv.offsetTop + 'px'; body.style.height = vv.height + 'px'; body.style.bottom = 'auto'; }
+    else body.style.top = body.style.height = body.style.bottom = '';
     const a = document.activeElement;
     if (a && a.tagName === 'INPUT' && box.contains(a)) a.scrollIntoView({block: 'center', behavior: 'smooth'});
   }
@@ -235,7 +237,12 @@ export function initPlan(ctx) {
     } else if (document.fullscreenElement || document.webkitFullscreenElement) {
       try { (document.exitFullscreen || document.webkitExitFullscreen).call(document); } catch (e) {}
     }
-    if (!on) box.style.top = box.style.height = box.style.bottom = '';
+    const body = box.querySelector('.plan-body');
+    if (!on) body.style.top = body.style.height = body.style.bottom = '';
+    // Las ilustraciones del fondo de la app, también en pantalla completa
+    let deco = box.querySelector('.plan-deco');
+    if (on) { if (!deco) { deco = document.createElement('div'); deco.className = 'plan-deco'; deco.setAttribute('aria-hidden', 'true'); box.prepend(deco); } deco.innerHTML = document.getElementById('deco')?.innerHTML || ''; }
+    else deco?.remove();
     draw(); requestAnimationFrame(fit);
   }
   fsBtn.addEventListener('click', () => setFull(!isFull()));
