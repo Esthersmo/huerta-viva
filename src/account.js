@@ -1,8 +1,8 @@
 // Ventana «Mi cuenta»: entrar con el correo y un código, ver el estado de la sincronización, salir o borrar la cuenta.
-import {cloudOn, initCloud, onCloud, currentUser, sendCode, verifyCode, syncNow, signOut, deleteAccount} from './cloud.js';
+import {cloudOn, initCloud, onCloud, currentUser, setMergeAsker, sendCode, verifyCode, syncNow, signOut, deleteAccount} from './cloud.js';
 
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
-let step = 'email', email = '', busy = false, msg = '', st = {state: 'off'};
+let step = 'email', email = '', busy = false, msg = '', st = {state: 'off'}, ask = null;
 
 function errText(e) {
   const m = (e?.message || String(e)).toLowerCase();
@@ -36,8 +36,14 @@ export function initAccount({refresh, toast}) {
 
   function draw() {
     const u = currentUser();
-    let h = `<div class="hd"><h2 id="acctTitle">Mi cuenta</h2><button class="x" type="button" id="acctClose" aria-label="Cerrar">×</button></div>`;
-    if (u) {
+    let h = `<div class="hd"><h2 id="acctTitle">Mi cuenta</h2>${ask ? '' : '<button class="x" type="button" id="acctClose" aria-label="Cerrar">×</button>'}</div>`;
+    if (ask) {
+      const pl = n => `${n} ${n === 1 ? 'planta' : 'plantas'}`;
+      h += `<p>En este dispositivo tienes <strong>${pl(ask.nl)}</strong> y en tu cuenta hay <strong>${pl(ask.nr)}</strong>. ¿Qué quieres hacer?</p>
+        <div class="acform"><button class="btn primary" type="button" data-merge="cuenta">Quedarme solo con las de mi cuenta</button>
+        <button class="btn" type="button" data-merge="juntar">Juntar las de aquí con las de mi cuenta</button></div>
+        <p class="tip">Si eliges la cuenta, las plantas que hay ahora en este dispositivo se quitan y se cambian por las de tu cuenta.</p>`;
+    } else if (u) {
       h += `<p>Has entrado como <strong>${esc(u.email)}</strong>.</p>
         <p class="sync ${st.state}" role="status">${statusLine()}</p>
         <p class="tip">Tus plantas, riegos, fotos y tu zona se guardan en tu cuenta y aparecen en cualquier móvil u ordenador donde entres con este correo.</p>
@@ -65,7 +71,11 @@ export function initAccount({refresh, toast}) {
   function open() { msg = ''; draw(); try { dlg.showModal(); } catch (e) { dlg.setAttribute('open', ''); } }
 
   btn.addEventListener('click', open);
+  setMergeAsker((nl, nr) => new Promise(res => { ask = {nl, nr, res}; busy = false; if (!dlg.open) open(); else draw(); }));
   dlg.addEventListener('click', async e => {
+    const mg = e.target.closest('[data-merge]');
+    if (mg && ask) { const r = ask.res; ask = null; draw(); r(mg.dataset.merge); return; }
+    if (ask) return; // Hay que elegir antes de cerrar
     if (e.target === dlg || e.target.closest('#acctClose')) { dlg.close(); return; }
     if (e.target.closest('#acctBack')) { step = 'email'; msg = ''; draw(); return; }
     if (e.target.closest('#acctSync')) { syncNow(); return; }
@@ -75,6 +85,7 @@ export function initAccount({refresh, toast}) {
       try { await deleteAccount(); toast('Cuenta borrada'); dlg.close(); } catch (err) { msg = errText(err); draw(); }
     }
   });
+  dlg.addEventListener('cancel', e => { if (ask) e.preventDefault(); });
   dlg.addEventListener('submit', async e => {
     e.preventDefault(); if (busy) return;
     const code = document.getElementById('acctCode')?.value.trim();

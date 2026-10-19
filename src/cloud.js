@@ -10,12 +10,14 @@ export const cloudOn = !!(SUPABASE_URL && SUPABASE_KEY);
 const SYNCED = ['hv.plants', 'hv.photos', 'hv.zone', 'hv.alt', 'hv.cp'];
 const BUCKET = 'fotos', AUTH_KEY = 'hv.auth';
 
-let sb = null, user = null, timer = null, running = null, again = false, applying = false, onRefresh = () => {};
+let sb = null, user = null, askMerge = null, firstChoice = null, timer = null, running = null, again = false, applying = false, onRefresh = () => {};
 let status = {state: 'off', at: null, error: null};
 const subs = new Set();
 export function onCloud(fn) { subs.add(fn); fn(status, user); }
 function setStatus(st) { status = {...status, ...st}; subs.forEach(f => f(status, user)); }
 export const currentUser = () => user;
+// Al entrar por primera vez en un dispositivo que ya tiene plantas propias, la app pregunta si juntarlas con las de la cuenta
+export const setMergeAsker = fn => { askMerge = fn; };
 
 const get = (k, d) => { try { const v = store.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } };
 const put = (k, v) => store.setItem(k, JSON.stringify(v));
@@ -90,7 +92,12 @@ async function syncOnce() {
   const rem = {...empty(), ...(row?.data || {})};
   const saved = get('hv.syncBase', null), base = saved?.uid === user.id ? saved.doc : null;
   const local = localDoc();
-  const m = merge(base, local.doc, rem);
+  let loc = local.doc;
+  if (!base && askMerge && Object.keys(loc.plants).length && Object.keys(rem.plants).length) {
+    firstChoice = firstChoice || await askMerge(Object.keys(loc.plants).length, Object.keys(rem.plants).length);
+    if (firstChoice === 'cuenta') loc = {...empty(), zona: rem.zona || loc.zona};
+  }
+  const m = merge(base, loc, rem);
   const srcs = {...local.srcs};
 
   // Fotos: se suben las nuevas de aquí y se bajan las nuevas de fuera
@@ -125,6 +132,7 @@ async function syncOnce() {
   if (!same(localDoc().doc, local.doc)) return false;
   if (!same(m, local.doc)) applyLocal(m, srcs);
   put('hv.syncBase', {uid: user.id, doc: m});
+  firstChoice = null;
   return true;
 }
 
@@ -182,7 +190,7 @@ export async function verifyCode(email, token) {
 export async function signOut() {
   const c = await client();
   await c.auth.signOut({scope: 'local'});
-  user = null; clearTimeout(timer);
+  user = null; firstChoice = null; clearTimeout(timer);
   try { store.setItem('hv.syncBase', 'null'); } catch (e) {}
   setStatus({state: 'off', at: null, error: null});
 }
