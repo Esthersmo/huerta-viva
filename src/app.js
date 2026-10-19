@@ -1,7 +1,7 @@
 import './styles.css';
 import {store} from './store.js';
 import {setupNotify,updateSchedule} from './notify.js';
-import {sharePlant,shareGarden} from './share.js';
+import {sharePlant,shareGarden,shareGardenPhoto} from './share.js';
 import {initAccount} from './account.js';
 import {initPlan} from './plan.js';
 import {loadWx,fetchWx,isFresh,capital,rainSince,rainSoon,hotNow,coldest,hottest,next as wxNext,sky,FROST_C,HEAT_C} from './weather.js';
@@ -519,7 +519,7 @@ function harvSec(p){
     <form class="harvf" id="harvForm">
       <label for="hQ">Cantidad<input id="hQ" type="number" inputmode="decimal" min="0" step="any" required placeholder="1,5"${ed?` value="${ed.q}"`:''}></label>
       <label for="hU">Unidad<select id="hU">${Object.entries(HARV_U).map(([k,v])=>`<option value="${k}"${(ref?.u||'kg')===k?' selected':''}>${v}</option>`).join('')}</select></label>
-      <label for="hD">Fecha<input id="hD" type="date" value="${ed?esc(ed.d):iso(today)}" min="${esc(p.sown)}" max="${iso(today)}"></label>
+      <label for="hD">Fecha<input id="hD" type="date" value="${ed?esc(ed.d):iso(today)}" max="${iso(today)}"></label>
       ${ed?`<button class="btn primary" type="submit">Guardar</button><button class="btn" type="button" id="harvCancel">Cancelar</button>`:'<button class="btn primary" type="submit">Anotar</button>'}
     </form>
     ${tot?`<p class="harvtot">En ${YEAR} has cosechado <strong>${tot}</strong>.</p>`:'<p class="tip">Anota lo que vayas recogiendo y verás cuánto te da cada planta a lo largo de la temporada.</p>'}
@@ -721,15 +721,7 @@ function renderPlantsList(){
     }
     h+='</div>';
   }
-  // Cosechas por años: se elige el año en el desplegable (por defecto, el actual)
-  const years=[...new Set([YEAR,...state.plants.flatMap(p=>(p.harv||[]).map(x=>x.d.slice(0,4)))])].sort().reverse();
-  if(!years.includes(state.harvY))state.harvY=YEAR;
-  const hy=document.getElementById('harvYear'),hyOpts=years.map(y=>`<option value="${y}"${y===state.harvY?' selected':''}>Cosecha ${y}</option>`).join('');
-  if(hy.innerHTML!==hyOpts){hy.innerHTML=hyOpts;hy.value=state.harvY;hy._cselDraw?.()}
-  const Y=state.harvY,byS={};for(const p of state.plants)if((p.harv||[]).some(x=>x.d.startsWith(Y)))(byS[p.sp]=byS[p.sp]||[]).push(...p.harv);
-  const hs=Object.entries(byS).map(([sp,l])=>[SP[sp].n,harvTot(l,Y)]).sort((a,b)=>a[0].localeCompare(b[0],'es'));
-  document.getElementById('harvSum').innerHTML=hs.length?`<ul>${hs.map(([n,t])=>`<li><span>${n}</span><strong>${t}</strong></li>`).join('')}</ul>`
-    :Y===YEAR?'<p class="note">Cuando anotes lo que recoges en la ficha de cada planta, aquí verás cuánto llevas este año de cada cultivo.</p>':`<p class="note">No hay cosechas anotadas en ${Y}.</p>`;
+  renderHarvests();
   document.getElementById('plList').innerHTML=h||'<p class="lede" style="text-align:center;margin-inline:auto">No hay plantas con estos filtros. Añade una arriba.</p>';
 }
 function renderRem(){
@@ -1004,7 +996,75 @@ document.getElementById('addForm').addEventListener('submit',e=>{
   dropExamples();state.plants.push(p);save('hv.plants',state.plants);e.target.reset();document.getElementById('fDate').value=iso(today);refreshSelects();
   state.plGroup='todos';state.plLoc='todas';renderPlants();renderRem();toast(`${name} añadida`);try{if(!matchMedia("(min-width:601px)").matches)document.getElementById("addBox").open=false}catch(e){}
 });
-const harvYear=document.getElementById('harvYear');enhanceSelect(harvYear);harvYear.addEventListener('change',()=>{state.harvY=harvYear.value;renderPlants()});
+// ---------- Fotos del huerto ----------
+// Se guardan con las fotos de las plantas, bajo la clave «huerto», y se sincronizan igual
+const GP='huerto';
+function renderGPhotos(){
+  const list=(photos[GP]||[]).slice().sort((a,b)=>a.date<b.date?1:-1),box=document.getElementById('gPhotoList');
+  if(!list.length){box.innerHTML='<p class="note">Haz fotos de tu huerto de vez en cuando y aquí verás cómo cambia a lo largo del año.</p>';return}
+  const big=list.find(x=>x.id===state.gpBig)||list[0],more=state.gpMore,thumbs=more?list:list.slice(0,6);
+  box.innerHTML=`<figure class="gp-big"><img src="${img(big.src)}" alt="Foto del huerto del ${fdate(big.date)}"><figcaption>${fdate(big.date)}</figcaption></figure>
+    <div class="gp-acts"><button class="btn act" type="button" id="gpShare">Compartir</button><button class="btn del" type="button" id="gpDel">Borrar</button></div>
+    ${list.length>1?`<div class="gp-thumbs">${thumbs.map(x=>`<button type="button" class="gp-th${x===big?' on':''}" data-gp="${esc(x.id)}" aria-label="Foto del ${fdate(x.date)}"><img src="${img(x.src)}" alt=""><span>${fdate(x.date)}</span></button>`).join('')}</div>
+    ${list.length>6?`<button class="btn remmore rm-soon" type="button" id="gpMore">${more?'Ver menos':`Ver ${list.length-6} más`}</button>`:''}`:''}`;
+}
+document.getElementById('gPhotoIn').addEventListener('change',async e=>{
+  const file=e.target.files[0];if(!file)return;
+  try{
+    const src=await shrink(file),d=iso(new Date(Math.min(file.lastModified||Date.now(),Date.now())));
+    const item={id:newId(),date:d,src};(photos[GP]=photos[GP]||[]).push(item);state.gpBig=item.id;
+    toast(savePhotos()?'Foto del huerto guardada':'Foto añadida, pero no cabe más en este navegador para guardarla');renderGPhotos();
+  }catch(err){toast('No se pudo leer la foto. Prueba con una imagen JPG o PNG.')}
+  e.target.value='';
+});
+document.getElementById('gPhotoList').addEventListener('click',e=>{
+  const t=e.target.closest('[data-gp]');if(t){state.gpBig=t.dataset.gp;renderGPhotos();return}
+  if(e.target.closest('#gpMore')){state.gpMore=!state.gpMore;renderGPhotos();return}
+  const list=(photos[GP]||[]).slice().sort((a,b)=>a.date<b.date?1:-1),big=list.find(x=>x.id===state.gpBig)||list[0];if(!big)return;
+  const b=e.target.closest('#gpDel');
+  if(b){if(!b.dataset.sure){b.dataset.sure='1';b.textContent='¿Seguro? Toca otra vez';setTimeout(()=>{if(b.isConnected){delete b.dataset.sure;b.textContent='Borrar'}},4000);return}
+    photos[GP]=(photos[GP]||[]).filter(x=>x!==big);state.gpBig=null;savePhotos();renderGPhotos();toast('Foto borrada');return}
+  const sh=e.target.closest('#gpShare');
+  if(sh){const zone=state.cp?.name||ZONES[state.zone]?.name.split(' (')[0]||'';shareBusy(sh,()=>shareGardenPhoto({src:big.src,date:fdate(big.date),zone}))}
+});
+renderGPhotos();
+// ---------- Mis cosechas ----------
+// Suma las cosechas anotadas en cada planta y las sueltas (de cultivos que ya no tienes o de años pasados), por años
+let harvXInit=load('hv.harv',[]);
+const qtyTxt=(q,u)=>`${num(q)} ${u==='ud'?(q===1?'unidad':'unidades'):u==='manojo'?(q===1?'manojo':'manojos'):u}`;
+function renderHarvests(){
+  if(!state.harvX)state.harvX=harvXInit;
+  const all=[...state.plants.flatMap(p=>(p.harv||[]).map(x=>({...x,sp:p.sp}))),...state.harvX.filter(x=>SP[x.sp])];
+  const years=[...new Set([YEAR,...all.map(x=>x.d.slice(0,4))])].sort().reverse();
+  if(!years.includes(state.harvY))state.harvY=YEAR;
+  const hy=document.getElementById('harvYear'),hyOpts=years.map(y=>`<option value="${y}"${y===state.harvY?' selected':''}>Cosecha ${y}</option>`).join('');
+  if(hy.dataset.opts!==hyOpts){hy.dataset.opts=hyOpts;hy.innerHTML=hyOpts;hy.value=state.harvY;hy._cselDraw?.()}
+  const Y=state.harvY,byS={};for(const x of all)if(x.d.startsWith(Y))(byS[x.sp]=byS[x.sp]||[]).push(x);
+  const hs=Object.entries(byS).map(([sp,l])=>[SP[sp].n,harvTot(l,Y)]).sort((a,b)=>a[0].localeCompare(b[0],'es'));
+  const loose=state.harvX.filter(x=>SP[x.sp]&&x.d.startsWith(Y)).sort((a,b)=>a.d<b.d?1:-1);
+  document.getElementById('harvSum').innerHTML=(hs.length?`<ul>${hs.map(([n,t])=>`<li><span>${n}</span><strong>${t}</strong></li>`).join('')}</ul>`
+    :`<p class="note">${Y===YEAR?'Anota lo que recoges en la ficha de cada planta o aquí abajo, y verás cuánto llevas este año de cada cultivo.':`No hay cosechas anotadas en ${Y}.`}</p>`)
+    +(loose.length?`<p class="harvxh">Anotadas aquí</p><ul class="harvl">${loose.map(x=>`<li${x.id===state.harvXEdit?' class="ed"':''}><span>${esc(SP[x.sp].n)} · ${fdate(x.d)}</span><strong>${qtyTxt(x.q,x.u)}</strong><button class="edh" type="button" data-edx="${esc(x.id)}">Editar</button><button class="rm" type="button" data-rmx="${esc(x.id)}" aria-label="Borrar la cosecha de ${esc(SP[x.sp].n)} del ${fdate(x.d)}">×</button></li>`).join('')}</ul>`:'');
+}
+const xSp=document.getElementById('xSp'),xU=document.getElementById('xU'),xQ=document.getElementById('xQ'),xD=document.getElementById('xD'),xForm=document.getElementById('harvXForm');
+xSp.innerHTML=Object.entries(GROUPS).filter(([g])=>g!=='ornamental').map(([g,l])=>`<optgroup label="${l}">${SPECIES.filter(s=>s.g===g).map(s=>`<option value="${s.id}">${s.n}</option>`).join('')}</optgroup>`).join('');
+xU.innerHTML=Object.entries(HARV_U).map(([k,v])=>`<option value="${k}">${v}</option>`).join('');
+xD.max=iso(today);xD.value=iso(today);enhanceSelect(xSp);enhanceSelect(xU);
+function xReset(){state.harvXEdit=null;xForm.reset();xD.value=iso(today);refreshSelects();document.getElementById('xSave').textContent='Anotar';document.getElementById('xCancel').hidden=true}
+xForm.addEventListener('submit',e=>{e.preventDefault();
+  const q=parseFloat(String(xQ.value).replace(',','.'));if(!(q>0))return;
+  const v={sp:xSp.value,q,u:xU.value,d:xD.value||iso(today)},ed=state.harvX.find(x=>x.id===state.harvXEdit);
+  if(ed)Object.assign(ed,v);else state.harvX.push({id:newId(),...v});
+  save('hv.harv',state.harvX);state.harvY=v.d.slice(0,4);toast(ed?'Cosecha corregida':`Cosecha anotada: ${qtyTxt(q,v.u)} de ${SP[v.sp].n.toLowerCase()}`);xReset();renderHarvests();
+});
+document.getElementById('xCancel').addEventListener('click',()=>{xReset();renderHarvests()});
+document.getElementById('harvSum').addEventListener('click',e=>{
+  const ed=e.target.closest('[data-edx]');if(ed){const x=state.harvX.find(y=>y.id===ed.dataset.edx);state.harvXEdit=x.id;
+    xSp.value=x.sp;xU.value=x.u;xQ.value=x.q;xD.value=x.d;refreshSelects();document.getElementById('xSave').textContent='Guardar';document.getElementById('xCancel').hidden=false;
+    document.getElementById('harvAdd').open=true;renderHarvests();xForm.scrollIntoView({block:'center'});return}
+  const rm=e.target.closest('[data-rmx]');if(rm){state.harvX=state.harvX.filter(y=>y.id!==rm.dataset.rmx);save('hv.harv',state.harvX);if(state.harvXEdit===rm.dataset.rmx)xReset();renderHarvests();toast('Cosecha borrada')}
+});
+const harvYear=document.getElementById('harvYear');enhanceSelect(harvYear);harvYear.addEventListener('change',()=>{state.harvY=harvYear.value;renderHarvests()});
 var planUI=initPlan({overdue:p=>dues(p).filter(x=>x.left<0).map(x=>`${ACTIONS[x.a].toLowerCase()} (${leftTxt(x.left).toLowerCase()})`),plants:()=>state.plants,savePlants:()=>save('hv.plants',state.plants),SP,REL,esc,toast,enhance:enhanceSelect,openPlant:id=>openPlant(id)});
 renderAll();
 // Apariencia: claro por defecto; la elección se recuerda en este navegador
@@ -1060,7 +1120,7 @@ document.getElementById('shareGarden').addEventListener('click',e=>{
 setupNotify();
 // Cuando llegan cambios de la nube (otro dispositivo) se recarga todo desde el almacén
 function reloadFromStore(){
-  photos=load('hv.photos',{});state.plants=load('hv.plants',[]);
+  photos=load('hv.photos',{});state.plants=load('hv.plants',[]);state.harvX=load('hv.harv',[]);renderGPhotos();
   state.zone=(z=>OLD_ZONES[z]||(ZONES[z]?z:state.zone))(load('hv.zone',state.zone));state.alt=load('hv.alt',null);state.cp=load('hv.cp',null);state.seeds=load('hv.seeds',[]);
   drawZones();drawAlt();drawCp();drawZoneBox();planUI.reload();renderAll();refreshSelects();refreshWx();
   if(ficha.open&&state.mode==='plant'){if(state.plants.some(p=>p.id===state.plantSel))renderPlantFicha();else ficha.close()}
