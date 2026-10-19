@@ -147,6 +147,7 @@ const SPECIES=[
  {id:'peral',dec:1,lc:'Flordahome, Hood o perales asiáticos (nashi)',n:'Peral',g:'frutal',tree:1,tMin:4,tMax:13,sun:6,seed:0,yrs:4,chill:10.5,pm:'Final del invierno',care:{riego:7,abono:90,sustrato:0,poda:365}},
  {id:'cerezo',dec:1,lc:'Minnie Royal y Royal Lee, plantadas juntas',n:'Cerezo',g:'frutal',tree:1,tMin:4,tMax:13,sun:7,seed:0,yrs:4,chill:9.5,pm:'Tras la cosecha, en verano',care:{riego:7,abono:90,sustrato:0,poda:365}},
  {id:'melocotonero',dec:1,lc:'Flordastar, UFO o Tropic Snow',n:'Melocotonero',g:'frutal',tree:1,tMin:5,tMax:14,sun:7,seed:0,yrs:3,chill:12,pm:'Final del invierno',care:{riego:6,abono:60,sustrato:0,poda:365}},
+ {id:'nectarino',dec:1,lc:'Sunraycer, Panamint o Snow Queen',n:'Nectarino',g:'frutal',tree:1,tMin:5,tMax:14,sun:7,seed:0,yrs:3,chill:12,pm:'Final del invierno',care:{riego:6,abono:60,sustrato:0,poda:365}},
  {id:'ciruelo',dec:1,lc:'las japonesas Santa Rosa, Gulf Ruby o Methley',n:'Ciruelo',g:'frutal',tree:1,tMin:5,tMax:14,sun:6,seed:0,yrs:3,chill:12,pm:'Final del invierno',care:{riego:7,abono:90,sustrato:0,poda:365}},
  {id:'almendro',dec:1,lc:'Marcona o Desmayo Largueta',n:'Almendro',g:'frutal',tree:1,tMin:5,tMax:14,sun:7,seed:0,yrs:3,chill:12.5,pm:'Tras la cosecha, en otoño',care:{riego:12,abono:120,sustrato:0,poda:365}},
  {id:'higuera',dec:1,n:'Higuera',g:'frutal',tree:1,tMin:5,tMax:19,sun:7,seed:0,yrs:2,pm:'Final del invierno',care:{riego:10,abono:120,sustrato:0,poda:365}},
@@ -187,6 +188,8 @@ const SPECIES=[
  {id:'pilea',n:'Pilea (planta china del dinero)',g:'ornamental',pot:1,care:{riego:6,abono:30,sustrato:730}},
  {id:'aloe',n:'Aloe vera',g:'aromatica',pot:1,care:{riego:14,abono:60,sustrato:730}}
 ];
+// Los cultivos siempre en orden alfabético (desplegables, calendario, Consejos)
+SPECIES.sort((a,b)=>a.n.localeCompare(b.n,'es'));
 const SP=Object.fromEntries(SPECIES.map(s=>[s.id,s]));
 // Consejos de siembra y cuidado por especie (orientativos)
 const TIPS={
@@ -220,6 +223,7 @@ const TIPS={
  manzano:{s:'Planta a raíz desnuda en pleno reposo (sin hojas), con el injerto 5–10 cm por encima del suelo. Hoyo de 60×60 cm.',r:'Riega a fondo al plantar y cada semana los dos primeros veranos; luego, solo en sequía.',l:'Pleno sol, al menos 6 horas.',t:'Profundo, fresco y bien drenado.',a:'Estiércol maduro o compost a finales de invierno, alrededor de la copa.',p:'Pulgón, carpocapsa (gusano de la manzana) y moteado.',c:'Cuando la manzana se suelta al girarla con suavidad.',b:'Capuchina, ajo, consuelda al pie.',e:'Nogal cerca.',o:'Poda de formación en vaso o eje los primeros años. Después, a final de invierno, quita ramas secas, cruzadas y chupones verticales.',k:'La mayoría necesita otro manzano cerca para polinizar; si solo tienes sitio para uno, búscalo autofértil.'},
  peral:{s:'Raíz desnuda en invierno, sin enterrar el injerto. Separa 4–5 m de otros árboles.',r:'Regular los primeros años; no le gusta la sequía en verano.',l:'Pleno sol.',t:'Fresco y profundo; tolera algo de arcilla.',a:'Compost a finales de invierno.',p:'Psila, moteado y fuego bacteriano.',c:'Cógelas aún firmes y deja que maduren en casa unos días.',b:'Capuchina, ajo.',e:'Enebro cerca (transmite roya).',o:'Poda suave a final de invierno: aclara el centro y respeta las ramitas cortas con yemas gordas, que son las que dan fruto.',k:'Igual que el manzano, suele necesitar otra variedad cerca para dar fruto.'},
  cerezo:{s:'Raíz desnuda en invierno, en un sitio donde no se encharque nunca.',r:'Moderado; el exceso de agua le pudre las raíces.',l:'Pleno sol.',t:'Suelto, profundo y muy bien drenado.',a:'Poco: compost cada invierno.',p:'Mosca de la cereza, pulgón negro y pájaros.',c:'Cuando tengan todo el color, con su rabito.',b:'Ajo, capuchina.',e:'Patata y tomate cerca.',o:'Mejor poco y tras la cosecha, en verano: en invierno las heridas cicatrizan mal y sale goma.',k:'Pon una malla antes de que maduren o se las comerán los pájaros.'},
+ nectarino:{s:'Raíz desnuda en invierno o en maceta hasta inicios de primavera.',r:'Regular y sin encharcar, más en verano mientras engorda el fruto.',l:'Pleno sol y resguardado del viento.',t:'Suelto, fértil y bien drenado.',a:'Compost en invierno y algo de potasio en primavera.',p:'Lepra, pulgón y mosca de la fruta; su piel lisa se marca más con el granizo.',c:'Cuando el color de fondo pasa de verde a amarillo y cede un poco al apretarlo.',b:'Ajo, capuchina.',e:'Hierba alta bajo la copa.',o:'Es un melocotonero de piel lisa: poda fuerte cada año a final de invierno, renovando un tercio de la madera.',k:'Aclara los frutitos dejando uno cada 15 cm y protégelo de la lluvia en floración.'},
  melocotonero:{s:'Raíz desnuda en invierno o en maceta hasta inicios de primavera.',r:'Regular, sobre todo mientras engorda el fruto.',l:'Pleno sol y resguardado del viento.',t:'Suelto y bien drenado.',a:'Compost en invierno y algo de potasio en primavera.',p:'Lepra (hojas abolladas y rojizas) y pulgón.',c:'Cuando cede un poco al apretarlo y huele dulce.',b:'Ajo, capuchina.',e:'Hierba alta bajo la copa.',o:'Poda fuerte cada año a final de invierno: fructifica en las ramas del año anterior, así que renueva un tercio de la madera.',k:'Aclara los frutitos dejando uno cada 15 cm: saldrán más grandes y dulces.'},
  ciruelo:{s:'Raíz desnuda en invierno.',r:'Moderado; más en la formación del fruto.',l:'Sol.',t:'Se adapta a casi todos los suelos.',a:'Compost en invierno.',p:'Pulgón y gomosis.',c:'Cuando el fruto se suelta solo y tiene su pruina (polvillo blanco).',b:'Ajo, capuchina.',e:'—',o:'Ligera: quita ramas secas, cruzadas y chupones a final de invierno.',k:'Es de los frutales más agradecidos para empezar.'},
  almendro:{s:'Raíz desnuda en invierno, en el sitio más soleado.',r:'Muy poco una vez establecido; aguanta bien la sequía.',l:'Pleno sol.',t:'Pobre y seco le va bien; odia el encharcamiento.',a:'Poco.',p:'Pulgón y heladas en la floración.',c:'Cuando la cáscara verde se abre sola, a finales de verano.',b:'Romero, lavanda.',e:'Riegos frecuentes.',o:'En otoño tras la cosecha: abre el centro para que entre la luz y quita ramas secas.',k:'Florece muy pronto: en zonas con heladas tardías, elige una variedad de floración tardía.'},
@@ -430,7 +434,7 @@ function renderCal(){
   const nowCls=m=>m===curM?' now':'';
   let h=`<thead><tr><th class="name" scope="col">Cultivo</th>${MONTHS.map((m,i)=>`<th scope="col" class="${nowCls(i).trim()}" title="${MONTHS_L[i]}"><span class="ml">${m}</span><span class="ms" aria-hidden="true">${m[0]}</span></th>`).join('')}</tr></thead><tbody>`;
   // Guiones de corte para los nombres largos en la columna estrecha del móvil
-  const SHY={Pensamiento:'Pensa&shy;miento',Melocotonero:'Meloco&shy;tonero',Albaricoquero:'Albari&shy;coquero',Membrillero:'Membri&shy;llero'};
+  const SHY={Pensamiento:'Pensa&shy;miento',Melocotonero:'Meloco&shy;tonero',Albaricoquero:'Albari&shy;coquero',Nectarino:'Necta&shy;rino',Membrillero:'Membri&shy;llero'};
   const nm=n=>n.split(' ').map(w=>SHY[w]||w).join(' ');
   // Con «Todos», un título de grupo antes de cada tipo de cultivo
   const gk=Object.keys(GROUPS);let lastG=null;
@@ -931,31 +935,41 @@ document.addEventListener('click',e=>{
 
 // Desplegables propios con el mismo estilo que el de la zona (el nativo marca en azul)
 let cselN=0;
+const cselNorm=t=>String(t||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+// Las listas largas (cultivos) llevan buscador: escribir acorta la lista a los nombres que empiezan así
 function enhanceSelect(sel){
   if(!sel||sel.dataset.csel)return;sel.dataset.csel='1';
   const id='cs'+(++cselN),wrap=document.createElement('span');wrap.className='csel';
   sel.parentNode.insertBefore(wrap,sel);wrap.appendChild(sel);sel.tabIndex=-1;sel.setAttribute('aria-hidden','true');
   const btn=document.createElement('button');btn.type='button';btn.className='csel-btn';btn.setAttribute('aria-haspopup','listbox');btn.setAttribute('aria-expanded','false');
   const lab=sel.closest('label');if(lab){lab.removeAttribute('for');btn.setAttribute('aria-label',lab.firstChild.textContent.trim())}
-  const ul=document.createElement('ul');ul.className='csel-list';ul.setAttribute('role','listbox');ul.tabIndex=-1;ul.hidden=true;ul.id=id;
-  wrap.append(btn,ul);
-  let act=0;const opts=()=>[...sel.options];
-  const draw=()=>{const os=opts();btn.disabled=sel.disabled;btn.innerHTML=`<span>${sel.selectedOptions[0]?.text||''}</span><span aria-hidden="true">▾</span>`;
-    let h='',last=null;os.forEach((o,i)=>{const g=o.parentNode.tagName==='OPTGROUP'?o.parentNode.label:null;if(g&&g!==last){h+=`<li class="grp" role="presentation">${g}</li>`;last=g}
+  const pop=document.createElement('div');pop.className='csel-pop';pop.hidden=true;
+  const ul=document.createElement('ul');ul.className='csel-list';ul.setAttribute('role','listbox');ul.tabIndex=-1;ul.id=id;
+  const search=sel.options.length>12,q=search?document.createElement('input'):null;
+  if(q){q.type='search';q.className='csel-q';q.placeholder='Buscar…';q.setAttribute('aria-label','Buscar');q.setAttribute('aria-controls',id);q.autocomplete='off';q.enterKeyHint='go';pop.append(q)}
+  pop.append(ul);wrap.append(btn,pop);
+  let act=0,vis=[];const opts=()=>[...sel.options];
+  const match=(o,k)=>{if(!k)return true;const n=cselNorm(o.text);return n.startsWith(k)||n.split(/[\s(]+/).some(w=>w.startsWith(k))};
+  const draw=()=>{const os=opts(),k=cselNorm(q?.value.trim());btn.disabled=sel.disabled;btn.innerHTML=`<span>${sel.selectedOptions[0]?.text||''}</span><span aria-hidden="true">▾</span>`;
+    vis=os.map((o,i)=>i).filter(i=>match(os[i],k));if(!vis.includes(act))act=vis[0]??-1;
+    let h='',last=null;vis.forEach(i=>{const o=os[i],g=o.parentNode.tagName==='OPTGROUP'?o.parentNode.label:null;if(g&&g!==last){h+=`<li class="grp" role="presentation">${g}</li>`;last=g}
       h+=`<li class="opt${i===act?' act':''}" role="option" id="${id}-${i}" data-i="${i}" aria-selected="${o.selected}">${esc(o.text)}</li>`});
-    ul.innerHTML=h;ul.setAttribute('aria-activedescendant',`${id}-${act}`);ul.querySelector('.act')?.scrollIntoView({block:'nearest'})};
-  const open=()=>{act=sel.selectedIndex;ul.hidden=false;draw();btn.setAttribute('aria-expanded','true');ul.focus()};
-  const close=f=>{ul.hidden=true;btn.setAttribute('aria-expanded','false');if(f)btn.focus()};
-  const pick=i=>{close(true);if(i!==sel.selectedIndex){sel.selectedIndex=i;sel.dispatchEvent(new Event('change',{bubbles:true}))}draw()};
-  btn.addEventListener('click',()=>ul.hidden?open():close());
-  btn.addEventListener('keydown',e=>{if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();open()}});
+    ul.innerHTML=h||'<li class="none" role="presentation">Sin resultados</li>';ul.setAttribute('aria-activedescendant',`${id}-${act}`);ul.querySelector('.act')?.scrollIntoView({block:'nearest'})};
+  const open=first=>{act=sel.selectedIndex;if(q)q.value=first||'';pop.hidden=false;draw();btn.setAttribute('aria-expanded','true');(q||ul).focus()};
+  const close=f=>{pop.hidden=true;btn.setAttribute('aria-expanded','false');if(f)btn.focus()};
+  const pick=i=>{if(i<0)return;close(true);if(i!==sel.selectedIndex){sel.selectedIndex=i;sel.dispatchEvent(new Event('change',{bubbles:true}))}draw()};
+  const keys=e=>{
+    if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();if(!vis.length)return;const j=vis.indexOf(act),n=vis.length;act=vis[(j+(e.key==='ArrowDown'?1:n-1))%n];draw()}
+    else if(e.key==='Enter'||(e.key===' '&&e.target===ul)){e.preventDefault();pick(act)}
+    else if(e.key==='Escape'||e.key==='Tab'){close(e.key==='Escape')}};
+  btn.addEventListener('click',()=>pop.hidden?open():close());
+  btn.addEventListener('keydown',e=>{if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();open()}
+    else if(q&&e.key.length===1&&!e.ctrlKey&&!e.metaKey&&e.key!==' '){e.preventDefault();open(e.key)}});
   ul.addEventListener('click',e=>{const li=e.target.closest('[data-i]');if(li)pick(+li.dataset.i)});
-  ul.addEventListener('keydown',e=>{const n=opts().length;
-    if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();act=(act+(e.key==='ArrowDown'?1:n-1))%n;draw()}
-    else if(e.key==='Enter'||e.key===' '){e.preventDefault();pick(act)}
-    else if(e.key==='Escape'||e.key==='Tab'){close(e.key==='Escape')}});
+  ul.addEventListener('keydown',keys);
+  if(q){q.addEventListener('input',()=>{act=-1;draw()});q.addEventListener('keydown',keys)}
   // e.target puede haberse sustituido al redibujar el botón: solo cuenta un clic de verdad fuera
-  document.addEventListener('click',e=>{if(!ul.hidden&&e.target.isConnected&&!wrap.contains(e.target))close()});
+  document.addEventListener('click',e=>{if(!pop.hidden&&e.target.isConnected&&!wrap.contains(e.target))close()});
   sel.addEventListener('change',draw);sel._cselDraw=draw;draw();
 }
 function refreshSelects(){document.querySelectorAll('select[data-csel]').forEach(s=>s._cselDraw&&s._cselDraw())}
