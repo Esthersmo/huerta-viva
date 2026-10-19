@@ -538,7 +538,7 @@ function renderSeeds(){
     <span class="seed-acts">${r.now?`<button class="btn act" type="button" data-sow="${esc(r.x.id)}">Sembrar</button>`:''}<button class="rm" type="button" data-rmseed="${esc(r.x.id)}" aria-label="Quitar las semillas de ${r.s.n}">×</button></span></div>`;
   const now=rows.filter(r=>r.now),later=rows.filter(r=>!r.now);
   const lim=(k,l)=>l.length<=3||more[k]?l.map(row).join('')+(l.length>3?`<button class="btn remmore rm-soon" type="button" data-remmore="${k}">Ver menos</button>`:''):l.slice(0,3).map(row).join('')+`<button class="btn remmore rm-soon" type="button" data-remmore="${k}">Ver ${l.length-3} más</button>`;
-  document.getElementById('seedList').innerHTML=!rows.length?'<p class="tip">Apunta los sobres de semillas que tienes y aquí verás cuáles toca sembrar cada mes y cuáles están a punto de caducar.</p>'
+  document.getElementById('seedList').innerHTML=!rows.length?'<p class="note seednote">Apunta los sobres de semillas que tienes y aquí verás cuáles toca sembrar cada mes y cuáles están a punto de caducar.</p>'
     :(now.length?`<p class="remhead">Toca sembrar en ${MONTHS_L[curM]}</p>${lim('seednow',now)}`:'')+(later.length?`<p class="remhead">Más adelante</p>${lim('seedlater',later)}`:'');
 }
 function compSec(p){

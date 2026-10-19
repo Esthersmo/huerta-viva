@@ -477,3 +477,4 @@ form.add label{display:flex;flex-direction:column;gap:4px;font-size:.85rem;color
 .seed-acts{display:flex;gap:8px;align-items:center}
 .seed .rm{width:26px;height:26px;border-radius:50%;border:1px solid var(--del-line);background:var(--del-bg);color:var(--del-ink);cursor:pointer;line-height:1}
 .seed .btn.act{background:var(--act-bg);border-color:var(--act-line);color:var(--act-ink)}
+.seednote{text-align:center}
