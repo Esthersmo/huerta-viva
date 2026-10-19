@@ -349,6 +349,35 @@ if(load('hv.seedV',1)<5){for(const p of state.plants){if(p.ej||!p.log)continue;f
 if(load('hv.seedV',1)<6){if(state.plants.some(p=>!p.ej)){dropExamples();save('hv.plants',state.plants)}save('hv.seedV',6)}
 
 // ---------- Calendario ----------
+// ---------- Asociaciones y rotación ----------
+// Las compañeras salen de las fichas de Consejos («Buenas compañeras» y «Mejor lejos de»), y se aplican en los dos sentidos
+const REL=(()=>{
+  const norm=t=>String(t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const keys=SPECIES.map(x=>[x.id,new RegExp('\\b'+norm(x.n.split(/[ (]/)[0])+'(s|es)?\\b')]);
+  const find=t=>{t=norm(t);return keys.filter(([,re])=>re.test(t)).map(k=>k[0])};
+  const r=Object.fromEntries(SPECIES.map(x=>[x.id,{good:new Set(),bad:new Set()}]));
+  for(const x of SPECIES){const t=TIPS[x.id]||{};
+    for(const id of find(t.b))if(id!==x.id){r[x.id].good.add(id);r[id].good.add(x.id)}
+    for(const id of find(t.e))if(id!==x.id){r[x.id].bad.add(id);r[id].bad.add(x.id)}}
+  for(const x of SPECIES)for(const id of r[x.id].bad)r[x.id].good.delete(id);
+  return r;
+})();
+// Rotación en cuatro grupos: tras las exigentes de fruto, leguminosas; tras ellas, hoja; tras la hoja, raíz y bulbo; y vuelta a empezar
+const ROT={
+  fruto:{n:'de fruto y muy exigente',next:'legum',why:'leguminosas, que devuelven a la tierra el nitrógeno que ha gastado',ids:['tomate','pimiento','berenjena','patata','calabacin','pepino','melon','sandia','calabaza','maiz','boniato']},
+  legum:{n:'leguminosa y deja la tierra rica en nitrógeno',next:'hoja',why:'plantas de hoja y coles, que aprovechan ese nitrógeno',ids:['judia','haba','garbanzo','guisante']},
+  hoja:{n:'de hoja',next:'raiz',why:'raíces y bulbos, que piden menos abono',ids:['lechuga','espinaca','acelga','col','brocoli','coliflor','rucula']},
+  raiz:{n:'de raíz o bulbo',next:'fruto',why:'plantas de fruto, añadiendo antes compost',ids:['zanahoria','rabano','remolacha','cebolla','ajo','puerro','nabo']},
+};
+const FAM=Object.fromEntries(Object.entries(ROT).flatMap(([f,v])=>v.ids.map(id=>[id,f])));
+// Qué sembrar en el hueco: las del grupo siguiente que se pueden sembrar este mes o el que viene
+function rotNext(id){
+  const f=FAM[id];if(!f)return null;const nf=ROT[f].next,z=zoneNow();
+  const now=ROT[nf].ids.filter(x=>SP[x]&&(cellState(SP[x],z,curM)||cellState(SP[x],z,(curM+1)%12)));
+  return {f,nf,now};
+}
+const mine=(id,loc)=>state.plants.filter(q=>q.sp===id&&(!loc||q.loc===loc));
+function foesNear(p){return [...REL[p.sp].bad].filter(id=>mine(id,p.loc).length)}
 function cellState(s,z,m){
   if(directa(s,z,m)) return 'directa';
   // semillero: aún hace frío fuera, pero en 1-2 meses se podrá trasplantar
@@ -465,6 +494,16 @@ function openFicha(id){
 }
 function daysSince(p,d){return Math.max(0,Math.round((parse(d)-parse(p.sown))/DAY))}
 function fdate(d){return parse(d).toLocaleDateString('es-ES',{day:'numeric',month:'short',year:'numeric'})}
+function compSec(p){
+  const r=REL[p.sp],rot=rotNext(p.sp);if(!r.good.size&&!r.bad.size&&!rot)return '';
+  const chip=(id,bad)=>{const has=mine(id,bad?p.loc:null).length;return `<span class="cmp${has?(bad?' warn':' have'):''}">${SP[id].n}${has?(bad?' · la tienes cerca':' · la tienes'):''}</span>`};
+  const sort=ids=>[...ids].sort((a,b)=>mine(b).length-mine(a).length);
+  return `<section class="pf-sec"><div class="pf-sh"><h3>Compañeras</h3></div>
+    ${r.good.size?`<div class="cmprow"><p class="cmpl">Se lleva bien con</p><div class="cmps">${sort(r.good).map(id=>chip(id,0)).join('')}</div></div>`:''}
+    ${r.bad.size?`<div class="cmprow"><p class="cmpl">Mejor lejos de</p><div class="cmps">${sort(r.bad).map(id=>chip(id,1)).join('')}</div></div>`:''}
+    ${rot?`<div class="cmprow"><p class="cmpl">Cuando acabe, en su sitio</p><p class="tip">${SP[p.sp].n} es ${ROT[rot.f].n}: después siembra ${ROT[rot.f].why}.${rot.now.length?` Ahora en tu zona: ${rot.now.map(id=>SP[id].n.toLowerCase()).join(', ')}.`:''}</p></div>`:''}
+  </section>`;
+}
 function renderPlantFicha(){
   document.getElementById('ficha').classList.remove('crop');
   const p=state.plants.find(x=>x.id===state.plantSel);if(!p)return;
@@ -483,6 +522,7 @@ function renderPlantFicha(){
        <dl class="pf-meta"><div><dt>Ubicación</dt><dd>${p.loc==='interior'?'Interior':'Exterior'}</dd></div><div><dt>Especie</dt><dd>${s.n}</dd></div><div><dt>${s.tree?'Plantación':'Siembra'}</dt><dd>${fdate(p.sown)}</dd></div><div><dt>Edad</dt><dd>${age===0?'Hoy':age>=365?`${(age/365).toFixed(1).replace('.0','').replace('.',',')} años`:`${age} días`}</dd></div></dl>
        ${state.editing?'':`<span class="pf-acts"><button class="btn" id="sharePlantBtn">Compartir</button><button class="btn" id="editToggle" aria-expanded="false">Editar datos</button></span>`}
    </div>
+   ${state.editing?'':compSec(p)}
    ${state.editing?`<section class="pf-sec"><div class="pf-sh"><h3>Editar datos</h3></div><form class="add edit" id="editForm">
        <label for="eName">Nombre<input id="eName" required value="${esc(p.name)}"></label>
        <label for="eSp">Especie<select id="eSp">${fSp.innerHTML}</select></label>
@@ -605,7 +645,7 @@ function renderPlants(){
       h+=`<article class="card">
        <div class="pills"><span class="pill ${p.loc==='interior'?'int':'ext'}">${p.loc}</span>${p.ej?'<span class="pill ej">Ejemplo</span>':''}</div>
        ${last?`<img class="thumb" src="${img(last.src)}" alt="">`:''}
-       <div><h3>${esc(p.name)}</h3><div class="sp">${SP[p.sp].n} · desde ${parse(p.sown).toLocaleDateString('es-ES',{day:'numeric',month:'short',year:'numeric'})}</div></div>
+       <div><h3>${esc(p.name)}</h3><div class="sp">${SP[p.sp].n} · desde ${parse(p.sown).toLocaleDateString('es-ES',{day:'numeric',month:'short',year:'numeric'})}</div>${(f=>f.length?`<p class="foe">Mejor lejos de ${f.map(id=>SP[id].n.toLowerCase()).join(' y ')}, que la tienes en ${p.loc}</p>`:'')(foesNear(p))}</div>
        <div class="dues">${d.map(x=>`<div class="du"><span class="dl">${ACTIONS[x.a]}</span> <span class="dv">${ivTxt(x.iv)}</span> <span class="st ${leftCls(x.left)}">${leftTxt(x.left)}</span></div>`).join('')}</div>
        <div class="care-acts">${d.map(x=>`<button class="btn act" data-act="${x.a}" data-id="${esc(p.id)}">${{riego:'Regada hoy',abono:'Abonada hoy',sustrato:'Sustrato cambiado',poda:'Podada hoy'}[x.a]}</button>`).join('')}</div>
        <div class="card-foot"><button class="btn" data-open="${esc(p.id)}">Ficha y fotos${ph.length?` (${ph.length})`:''}</button>
@@ -697,7 +737,7 @@ function renderTips(){
   document.getElementById('tipBody').innerHTML=`
     <div class="tip-hd"><h2>${s.n}</h2><p class="sp">${GROUPS[s.g]}${care?` · ${care}${s.tree?'':' de base'}`:''}</p></div>
     ${now}
-    <div class="tip-grid">${TIP_ROWS.filter(([k])=>t[k]&&t[k]!=='—').map(([k,l])=>`<div class="tip-c"><h3>${k==='s'&&s.tree?'Plantación':l}</h3><p>${t[k]}</p></div>`).join('')}</div>
+    <div class="tip-grid">${TIP_ROWS.filter(([k])=>t[k]&&t[k]!=='—').map(([k,l])=>`<div class="tip-c"><h3>${k==='s'&&s.tree?'Plantación':l}</h3><p>${t[k]}</p></div>`).join('')}${(r=>r?`<div class="tip-c"><h3>Rotación</h3><p>Es ${ROT[r.f].n}. Cuando la quites, siembra en ese sitio ${ROT[r.f].why}${r.now.length?`: ahora en tu zona, ${r.now.map(id=>SP[id].n.toLowerCase()).join(', ')}`:''}.</p></div>`:'')(rotNext(s.id))}</div>
     ${t.k?`<div class="tip-k"><h3>Consejo</h3><p>${t.k}</p></div>`:''}
     ${s.pot?'':`<button class="btn" data-crop="${s.id}" id="tipCal">Ver su calendario de ${s.tree?'plantación':'siembra'}</button>`}`;
 }
