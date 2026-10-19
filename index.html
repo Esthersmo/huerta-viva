@@ -104,6 +104,24 @@
         </form>
         <div id="seedList"></div>
       </details>
+      <details class="panel planbox" id="planBox" style="margin-bottom:20px">
+        <summary><h2>Plano del huerto</h2></summary>
+        <div class="plan-tools">
+          <button class="btn primary" type="button" id="planBed">+ Bancal</button>
+          <button class="btn" type="button" id="planPot">+ Maceta</button>
+          <span class="plan-size"><label for="planW">Medidas</label><input id="planW" inputmode="decimal" aria-label="Ancho del huerto en metros"> × <input id="planH" inputmode="decimal" aria-label="Largo del huerto en metros"> m</span>
+        </div>
+        <div class="plan-grid">
+          <div class="plan-main">
+            <div class="plan" id="plan"><svg id="planLines" preserveAspectRatio="none" aria-hidden="true"></svg><p class="note plan-empty" id="planEmpty">Añade tus bancales y macetas y coloca en ellos tus plantas.</p></div>
+            <p class="note">Cada cuadro es 1 m. Arrastra bancales, macetas y plantas para colocarlos; una línea roja une dos plantas que no se llevan bien.</p>
+          </div>
+          <div class="plan-side">
+            <div class="plan-card" id="planInfo"></div>
+            <div class="plan-card"><p class="k">Sin colocar</p><div class="plan-tray" id="planTray"></div></div>
+          </div>
+        </div>
+      </details>
       <div class="panel">
         <div class="filters">
           <div class="seg" id="locSeg">

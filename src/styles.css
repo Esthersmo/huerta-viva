@@ -478,3 +478,54 @@ form.add label{display:flex;flex-direction:column;gap:4px;font-size:.85rem;color
 .seed .rm{width:26px;height:26px;border-radius:50%;border:1px solid var(--del-line);background:var(--del-bg);color:var(--del-ink);cursor:pointer;line-height:1}
 .seed .btn.act{background:var(--act-bg);border-color:var(--act-line);color:var(--act-ink)}
 .seednote{text-align:center}
+/* Plano del huerto */
+.planbox{--ground:#E7E1D3;--grid:rgba(114,92,58,.13);--soil:#B79A72;--soil-2:#A88B63;--soil-edge:#8C7148;--pot:#C98E68;--pot-edge:#9E6A4A;--canopy:rgba(128,150,113,.26);--canopy-edge:rgba(95,118,81,.6);--g-ali:#809671;--g-aro:#B3B792;--g-fru:#D2AB80;--g-orn:#D9B3A5;--g-for:#C8BE8E;--tok-ink:#2E2618;--lbl-ink:#F6F3EE}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .planbox{--ground:#2E281F;--grid:rgba(229,210,184,.09);--soil:#5A4733;--soil-2:#4F3E2C;--soil-edge:#7A6247;--pot:#7D5540;--pot-edge:#A37357;--canopy:rgba(169,188,151,.16);--canopy-edge:rgba(169,188,151,.5)}}
+:root[data-theme="dark"] .planbox{--ground:#2E281F;--grid:rgba(229,210,184,.09);--soil:#5A4733;--soil-2:#4F3E2C;--soil-edge:#7A6247;--pot:#7D5540;--pot-edge:#A37357;--canopy:rgba(169,188,151,.16);--canopy-edge:rgba(169,188,151,.5)}
+.planbox>summary{list-style:none;cursor:pointer}
+.planbox>summary::-webkit-details-marker{display:none}
+.planbox>summary h2{display:inline}
+.planbox>summary h2::after{content:" ▾";color:var(--muted);font-weight:400;font-size:.8em}
+.planbox[open]>summary h2::after{content:" ▴"}
+.planbox[open]>summary{margin-bottom:12px}
+.plan-tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+.plan-size{display:flex;align-items:center;gap:6px;margin-left:auto;color:var(--muted);font-size:.9rem}
+.plan-size input{width:3.6em;text-align:center;padding:6px 4px;border-radius:8px;border:1px solid var(--card-line);background:var(--card);color:var(--ink);font:inherit}
+.plan-grid{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:16px;align-items:start}
+@media (max-width:760px){.plan-grid{grid-template-columns:minmax(0,1fr)}.plan-size{margin-left:0}}
+.plan-main{display:flex;flex-direction:column;gap:8px;min-width:0}
+.plan{position:relative;width:100%;max-width:100%;border-radius:12px;border:1px solid var(--panel-line);overflow:hidden;user-select:none;-webkit-user-select:none;background-color:var(--ground);background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px)}
+.plan svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:6}
+.plan svg line{stroke:var(--danger);stroke-width:3;stroke-dasharray:6 5}
+.plan-empty{position:absolute;inset:0;display:grid;place-items:center;padding:20px}
+.plan-empty[hidden]{display:none}
+.plan .pi{position:absolute;cursor:grab;touch-action:none}
+.plan .bed{background:repeating-linear-gradient(90deg,var(--soil) 0 10px,var(--soil-2) 10px 12px);border:2px solid var(--soil-edge);border-radius:8px;z-index:1}
+.plan .pot{border-radius:50%;background:radial-gradient(circle,var(--soil) 0 58%,var(--pot) 60%);border:2px solid var(--pot-edge);z-index:2}
+.plan .bed .lbl{position:absolute;left:5px;top:3px;font:600 .72rem var(--display);color:var(--lbl-ink);background:rgba(46,38,24,.6);padding:1px 6px;border-radius:6px;white-space:nowrap;max-width:calc(100% - 10px);overflow:hidden;text-overflow:ellipsis}
+.plan .pot .lbl{display:none}
+.plan .canopy{position:absolute;border-radius:50%;background:var(--canopy);border:1.5px dashed var(--canopy-edge);z-index:3;pointer-events:none}
+.plan .pt{z-index:5;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:1px}
+.plan .dot,.plan-tray .dot{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font:700 .72rem var(--display);color:var(--tok-ink);border:2px solid rgba(46,38,24,.35);box-shadow:0 1px 2px rgba(46,38,24,.25)}
+.plan .tree .dot{width:36px;height:36px}
+.plan .nm{font-size:.68rem;font-weight:500;color:var(--ink);background:var(--card);border-radius:6px;padding:0 5px;white-space:nowrap;opacity:.92}
+.planbox .g-ali .dot{background:var(--g-ali)} .planbox .g-aro .dot{background:var(--g-aro)} .planbox .g-fru .dot{background:var(--g-fru)} .planbox .g-orn .dot{background:var(--g-orn)} .planbox .g-for .dot{background:var(--g-for)}
+.plan .pt.sel .dot,.plan .bed.sel,.plan .pot.sel{outline:3px solid var(--carob-text);outline-offset:2px}
+.plan .pt.foe .dot{border:3px solid var(--danger)}
+.plan .pi:focus-visible{outline:3px solid var(--carob-text);outline-offset:2px}
+@media (max-width:600px){.plan .dot{width:22px;height:22px;font-size:.6rem;border-width:1.5px}.plan .tree .dot{width:28px;height:28px}.plan .pt:not(.sel) .nm{display:none}.plan .bed .lbl{font-size:.62rem;padding:0 4px;left:3px;top:2px}}
+.plan-side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.plan-card{background:var(--card);border:1px solid var(--card-line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.plan-card h3{font-family:var(--display);font-weight:700;font-size:1.05rem;margin:0;color:var(--title-ficha)}
+.plan-card .k{font-size:.78rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--title-ficha);margin:0}
+.plan-card .sub{color:var(--muted);font-size:.88rem;margin:0}
+.plan-card .sub.good{color:var(--ok)}
+.plan-card .alert{background:var(--danger-soft);border:1px solid var(--danger-bar);color:var(--danger);border-radius:10px;padding:8px 12px;font-size:.88rem;margin:0}
+.plan-card .pf{display:flex;flex-direction:column;gap:4px;font-size:.85rem;color:var(--muted)}
+.plan-card .pf input{padding:8px 10px;border-radius:8px;border:1px solid var(--card-line);background:var(--surface);color:var(--ink);font:inherit}
+.plan-card .row{display:flex;flex-wrap:wrap;gap:8px}
+.plan-card .btn.act{background:var(--act-bg);border-color:var(--act-line);color:var(--act-ink)}
+.plan-card .btn.del{background:var(--del-bg);border-color:var(--del-line);color:var(--del-ink)}
+.plan-tray{display:flex;flex-wrap:wrap;gap:8px}
+.plan-tray button{display:flex;align-items:center;gap:6px;font:500 .85rem var(--body);background:var(--panel);border:1px dashed var(--panel-line);color:var(--ink);border-radius:999px;padding:4px 10px 4px 4px;cursor:pointer}
+.plan-tray .dot{width:24px;height:24px;font-size:.62rem}

@@ -3,6 +3,7 @@ import {store} from './store.js';
 import {setupNotify,updateSchedule} from './notify.js';
 import {sharePlant,shareGarden} from './share.js';
 import {initAccount} from './account.js';
+import {initPlan} from './plan.js';
 import {loadWx,fetchWx,isFresh,capital,rainSince,rainSoon,hotNow,coldest,hottest,next as wxNext,sky,FROST_C,HEAT_C} from './weather.js';
 const ILUS=import.meta.env.BASE_URL+'ilus/';
 
@@ -685,7 +686,8 @@ function dues(p){
 function leftTxt(l){return l<0?`Hace ${-l} ${-l===1?'día':'días'}`:l===0?'Hoy':l===1?'Mañana':`En ${l} días`}
 function leftCls(l){return l<0?'over':l===0?'today':'ok'}
 
-function renderPlants(){
+function renderPlants(){planUI?.draw();renderPlantsList()}
+function renderPlantsList(){
   const groups=['todos',...Object.keys(GROUPS)];
   document.getElementById('plGroups').innerHTML=Object.keys(GROUPS).map(g=>`<button class="chip" data-g="${g}" aria-pressed="${state.plGroup===g}">${GROUPS[g]}</button>`).join('');
   // "Todas" = sin filtro de ubicación ni de tipo
@@ -989,6 +991,7 @@ document.getElementById('addForm').addEventListener('submit',e=>{
   dropExamples();state.plants.push(p);save('hv.plants',state.plants);e.target.reset();document.getElementById('fDate').value=iso(today);refreshSelects();
   state.plGroup='todos';state.plLoc='todas';renderPlants();renderRem();toast(`${name} añadida`);try{if(!matchMedia("(min-width:601px)").matches)document.getElementById("addBox").open=false}catch(e){}
 });
+var planUI=initPlan({plants:()=>state.plants,savePlants:()=>save('hv.plants',state.plants),SP,REL,esc,toast,enhance:enhanceSelect,openPlant:id=>openPlant(id)});
 renderAll();
 // Apariencia: claro por defecto; la elección se recuerda en este navegador
 function setTheme(t){document.documentElement.setAttribute('data-theme',t);document.querySelectorAll('#themeSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.themeSet===t))}
@@ -1045,7 +1048,7 @@ setupNotify();
 function reloadFromStore(){
   photos=load('hv.photos',{});state.plants=load('hv.plants',[]);
   state.zone=(z=>OLD_ZONES[z]||(ZONES[z]?z:state.zone))(load('hv.zone',state.zone));state.alt=load('hv.alt',null);state.cp=load('hv.cp',null);state.seeds=load('hv.seeds',[]);
-  drawZones();drawAlt();drawCp();drawZoneBox();renderAll();refreshSelects();refreshWx();
+  drawZones();drawAlt();drawCp();drawZoneBox();planUI.reload();renderAll();refreshSelects();refreshWx();
   if(ficha.open&&state.mode==='plant'){if(state.plants.some(p=>p.id===state.plantSel))renderPlantFicha();else ficha.close()}
 }
 initAccount({refresh:reloadFromStore,toast});

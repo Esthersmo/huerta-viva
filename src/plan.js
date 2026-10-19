@@ -1,0 +1,160 @@
+// Plano del huerto: bancales y macetas a escala (en metros) y cada planta colocada en su sitio.
+// Las posiciones de las plantas se guardan en la propia planta (p.pos) y el resto en hv.plan; las dos cosas se sincronizan.
+import {store} from './store.js';
+
+const KEY = 'hv.plan', NEAR = 1.2; // a esta distancia o menos (m) dos plantas se consideran juntas
+const POTS = [[.3, 'Pequeña · 30 cm'], [.5, 'Mediana · 50 cm'], [.8, 'Grande · 80 cm, para árboles'], [1.2, 'Muy grande · 1,2 m']];
+const BEDS = [[1, .6], [1.2, .8], [2, 1], [3, 1.2], [4, 1.2], [6, 1.5]];
+const CANOPY = 1.5; // radio de la copa de un frutal en el suelo (m)
+const GCOL = {alimentario: 'ali', aromatica: 'aro', frutal: 'fru', ornamental: 'orn', forrajero: 'for'};
+const num = n => String(+n.toFixed(1)).replace('.', ',');
+
+export function initPlan(ctx) {
+  // ctx: {plants(), savePlants(), SP, REL, esc, openPlant(id), toast(msg)}
+  const {SP, REL, esc} = ctx;
+  const el = id => document.getElementById(id);
+  const box = el('planBox'), plan = el('plan'), svg = el('planLines');
+  let pl = load(), sel = null, drag = null;
+
+  function load() {
+    let v = null; try { v = JSON.parse(store.getItem(KEY) || 'null'); } catch (e) {}
+    return v && Array.isArray(v.beds) ? {w: v.w || 8, h: v.h || 6, beds: v.beds} : {w: 8, h: 6, beds: []};
+  }
+  const save = () => { try { store.setItem(KEY, JSON.stringify(pl)); } catch (e) {} };
+  const plants = () => ctx.plants();
+  const placed = () => plants().filter(p => p.pos);
+  const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+  const inside = (pos, b) => b.k === 'bed' ? pos.x >= b.x && pos.x <= b.x + b.w && pos.y >= b.y && pos.y <= b.y + b.h
+    : dist(pos, {x: b.x + b.w / 2, y: b.y + b.w / 2}) <= b.w / 2 + .05;
+  const holder = p => p.pos && pl.beds.find(b => inside(p.pos, b));
+  // Un frutal en maceta tiene la copa a la medida de la maceta
+  const canopy = p => { const h = holder(p); return h && h.k === 'pot' ? Math.max(.35, h.w * .75) : CANOPY; };
+  const badPair = (a, b) => REL[a.sp]?.bad.has(b.sp);
+  const foes = () => { const out = [], ps = placed(); for (let i = 0; i < ps.length; i++) for (let j = i + 1; j < ps.length; j++) if (dist(ps[i].pos, ps[j].pos) <= NEAR && badPair(ps[i], ps[j])) out.push([ps[i], ps[j]]); return out; };
+  const ab = s => s.n.normalize('NFD').replace(/[̀-ͯ]/g, '').slice(0, 2).toUpperCase();
+
+  function draw() {
+    if (!box.open) return;
+    const {w: W, h: H} = pl, pct = (v, t) => v / t * 100 + '%';
+    plan.style.aspectRatio = `${W}/${H}`;
+    plan.style.backgroundSize = `${100 / W}% ${100 / H}%`;
+    svg.setAttribute('viewBox', `0 0 ${W * 100} ${H * 100}`);
+    const bad = foes(), badIds = new Set(bad.flat().map(p => p.id));
+    let h = '';
+    for (const b of pl.beds) h += `<div class="pi ${b.k}${sel === b.id ? ' sel' : ''}" data-pid="${esc(b.id)}" tabindex="0" role="button" aria-label="${esc(b.name)}" style="left:${pct(b.x, W)};top:${pct(b.y, H)};width:${pct(b.w, W)};height:${pct(b.k === 'pot' ? b.w : b.h, H)}"><span class="lbl">${esc(b.name)}</span></div>`;
+    for (const p of placed()) {
+      const s = SP[p.sp]; if (!s) continue;
+      const g = GCOL[s.g] || 'ali', on = sel === p.id;
+      if (s.tree) { const r = canopy(p); h += `<div class="canopy" style="left:${pct(p.pos.x - r, W)};top:${pct(p.pos.y - r, H)};width:${pct(r * 2, W)};height:${pct(r * 2, H)}"></div>`; }
+      h += `<div class="pi pt g-${g}${s.tree ? ' tree' : ''}${on ? ' sel' : ''}${badIds.has(p.id) ? ' foe' : ''}" data-pid="${esc(p.id)}" tabindex="0" role="button" aria-label="${esc(p.name)}" style="left:${pct(p.pos.x, W)};top:${pct(p.pos.y, H)}"><span class="dot">${ab(s)}</span><span class="nm">${esc(p.name)}</span></div>`;
+    }
+    plan.querySelectorAll('.pi,.canopy').forEach(e => e.remove());
+    plan.insertAdjacentHTML('beforeend', h);
+    svg.innerHTML = bad.map(([a, b]) => `<line x1="${a.pos.x * 100}" y1="${a.pos.y * 100}" x2="${b.pos.x * 100}" y2="${b.pos.y * 100}" vector-effect="non-scaling-stroke"/>`).join('');
+    el('planEmpty').hidden = !!(pl.beds.length || placed().length);
+    drawTray(); drawInfo();
+  }
+  function drawTray() {
+    const un = plants().filter(p => !p.pos && SP[p.sp]);
+    el('planTray').innerHTML = un.length ? un.map(p => `<button type="button" class="g-${GCOL[SP[p.sp].g] || 'ali'}" data-place="${esc(p.id)}"><span class="dot">${ab(SP[p.sp])}</span>${esc(p.name)}</button>`).join('')
+      : '<p class="note">Todas tus plantas están en el plano.</p>';
+  }
+  function drawInfo() {
+    const card = el('planInfo'), b = pl.beds.find(x => x.id === sel), p = plants().find(x => x.id === sel);
+    if (b) {
+      const kids = placed().filter(q => holder(q) === b);
+      const opts = b.k === 'pot' ? POTS.map(([v, l]) => `<option value="${v}"${v === b.w ? ' selected' : ''}>${l}</option>`).join('')
+        : BEDS.map(([w, h]) => `<option value="${w}x${h}"${w === b.w && h === b.h ? ' selected' : ''}>${num(w)} × ${num(h)} m</option>`).join('');
+      card.innerHTML = `<p class="k">${b.k === 'pot' ? 'Maceta' : 'Bancal'}</p>
+        <label class="pf">Nombre<input id="planName" maxlength="30" value="${esc(b.name)}"></label>
+        <label class="pf">Tamaño<select id="planSize">${opts}</select></label>
+        <p class="sub">${kids.length ? 'Tiene ' + kids.map(q => esc(q.name)).join(', ') : 'Vacía. Arrastra una planta dentro.'}</p>
+        <div class="row"><button class="btn del" type="button" id="planRm">Quitar ${b.k === 'pot' ? 'maceta' : 'bancal'}</button></div>`;
+      ctx.enhance?.(el('planSize'));
+      return;
+    }
+    if (!p || !p.pos) {
+      card.innerHTML = `<p class="k">Plano</p><p class="sub">Toca una planta para ver dónde está y si tiene cerca alguna con la que se lleve mal. Toca un bancal o una maceta para cambiar su nombre o su tamaño.</p>`;
+      return;
+    }
+    const s = SP[p.sp], r = REL[p.sp], near = placed().filter(q => q !== p && dist(p.pos, q.pos) <= NEAR);
+    const bad = near.filter(q => r.bad.has(q.sp)), good = near.filter(q => r.good.has(q.sp)), h = holder(p);
+    card.innerHTML = `<p class="k">${s.tree ? 'Frutal' : 'Planta'}</p><h3>${esc(p.name)}</h3>
+      <p class="sub">${h ? `En ${esc(h.name)}` : 'En el suelo'}${s.tree && h?.k === 'pot' && h.w < .8 ? ' · un árbol necesita una maceta grande, de 80 cm o más' : ''}</p>
+      ${bad.length ? `<p class="alert">Tiene cerca ${bad.map(q => esc(q.name)).join(' y ')}, a menos de ${num(NEAR)} m, y no se llevan bien. Mejor separarlas.</p>` : ''}
+      ${good.length ? `<p class="sub good">Buena compañía cerca: ${good.map(q => esc(q.name)).join(', ')}.</p>` : ''}
+      ${s.tree ? `<p class="sub">El círculo de puntos es la copa: lo que pongas debajo tendrá sombra.</p>` : ''}
+      <div class="row"><button class="btn act" type="button" id="planOpen">Ver ficha</button><button class="btn" type="button" id="planOut">Sacar del plano</button></div>`;
+  }
+
+  // Arrastrar con el dedo o el ratón. Al mover un bancal o una maceta, sus plantas van con él.
+  const at = e => { const r = plan.getBoundingClientRect(); return {x: (e.clientX - r.left) / r.width * pl.w, y: (e.clientY - r.top) / r.height * pl.h}; };
+  plan.addEventListener('pointerdown', e => {
+    const t = e.target.closest('.pi'); if (!t) { sel = null; draw(); return; }
+    e.preventDefault(); // que no se seleccione texto al arrastrar
+    const id = t.dataset.pid, b = pl.beds.find(x => x.id === id), p = plants().find(x => x.id === id);
+    const o = b || p.pos, m = at(e);
+    const kids = b ? placed().filter(q => holder(q) === b).map(q => ({q, dx: q.pos.x - b.x, dy: q.pos.y - b.y})) : [];
+    drag = {o, b, kids, dx: m.x - o.x, dy: m.y - o.y, id: e.pointerId, moved: false};
+    sel = id; plan.setPointerCapture(e.pointerId); draw();
+  });
+  plan.addEventListener('pointermove', e => {
+    if (!drag || e.pointerId !== drag.id) return;
+    const m = at(e), {o, b} = drag, w = b ? b.w : 0, h = b ? (b.k === 'pot' ? b.w : b.h) : 0;
+    o.x = Math.max(0, Math.min(pl.w - w, Math.round((m.x - drag.dx) * 10) / 10));
+    o.y = Math.max(0, Math.min(pl.h - h, Math.round((m.y - drag.dy) * 10) / 10));
+    for (const k of drag.kids) k.q.pos = {x: +(o.x + k.dx).toFixed(2), y: +(o.y + k.dy).toFixed(2)};
+    drag.moved = true; draw();
+  });
+  const end = () => { if (!drag) return; const {moved, b, kids} = drag; drag = null; if (moved) { if (b) save(); if (!b || kids.length) ctx.savePlants(); } draw(); };
+  plan.addEventListener('pointerup', end); plan.addEventListener('pointercancel', end);
+  plan.addEventListener('keydown', e => { const t = e.target.closest('.pi'); if (t && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); sel = t.dataset.pid; draw(); plan.querySelector(`[data-pid="${CSS.escape(sel)}"]`)?.focus(); } });
+
+  // Nueva pieza en un hueco libre arriba a la izquierda
+  function free(w, h) {
+    for (let y = .2; y + h <= pl.h; y += .5) for (let x = .2; x + w <= pl.w; x += .5)
+      if (!pl.beds.some(b => x < b.x + b.w && x + w > b.x && y < b.y + (b.k === 'pot' ? b.w : b.h) && y + h > b.y)) return {x, y};
+    return {x: 0, y: 0};
+  }
+  // Un sitio libre cerca del centro para la planta que se coloca, sin taparse con otras
+  function spot() {
+    const cx = pl.w / 2, cy = pl.h / 2, taken = placed().map(q => q.pos);
+    for (let r = 0; r < Math.max(pl.w, pl.h); r += .6) for (let a = 0; a < 360; a += r ? 45 : 360) {
+      const x = +(cx + r * Math.cos(a * Math.PI / 180)).toFixed(1), y = +(cy + r * Math.sin(a * Math.PI / 180)).toFixed(1);
+      if (x >= .2 && y >= .2 && x <= pl.w - .2 && y <= pl.h - .2 && !taken.some(q => dist(q, {x, y}) < .5)) return {x, y};
+    }
+    return {x: +cx.toFixed(1), y: +cy.toFixed(1)};
+  }
+  const nextName = (k, base) => { let n = pl.beds.filter(b => b.k === k).length + 1; while (pl.beds.some(b => b.name === `${base} ${n}`)) n++; return `${base} ${n}`; };
+  el('planBed').addEventListener('click', () => { const {x, y} = free(2, 1); const b = {id: 'b' + Date.now(), k: 'bed', name: nextName('bed', 'Bancal'), x, y, w: 2, h: 1}; pl.beds.push(b); sel = b.id; save(); draw(); });
+  el('planPot').addEventListener('click', () => { const {x, y} = free(.5, .5); const b = {id: 'm' + Date.now(), k: 'pot', name: nextName('pot', 'Maceta'), x, y, w: .5}; pl.beds.push(b); sel = b.id; save(); draw(); });
+  el('planTray').addEventListener('click', e => {
+    const t = e.target.closest('[data-place]'); if (!t) return;
+    const p = plants().find(x => x.id === t.dataset.place); p.pos = spot(); sel = p.id; ctx.savePlants(); draw();
+    ctx.toast(`${p.name} en el plano. Arrástrala a su sitio.`);
+  });
+  el('planInfo').addEventListener('click', e => {
+    const t = e.target.closest('button'); if (!t) return;
+    if (t.id === 'planOpen') ctx.openPlant(sel);
+    if (t.id === 'planOut') { const p = plants().find(x => x.id === sel); delete p.pos; sel = null; ctx.savePlants(); draw(); }
+    if (t.id === 'planRm') { const b = pl.beds.find(x => x.id === sel); pl.beds = pl.beds.filter(x => x !== b); sel = null; save(); draw(); ctx.toast(`${b.name} quitado del plano`); }
+  });
+  el('planInfo').addEventListener('change', e => {
+    const b = pl.beds.find(x => x.id === sel); if (!b) return;
+    if (e.target.id === 'planName') { b.name = e.target.value.trim().slice(0, 30) || b.name; save(); draw(); }
+    if (e.target.id === 'planSize') {
+      if (b.k === 'pot') b.w = +e.target.value; else [b.w, b.h] = e.target.value.split('x').map(Number);
+      b.x = Math.min(b.x, Math.max(0, pl.w - b.w)); b.y = Math.min(b.y, Math.max(0, pl.h - (b.k === 'pot' ? b.w : b.h))); save(); draw();
+    }
+  });
+  // Medidas del huerto
+  const wIn = el('planW'), hIn = el('planH');
+  const drawSize = () => { wIn.value = pl.w; hIn.value = pl.h; };
+  const setSize = () => { const c = v => Math.max(1, Math.min(60, Math.round((+String(v).replace(',', '.') || 1) * 2) / 2)); pl.w = c(wIn.value); pl.h = c(hIn.value); drawSize(); save(); draw(); };
+  wIn.addEventListener('change', setSize); hIn.addEventListener('change', setSize);
+  box.addEventListener('toggle', draw);
+  drawSize();
+
+  // Desde fuera: cuando cambian las plantas o llegan datos de otro dispositivo
+  return {draw, reload() { pl = load(); drawSize(); if (sel && !pl.beds.some(b => b.id === sel) && !plants().some(p => p.id === sel)) sel = null; draw(); }};
+}
