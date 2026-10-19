@@ -201,6 +201,19 @@ export function initPlan(ctx) {
   });
   const setSize = () => { const c = v => Math.max(1, Math.min(60, Math.round((+String(v).replace(',', '.') || 1) * 10) / 10)); pl.w = c(wIn.value); pl.h = c(hIn.value); drawSize(); save(); draw(); };
   wIn.addEventListener('change', setSize); hIn.addEventListener('change', setSize);
+  // Con el teclado abierto: la pantalla completa se ajusta a la parte que queda visible
+  // y la casilla en la que se escribe se lleva al centro, para verla bien
+  const vv = window.visualViewport;
+  function fitKeyboard() {
+    if (!vv) return;
+    if (isFull()) { box.style.top = vv.offsetTop + 'px'; box.style.height = vv.height + 'px'; box.style.bottom = 'auto'; }
+    else { box.style.top = box.style.height = box.style.bottom = ''; }
+    const a = document.activeElement;
+    if (a && a.tagName === 'INPUT' && box.contains(a)) a.scrollIntoView({block: 'center', behavior: 'smooth'});
+  }
+  vv?.addEventListener('resize', fitKeyboard); vv?.addEventListener('scroll', () => isFull() && fitKeyboard());
+  box.addEventListener('focusin', e => { if (e.target.tagName === 'INPUT') setTimeout(fitKeyboard, 350); });
+  box.addEventListener('focusout', () => setTimeout(() => { if (!box.contains(document.activeElement)) fitKeyboard(); }, 100));
   // Al tocar un número se selecciona entero, para escribir el nuevo directamente
   box.addEventListener('focusin', e => { if (e.target.matches?.('#planW,#planH,#planBW,#planBH')) setTimeout(() => e.target.select(), 0); });
   box.addEventListener('toggle', () => draw());
@@ -222,6 +235,7 @@ export function initPlan(ctx) {
     } else if (document.fullscreenElement || document.webkitFullscreenElement) {
       try { (document.exitFullscreen || document.webkitExitFullscreen).call(document); } catch (e) {}
     }
+    if (!on) box.style.top = box.style.height = box.style.bottom = '';
     draw(); requestAnimationFrame(fit);
   }
   fsBtn.addEventListener('click', () => setFull(!isFull()));
