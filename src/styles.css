@@ -60,6 +60,7 @@ input[type=date]::-webkit-datetime-edit-day-field:focus,input[type=date]::-webki
 .csel{position:relative;display:block;min-width:0}
 .csel>select{position:absolute;opacity:0;pointer-events:none;width:1px;height:1px}
 .csel-btn{font:inherit;display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;text-align:left;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px 10px;cursor:pointer}
+.csel-btn:disabled{opacity:.6;cursor:default}
 .csel-btn span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 .csel-list{position:absolute;z-index:30;top:calc(100% + 4px);left:0;right:0;margin:0;padding:4px;list-style:none;background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:0 10px 30px rgba(30,22,10,.18);max-height:260px;overflow:auto;text-align:left}
 .csel-list li{padding:7px 10px;border-radius:6px;cursor:pointer;color:var(--ink);font-weight:400}
