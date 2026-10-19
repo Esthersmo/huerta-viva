@@ -423,3 +423,20 @@ form.add label{display:flex;flex-direction:column;gap:4px;font-size:.85rem;color
 .btn.gbtn svg{width:20px;height:20px}
 .acctdlg a{color:inherit}
 .acctdlg .captcha:empty{display:none}
+/* El tiempo (Recordatorios) */
+.wx{background:var(--card);border:1px solid var(--card-line);border-radius:12px;padding:14px 16px;margin-bottom:16px;display:flex;flex-direction:column;gap:10px}
+.wxhd h3{font-family:var(--display);font-weight:700;font-size:1.05rem;color:var(--carob-text);margin:0;text-align:center}
+.wxdays{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;text-align:center}
+.wxd{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 2px;border-radius:10px;font-size:.85rem;font-variant-numeric:tabular-nums}
+.wxd.now{background:var(--panel);outline:1px solid var(--panel-line)}
+.wxd .wn{color:var(--muted);font-weight:700;text-transform:capitalize;font-size:.8rem}
+.wxd .wi{font-size:1.45rem;line-height:1.2}
+.wxd .wt b{color:var(--ink)} .wxd .wt{color:var(--muted)}
+.wxd .wr{color:var(--ok);font-size:.78rem;font-weight:700;min-height:1em}
+.wxa{margin:0;border:1px solid;border-radius:10px;padding:9px 12px;font-size:.92rem}
+.wxa.frost{background:var(--danger-soft);border-color:var(--danger-bar)}
+.wxa.heat{background:var(--warn-soft);border-color:var(--warn-bar)}
+.wxa.rain{background:var(--ok-soft);border-color:var(--ok-bar)}
+.wx .note{text-align:center}
+.rrow .wxsoon{color:var(--ok)}
+@media (max-width:520px){.wx{padding:12px 8px}.wxd{font-size:.78rem;padding:5px 0}.wxd .wi{font-size:1.25rem}.wxd .wn{font-size:.72rem}}

@@ -3,6 +3,7 @@ import {store} from './store.js';
 import {setupNotify,updateSchedule} from './notify.js';
 import {sharePlant,shareGarden} from './share.js';
 import {initAccount} from './account.js';
+import {loadWx,fetchWx,isFresh,capital,rainSince,rainSoon,hotNow,coldest,hottest,next as wxNext,sky,FROST_C,HEAT_C} from './weather.js';
 const ILUS=import.meta.env.BASE_URL+'ilus/';
 
 const MONTHS=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
@@ -336,6 +337,7 @@ function dropExamples(){const ex=state.plants.filter(p=>p.ej);if(!ex.length)retu
 function newId(){return 'f'+Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
 (()=>{const seen=new Set();let fixed=false;for(const k in photos)for(const x of photos[k]||[]){if(!x.id||seen.has(x.id)){x.id=newId();fixed=true}seen.add(x.id)}
   if(fixed)try{store.setItem('hv.photos',JSON.stringify(photos))}catch(e){}})();
+let wx=loadWx(); // Tiempo real de la zona (ver «El tiempo»)
 let state={tipSel:null,mode:'crop',plantSel:null,photoBig:null,zone:(z=>OLD_ZONES[z]||(ZONES[z]?z:'sevilla'))(load('hv.zone','sevilla')),alt:load('hv.alt',null),plants:load('hv.plants',EXAMPLES),calGroup:'todos',plGroup:'todos',plLoc:'todas',sel:null};
 // Añade una sola vez los ejemplos nuevos a quien ya tenía datos guardados
 if(load('hv.seedV',1)<2){const have=new Set(state.plants.map(p=>p.id));EXAMPLES.filter(e=>['e7','e8','e9','e10'].includes(e.id)&&!have.has(e.id)).forEach(e=>state.plants.push(e));save('hv.plants',state.plants);save('hv.seedV',2)}
@@ -565,7 +567,7 @@ function interval(p,act){
   const s=SP[p.sp];const base=s.care[act];if(!base)return 0;
   if(act!=='riego')return base;
   let f=1;
-  if(p.loc==='exterior'){const t=zoneNow().t[curM];f=t>=25?.5:t>=20?.75:t<=12?1.5:1}
+  if(p.loc==='exterior'){const t=zoneNow().t[curM];f=t>=25?.5:t>=20?.75:t<=12?1.5:1;if(hotNow(wx,iso(today)))f*=.7}
   else{f=[5,6,7,8].includes(curM)?.8:[10,11,0,1].includes(curM)?1.4:1}
   return Math.max(1,Math.round(base*f));
 }
@@ -573,9 +575,12 @@ function dues(p){
   const out=[];
   for(const a of Object.keys(ACTIONS)){
     const iv=interval(p,a);if(!iv)continue;
-    const last=p.log&&p.log[a]?parse(p.log[a]):parse(p.sown);
-    const due=new Date(last.getTime()+iv*DAY);
-    out.push({p,a,iv,last,due,left:Math.round((due-today)/DAY)});
+    let last=p.log&&p.log[a]?parse(p.log[a]):parse(p.sown),rain=null,soon=null;
+    // Fuera, la lluvia de verdad cuenta como riego; y si va a llover pronto se avisa de que se puede esperar
+    if(a==='riego'&&p.loc==='exterior'&&wx){rain=rainSince(wx,iso(last),iso(today));if(rain)last=parse(rain.date)}
+    const due=new Date(last.getTime()+iv*DAY),left=Math.round((due-today)/DAY);
+    if(a==='riego'&&p.loc==='exterior'&&wx&&left<=1)soon=rainSoon(wx,iso(today));
+    out.push({p,a,iv,last,due,left,rain,soon});
   }
   return out;
 }
@@ -622,12 +627,13 @@ function renderRem(){
   const more=state.remMore||(state.remMore={}),REM_MAX=3;
   const lim=(k,rows)=>rows.length<=REM_MAX?rows.join(''):(more[k]?rows:rows.slice(0,REM_MAX)).join('')+`<button class="btn remmore rm-${k}" data-remmore="${k}" aria-expanded="${!!more[k]}">${more[k]?'Ver menos':`Ver ${rows.length-REM_MAX} más`}</button>`;
   const row=x=>`<div class="rrow ${cls(x.left)}"><span class="bar"></span>
-    <div><p><strong>${VERB[x.a]}</strong> ${esc(x.p.name)}</p><p class="sub">${tag(x.left)?`<span class="tag">${tag(x.left)}</span> · `:''}${leftTxt(x.left)} · última vez ${x.last.toLocaleDateString('es-ES',{day:'numeric',month:'short'})} · ${x.p.loc}</p></div>
+    <div><p><strong>${VERB[x.a]}</strong> ${esc(x.p.name)}</p><p class="sub">${tag(x.left)?`<span class="tag">${tag(x.left)}</span> · `:''}${leftTxt(x.left)} · ${x.rain?`llovió ${mm(x.rain.rain)} el ${fday(x.rain.date)}`:`última vez ${x.last.toLocaleDateString('es-ES',{day:'numeric',month:'short'})}`} · ${x.p.loc}</p>${x.soon?`<p class="sub wxsoon">🌧️ Se esperan ${mm(x.soon.rain)} ${dayName(x.soon.date)}: puedes esperar a ver si llueve.</p>`:''}</div>
     <button class="btn" data-act="${x.a}" data-id="${esc(x.p.id)}">Hecho</button></div>`;
   let h=['over','today','soon'].map(k=>lim(k,all.filter(x=>cls(x.left)===k).map(row))).join('')||'<p class="lede">No hay tareas pendientes esta semana.</p>';
   if(done.length)h+=`<p class="remhead">Hecho hoy</p>`+lim('done',done.map(x=>`<div class="rrow done"><span class="bar"></span>
     <div><p><strong>${ACTIONS[x.a]}</strong> ${esc(x.p.name)}</p><p class="sub"><span class="tag">Hecho</span> · ${x.p.loc}</p></div><span></span></div>`));
   document.getElementById('remList').innerHTML=h;
+  drawWx();
   // Próximas tareas para los avisos diarios
   updateSchedule(state.plants.flatMap(dues).map(x=>({date:iso(x.due),text:`${VERB[x.a]} ${x.p.name}`})));
 }
@@ -635,6 +641,42 @@ function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;',
 // Solo se pintan como imagen las fotos guardadas por la app (JPEG/PNG/WebP en base64)
 function img(s){return /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(s||'')?s:''}
 function renderAll(){renderCal();renderPlants();renderRem();renderTips()}
+
+// ---------- El tiempo ----------
+const mm=n=>`${Math.round(n)} mm`,fday=d=>parse(d).toLocaleDateString('es-ES',{day:'numeric',month:'short'});
+function dayName(d){const t=iso(today),n=Math.round((parse(d)-today)/DAY);return d===t?'hoy':n===1?'mañana':`el ${parse(d).toLocaleDateString('es-ES',{weekday:'long'})}`}
+const shortDay=d=>{const n=Math.round((parse(d)-today)/DAY);return n===0?'Hoy':n===1?'Mañana':parse(d).toLocaleDateString('es-ES',{weekday:'short'}).replace('.','')};
+// Plantas de fuera que sufren con el frío: las de verano y los frutales tropicales
+const tender=p=>p.loc==='exterior'&&(SP[p.sp].tMin>=12||SP[p.sp].frost>=8);
+function wxPlace(){return state.cp?.name||ZONES[state.zone]?.name.split(' (')[0]||''}
+async function wxCoords(){
+  const c=state.cp;if(!c)return capital(state.zone);
+  if(c.lat!=null)return [c.lat,c.lon];
+  try{const d=await cpLoad();const m=d.m[c.i];if(m){setCp({...c,lat:m[1],lon:m[2]});return [m[1],m[2]]}}catch(e){}
+  return capital(state.zone);
+}
+async function refreshWx(force){
+  try{const ll=await wxCoords();if(!force&&isFresh(wx,ll))return;wx=await fetchWx(ll,state.alt);renderPlants();renderRem()}catch(e){}
+}
+function drawWx(){
+  const el=document.getElementById('wx');if(!el)return;
+  const t=iso(today),days=wx?wxNext(wx,t):[];
+  if(!days.length){el.hidden=true;return}
+  el.hidden=false;
+  const alerts=[];
+  const fr=coldest(wx,t);
+  if(fr&&fr.min<=FROST_C){const ps=state.plants.filter(tender).map(p=>esc(p.name));
+    alerts.push(['frost',`<strong>Riesgo de helada ${dayName(fr.date)}</strong> (mínima de ${Math.round(fr.min)}&nbsp;°C).`+(ps.length?` Protege por la noche ${ps.length>4?`${ps.slice(0,4).join(', ')} y ${ps.length-4} más`:ps.length>1?`${ps.slice(0,-1).join(', ')} y ${ps[ps.length-1]}`:ps[0]}: cúbrelas con manta térmica o mete las macetas dentro.`:' Las plantas de verano y los frutales tropicales lo pasan mal.')])}
+  const hot=hottest(wx,t);
+  if(hot&&hot.max>=HEAT_C)alerts.push(['heat',`<strong>Calor fuerte ${dayName(hot.date)}</strong> (máxima de ${Math.round(hot.max)}&nbsp;°C). Riega a primera hora o al atardecer y vigila las macetas, que se secan antes. He adelantado los riegos de fuera.`]);
+  const wet=state.plants.filter(p=>p.loc==='exterior').flatMap(dues).filter(x=>x.rain);
+  if(wet.length){const r=wet[0].rain;alerts.push(['rain',`<strong>Ha llovido ${mm(r.rain)} ${dayName(r.date)==='hoy'?'hoy':`el ${fday(r.date)}`}.</strong> Cuenta como riego: he retrasado el de ${wet.length===1?esc(wet[0].p.name):`${wet.length} plantas de fuera`}.`])}
+  const upd=new Date(wx.at),old=Date.now()-wx.at>12*3600e3;
+  el.innerHTML=`<div class="wxhd"><h3>El tiempo en ${esc(wxPlace())}</h3></div>
+    <div class="wxdays">${days.map(d=>{const[ic,tx]=sky(d.code);return `<div class="wxd${d.date===t?' now':''}" title="${tx}"><span class="wn">${shortDay(d.date)}</span><span class="wi" role="img" aria-label="${tx}">${ic}</span><span class="wt"><b>${Math.round(d.max)}°</b> ${Math.round(d.min)}°</span><span class="wr">${d.rain>=1?mm(d.rain):''}</span></div>`}).join('')}</div>
+    ${alerts.map(([k,txt])=>`<p class="wxa ${k}">${txt}</p>`).join('')}
+    <p class="note">Previsión de Open-Meteo${old?`, de hace ${Math.round((Date.now()-wx.at)/3600e3)} h (sin conexión)`:`, actualizada a las ${upd.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'})}`}.</p>`;
+}
 // ---------- Consejos ----------
 const TIP_ROWS=[['s','Siembra'],['r','Riego'],['l','Luz'],['t','Suelo'],['a','Abonado'],['o','Poda'],['p','Plagas y problemas'],['c','Cosecha'],['b','Buenas compañeras'],['e','Mejor lejos de']];
 function renderTips(){
@@ -674,7 +716,7 @@ function drawZones(){
 }
 function openZones(){zAct=zKeys.indexOf(state.zone);zList.hidden=false;drawZones();zBtn.setAttribute('aria-expanded','true');zList.focus()}
 function closeZones(f){zList.hidden=true;zBtn.setAttribute('aria-expanded','false');if(f)zBtn.focus()}
-function pickZone(k){closeZones(true);if(k===state.zone)return;state.zone=k;save('hv.zone',k);state.alt=null;save('hv.alt',null);setCp(null);drawZones();drawAlt();renderAll();toast('Calendario actualizado para tu zona')}
+function pickZone(k){closeZones(true);if(k===state.zone)return;state.zone=k;save('hv.zone',k);state.alt=null;save('hv.alt',null);setCp(null);drawZones();drawAlt();renderAll();refreshWx(true);toast('Calendario actualizado para tu zona')}
 // Altitud del huerto
 const altIn=document.getElementById('alt');
 function drawAlt(){const b=ZONES[state.zone];altIn.value=state.alt??'';altIn.placeholder=b.alt;document.getElementById('altHint').textContent=state.alt!=null&&state.alt!==b.alt?`Temperaturas ajustadas: ${state.alt>b.alt?'más frescas':'más templadas'} que en ${b.name.split(' (')[0]} capital (${b.alt} m).`:`Si lo dejas vacío se usa la altitud de ${b.name.split(' (')[0]} capital (${b.alt} m).`}
@@ -716,9 +758,9 @@ async function cpApply(code,i){
   const opts=(d.c[code]||[]).map(k=>({i:k,name:d.m[k][0]}));
   let alt=null;try{alt=await cpElevation(lat,lon)}catch(e){}
   zoneOpen=opts.length>1&&!state.cp?.opts?.some(o=>o.i===i&&state.cp.cp===code);
-  setCp({cp:code,i,name,prov,alt,opts});
+  setCp({cp:code,i,name,prov,alt,opts,lat,lon});
   const z=PROV_INE[prov];if(z&&z!==state.zone){state.zone=z;save('hv.zone',z);drawZones()}
-  state.alt=alt;save('hv.alt',alt);drawAlt();drawZoneBox();renderAll();
+  state.alt=alt;save('hv.alt',alt);drawAlt();drawZoneBox();renderAll();refreshWx(true);
   toast(alt==null?`Calendario para ${name}. Sin conexión no puedo consultar la altitud: escríbela si la sabes.`:`Calendario ajustado a ${name} (${alt} m)`);
 }
 cpIn.addEventListener('input',async()=>{
@@ -880,7 +922,9 @@ setupNotify();
 function reloadFromStore(){
   photos=load('hv.photos',{});state.plants=load('hv.plants',[]);
   state.zone=(z=>OLD_ZONES[z]||(ZONES[z]?z:state.zone))(load('hv.zone',state.zone));state.alt=load('hv.alt',null);state.cp=load('hv.cp',null);
-  drawZones();drawAlt();drawCp();drawZoneBox();renderAll();refreshSelects();
+  drawZones();drawAlt();drawCp();drawZoneBox();renderAll();refreshSelects();refreshWx();
   if(ficha.open&&state.mode==='plant'){if(state.plants.some(p=>p.id===state.plantSel))renderPlantFicha();else ficha.close()}
 }
 initAccount({refresh:reloadFromStore,toast});
+refreshWx();
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refreshWx()});
