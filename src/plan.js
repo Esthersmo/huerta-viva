@@ -26,6 +26,8 @@ export function initPlan(ctx) {
   function current() { return all.list.find(x => x.id === all.cur) || all.list[0]; }
   const save = () => { try { store.setItem(KEY, JSON.stringify(all)); } catch (e) {} };
   const plants = () => ctx.plants();
+  // Mientras se escribe en un campo no se redibuja (la sincronización puede llegar a mitad y borraría lo escrito)
+  const typing = root => { const a = document.activeElement; return a && a.tagName === 'INPUT' && root.contains(a); };
   // Las plantas colocadas antes de haber varios huertos son del primero
   const gardenOf = p => p.pos && (all.list.some(x => x.id === p.pos.h) ? p.pos.h : all.list[0].id);
   const placed = () => plants().filter(p => p.pos && gardenOf(p) === pl.id);
@@ -71,6 +73,7 @@ export function initPlan(ctx) {
   }
   function drawInfo() {
     const card = el('planInfo'), b = pl.beds.find(x => x.id === sel), p = plants().find(x => x.id === sel);
+    if (b && typing(card)) return;
     if (b) {
       const kids = placed().filter(q => holder(q) === b);
       const opts = b.k === 'pot' ? POTS.map(([v, l]) => `<option value="${v}"${v === b.w ? ' selected' : ''}>${l}</option>`).join('')
@@ -170,7 +173,7 @@ export function initPlan(ctx) {
   });
   // Huertos: pestañas, nombre y medidas del que se está viendo
   const wIn = el('planW'), hIn = el('planH'), nIn = el('planGName');
-  const drawSize = () => { wIn.value = pl.w; hIn.value = pl.h; nIn.value = pl.name; el('planGRm').hidden = all.list.length < 2; };
+  const drawSize = () => { const keep = document.activeElement; if (keep !== wIn) wIn.value = num(pl.w); if (keep !== hIn) hIn.value = num(pl.h); if (keep !== nIn) nIn.value = pl.name; el('planGRm').hidden = all.list.length < 2; };
   function drawGardens() {
     el('planTabs').innerHTML = all.list.map(x => `<button type="button" data-garden="${esc(x.id)}" aria-pressed="${x === pl}">${esc(x.name)}</button>`).join('')
       + '<button type="button" class="add" id="planGAdd">+ Huerto</button>';
@@ -196,8 +199,10 @@ export function initPlan(ctx) {
     all.list = all.list.filter(x => x !== gone); all.cur = all.list[0].id; pl = current(); sel = null;
     save(); ctx.savePlants(); drawGardens(); draw(); ctx.toast(`${gone.name} quitado. Sus plantas siguen en Mis plantas, sin colocar.`);
   });
-  const setSize = () => { const c = v => Math.max(1, Math.min(60, Math.round((+String(v).replace(',', '.') || 1) * 2) / 2)); pl.w = c(wIn.value); pl.h = c(hIn.value); drawSize(); save(); draw(); };
+  const setSize = () => { const c = v => Math.max(1, Math.min(60, Math.round((+String(v).replace(',', '.') || 1) * 10) / 10)); pl.w = c(wIn.value); pl.h = c(hIn.value); drawSize(); save(); draw(); };
   wIn.addEventListener('change', setSize); hIn.addEventListener('change', setSize);
+  // Al tocar un número se selecciona entero, para escribir el nuevo directamente
+  box.addEventListener('focusin', e => { if (e.target.matches?.('#planW,#planH,#planBW,#planBH')) setTimeout(() => e.target.select(), 0); });
   box.addEventListener('toggle', () => draw());
 
   // Pantalla completa: el plano ocupa toda la pantalla; en Android además se gira a horizontal.

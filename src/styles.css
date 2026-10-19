@@ -558,3 +558,5 @@ html.plan-noscroll,html.plan-noscroll body{overflow:hidden}
 .planbox.full .plan-side{min-height:0;overflow:auto}
 .planbox.full .plan-side .plan-card{padding:10px 12px;gap:8px}
 @media (max-aspect-ratio:1/1){.planbox.full .plan-body{grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto auto minmax(0,1fr)}.planbox.full .plan-turn{display:block}.planbox.full .plan-grid{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto}.planbox.full .plan-side{max-height:38vh}}
+/* En el móvil, campos de 16 px para que el iPhone no amplíe la pantalla al tocarlos */
+@media (max-width:760px){.plan-size input,.plan-garden #planGName,.plan-card .pf input,.plan-card .pf-size input{font-size:16px}}
