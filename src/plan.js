@@ -3,8 +3,7 @@
 import {store} from './store.js';
 
 const KEY = 'hv.plan', NEAR = 1.2; // a esta distancia o menos (m) dos plantas se consideran juntas
-const POTS = [[.3, 'Pequeña · 30 cm'], [.5, 'Mediana · 50 cm'], [.8, 'Grande · 80 cm, para árboles'], [1.2, 'Muy grande · 1,2 m']];
-const BEDS = [[1, .6], [1.2, .8], [2, 1], [3, 1.2], [4, 1.2], [6, 1.5]];
+const POTS = [[.1, '10 cm'], [.15, '15 cm'], [.2, '20 cm'], [.3, '30 cm'], [.5, '50 cm'], [.8, '80 cm · para árboles'], [1.2, '1,2 m · para árboles grandes']];
 const CANOPY = 1.5; // radio de la copa de un frutal en el suelo (m)
 const GCOL = {alimentario: 'ali', aromatica: 'aro', frutal: 'fru', ornamental: 'orn', forrajero: 'for'};
 const num = n => String(+n.toFixed(1)).replace('.', ',');
@@ -33,7 +32,7 @@ export function initPlan(ctx) {
   const foes = () => { const out = [], ps = placed(); for (let i = 0; i < ps.length; i++) for (let j = i + 1; j < ps.length; j++) if (dist(ps[i].pos, ps[j].pos) <= NEAR && badPair(ps[i], ps[j])) out.push([ps[i], ps[j]]); return out; };
   const ab = s => s.n.normalize('NFD').replace(/[̀-ͯ]/g, '').slice(0, 2).toUpperCase();
 
-  function draw() {
+  function draw(keepInfo) {
     if (!box.open) return;
     const {w: W, h: H} = pl, pct = (v, t) => v / t * 100 + '%';
     plan.style.aspectRatio = `${W}/${H}`;
@@ -52,7 +51,7 @@ export function initPlan(ctx) {
     plan.insertAdjacentHTML('beforeend', h);
     svg.innerHTML = bad.map(([a, b]) => `<line x1="${a.pos.x * 100}" y1="${a.pos.y * 100}" x2="${b.pos.x * 100}" y2="${b.pos.y * 100}" vector-effect="non-scaling-stroke"/>`).join('');
     el('planEmpty').hidden = !!(pl.beds.length || placed().length);
-    drawTray(); drawInfo();
+    drawTray(); if (keepInfo !== true) drawInfo();
   }
   function drawTray() {
     const un = plants().filter(p => !p.pos && SP[p.sp]);
@@ -64,13 +63,14 @@ export function initPlan(ctx) {
     if (b) {
       const kids = placed().filter(q => holder(q) === b);
       const opts = b.k === 'pot' ? POTS.map(([v, l]) => `<option value="${v}"${v === b.w ? ' selected' : ''}>${l}</option>`).join('')
-        : BEDS.map(([w, h]) => `<option value="${w}x${h}"${w === b.w && h === b.h ? ' selected' : ''}>${num(w)} × ${num(h)} m</option>`).join('');
+        : '';
       card.innerHTML = `<p class="k">${b.k === 'pot' ? 'Maceta' : 'Bancal'}</p>
         <label class="pf">Nombre<input id="planName" maxlength="30" value="${esc(b.name)}"></label>
-        <label class="pf">Tamaño<select id="planSize">${opts}</select></label>
+        ${b.k === 'pot' ? `<label class="pf">Tamaño<select id="planSize">${opts}</select></label>`
+          : `<div class="pf"><span>Tamaño</span><span class="pf-size"><input id="planBW" inputmode="decimal" value="${num(b.w)}" aria-label="Ancho del bancal en metros"> × <input id="planBH" inputmode="decimal" value="${num(b.h)}" aria-label="Largo del bancal en metros"> m</span></div>`}
         <p class="sub">${kids.length ? 'Tiene ' + kids.map(q => esc(q.name)).join(', ') : 'Vacía. Arrastra una planta dentro.'}</p>
         <div class="row"><button class="btn del" type="button" id="planRm">Quitar ${b.k === 'pot' ? 'maceta' : 'bancal'}</button></div>`;
-      ctx.enhance?.(el('planSize'));
+      if (el('planSize')) ctx.enhance?.(el('planSize'));
       return;
     }
     if (!p || !p.pos) {
@@ -141,10 +141,13 @@ export function initPlan(ctx) {
   });
   el('planInfo').addEventListener('change', e => {
     const b = pl.beds.find(x => x.id === sel); if (!b) return;
-    if (e.target.id === 'planName') { b.name = e.target.value.trim().slice(0, 30) || b.name; save(); draw(); }
-    if (e.target.id === 'planSize') {
-      if (b.k === 'pot') b.w = +e.target.value; else [b.w, b.h] = e.target.value.split('x').map(Number);
-      b.x = Math.min(b.x, Math.max(0, pl.w - b.w)); b.y = Math.min(b.y, Math.max(0, pl.h - (b.k === 'pot' ? b.w : b.h))); save(); draw();
+    if (e.target.id === 'planName') { b.name = e.target.value.trim().slice(0, 30) || b.name; save(); draw(true); }
+    if (['planSize', 'planBW', 'planBH'].includes(e.target.id)) {
+      // Medidas a mano: de 20 cm hasta lo que mida el huerto, en pasos de 10 cm
+      const m = (v, max) => Math.max(.2, Math.min(max, Math.round((+String(v).replace(',', '.') || .2) * 10) / 10));
+      if (b.k === 'pot') b.w = +e.target.value; else { b.w = m(el('planBW').value, pl.w); b.h = m(el('planBH').value, pl.h); }
+      b.x = Math.min(b.x, Math.max(0, pl.w - b.w)); b.y = Math.min(b.y, Math.max(0, pl.h - (b.k === 'pot' ? b.w : b.h))); save(); draw(b.k === 'bed');
+      if (b.k === 'bed') { el('planBW').value = num(b.w); el('planBH').value = num(b.h); }
     }
   });
   // Medidas del huerto
@@ -152,7 +155,7 @@ export function initPlan(ctx) {
   const drawSize = () => { wIn.value = pl.w; hIn.value = pl.h; };
   const setSize = () => { const c = v => Math.max(1, Math.min(60, Math.round((+String(v).replace(',', '.') || 1) * 2) / 2)); pl.w = c(wIn.value); pl.h = c(hIn.value); drawSize(); save(); draw(); };
   wIn.addEventListener('change', setSize); hIn.addEventListener('change', setSize);
-  box.addEventListener('toggle', draw);
+  box.addEventListener('toggle', () => draw());
   drawSize();
 
   // Desde fuera: cuando cambian las plantas o llegan datos de otro dispositivo

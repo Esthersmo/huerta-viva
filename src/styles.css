@@ -529,3 +529,6 @@ form.add label{display:flex;flex-direction:column;gap:4px;font-size:.85rem;color
 .plan-tray{display:flex;flex-wrap:wrap;gap:8px}
 .plan-tray button{display:flex;align-items:center;gap:6px;font:500 .85rem var(--body);background:var(--panel);border:1px dashed var(--panel-line);color:var(--ink);border-radius:999px;padding:4px 10px 4px 4px;cursor:pointer}
 .plan-tray .dot{width:24px;height:24px;font-size:.62rem}
+.plan-card .pf-size{display:flex;align-items:center;gap:6px;color:var(--muted)}
+.plan-card .pf-size input{width:4.2em;text-align:center;padding:8px 4px;border-radius:8px;border:1px solid var(--card-line);background:var(--surface);color:var(--ink);font:inherit}
+.plan .pot{min-width:14px;min-height:14px}
