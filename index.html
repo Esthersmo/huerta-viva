@@ -94,6 +94,16 @@
           <button class="btn primary" type="submit">Añadir planta</button>
         </form>
       </details>
+      <details class="panel addbox seedbox" id="seedBox" style="margin-bottom:20px">
+        <summary><h2>Mis semillas <small id="seedCount"></small></h2></summary>
+        <form class="add" id="seedForm">
+          <label for="sSp">Especie<select id="sSp"></select></label>
+          <label for="sCad">Caducan<select id="sCad"></select></label>
+          <label for="sNote">Nota<input id="sNote" maxlength="80" placeholder="Variedad, de dónde son…"></label>
+          <button class="btn primary" type="submit">Añadir semillas</button>
+        </form>
+        <div id="seedList"></div>
+      </details>
       <div class="panel">
         <div class="filters">
           <div class="seg" id="locSeg">

@@ -338,7 +338,8 @@ function newId(){return 'f'+Date.now().toString(36)+Math.random().toString(36).s
 (()=>{const seen=new Set();let fixed=false;for(const k in photos)for(const x of photos[k]||[]){if(!x.id||seen.has(x.id)){x.id=newId();fixed=true}seen.add(x.id)}
   if(fixed)try{store.setItem('hv.photos',JSON.stringify(photos))}catch(e){}})();
 let wx=loadWx(); // Tiempo real de la zona (ver «El tiempo»)
-let state={tipSel:null,mode:'crop',plantSel:null,photoBig:null,zone:(z=>OLD_ZONES[z]||(ZONES[z]?z:'sevilla'))(load('hv.zone','sevilla')),alt:load('hv.alt',null),plants:load('hv.plants',EXAMPLES),calGroup:'todos',plGroup:'todos',plLoc:'todas',sel:null};
+let seedsInit=load('hv.seeds',[]);
+let state={tipSel:null,mode:'crop',plantSel:null,photoBig:null,zone:(z=>OLD_ZONES[z]||(ZONES[z]?z:'sevilla'))(load('hv.zone','sevilla')),alt:load('hv.alt',null),plants:load('hv.plants',EXAMPLES),calGroup:'todos',plGroup:'todos',plLoc:'todas',sel:null,seeds:seedsInit};
 // Añade una sola vez los ejemplos nuevos a quien ya tenía datos guardados
 if(load('hv.seedV',1)<2){const have=new Set(state.plants.map(p=>p.id));EXAMPLES.filter(e=>['e7','e8','e9','e10'].includes(e.id)&&!have.has(e.id)).forEach(e=>state.plants.push(e));save('hv.plants',state.plants);save('hv.seedV',2)}
 if(load('hv.seedV',1)<3){if(!state.plants.some(p=>p.id==='e11')){state.plants.push(EXAMPLES.find(e=>e.id==='e11'));save('hv.plants',state.plants)}save('hv.seedV',3)}
@@ -520,6 +521,25 @@ function harvSec(p){
     ${list.length?`<ul class="harvl">${shown.map(h=>`<li><span>${fdate(h.d)}</span><strong>${num(h.q)} ${h.u==='ud'?(h.q===1?'unidad':'unidades'):h.u==='manojo'?(h.q===1?'manojo':'manojos'):h.u}</strong><button class="rm" type="button" data-rmharv="${esc(h.id)}" aria-label="Borrar la cosecha del ${fdate(h.d)}">×</button></li>`).join('')}</ul>
       ${list.length>3?`<button class="btn remmore rm-soon" type="button" id="harvMore">${open?'Ver menos':`Ver ${list.length-3} más`}</button>`:''}`:''}
   </section>`;
+}
+// ---------- Mis semillas ----------
+const SEEDABLE=SPECIES.filter(s=>!s.tree&&!s.pot);
+// Primer mes (desde este) en que se puede sembrar en la zona; null si no toca en todo el año
+function nextSow(s){const z=zoneNow();for(let i=0;i<12;i++){const m=(curM+i)%12;if(cellState(s,z,m))return m}return null}
+function seedRows(){
+  return state.seeds.filter(x=>SP[x.sp]).map(x=>{const s=SP[x.sp],m=nextSow(s);return {x,s,m,now:m===curM,old:x.cad&&+x.cad<today.getFullYear(),last:x.cad&&+x.cad===today.getFullYear()}})
+    .sort((a,b)=>((a.m??99)-curM+12)%12-((b.m??99)-curM+12)%12||a.s.n.localeCompare(b.s.n,'es'));
+}
+function renderSeeds(){
+  const rows=seedRows(),more=state.remMore||(state.remMore={});
+  document.getElementById('seedCount').textContent=rows.length?rows.length:'';
+  const row=r=>`<div class="seed${r.now?' now':''}"><div><p><strong>${r.s.n}</strong>${r.x.note?` · ${esc(r.x.note)}`:''}</p>
+    <p class="sub">${r.now?`<span class="tag">Toca sembrar</span>`:r.m!=null?`Desde ${MONTHS_L[r.m]}`:'No toca sembrarla en tu zona'}${r.old?` · <span class="cad old">caducaron en ${esc(r.x.cad)}: pueden germinar peor</span>`:r.last?` · <span class="cad">caducan este año</span>`:r.x.cad?` · caducan en ${esc(r.x.cad)}`:''}</p></div>
+    <span class="seed-acts">${r.now?`<button class="btn act" type="button" data-sow="${esc(r.x.id)}">Sembrar</button>`:''}<button class="rm" type="button" data-rmseed="${esc(r.x.id)}" aria-label="Quitar las semillas de ${r.s.n}">×</button></span></div>`;
+  const now=rows.filter(r=>r.now),later=rows.filter(r=>!r.now);
+  const lim=(k,l)=>l.length<=3||more[k]?l.map(row).join('')+(l.length>3?`<button class="btn remmore rm-soon" type="button" data-remmore="${k}">Ver menos</button>`:''):l.slice(0,3).map(row).join('')+`<button class="btn remmore rm-soon" type="button" data-remmore="${k}">Ver ${l.length-3} más</button>`;
+  document.getElementById('seedList').innerHTML=!rows.length?'<p class="tip">Apunta los sobres de semillas que tienes y aquí verás cuáles toca sembrar cada mes y cuáles están a punto de caducar.</p>'
+    :(now.length?`<p class="remhead">Toca sembrar en ${MONTHS_L[curM]}</p>${lim('seednow',now)}`:'')+(later.length?`<p class="remhead">Más adelante</p>${lim('seedlater',later)}`:'');
 }
 function compSec(p){
   const r=REL[p.sp],rot=rotNext(p.sp);if(!r.good.size&&!r.bad.size&&!rot)return '';
@@ -714,6 +734,8 @@ function renderRem(){
   let h=['over','today','soon'].map(k=>lim(k,all.filter(x=>cls(x.left)===k).map(row))).join('')||'<p class="lede">No hay tareas pendientes esta semana.</p>';
   if(done.length)h+=`<p class="remhead">Hecho hoy</p>`+lim('done',done.map(x=>`<div class="rrow done"><span class="bar"></span>
     <div><p><strong>${ACTIONS[x.a]}</strong> ${esc(x.p.name)}</p><p class="sub"><span class="tag">Hecho</span> · ${x.p.loc}</p></div><span></span></div>`));
+  const sow=seedRows().filter(r=>r.now);
+  if(sow.length)h+=`<p class="remhead">Tus semillas para sembrar este mes</p><div class="rrow soon"><span class="bar"></span><div><p>${sow.map(r=>r.s.n).join(', ')}</p></div><button class="btn" type="button" id="goSeeds">Ver semillas</button></div>`;
   document.getElementById('remList').innerHTML=h;
   drawWx();
   // Próximas tareas para los avisos diarios
@@ -722,7 +744,7 @@ function renderRem(){
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 // Solo se pintan como imagen las fotos guardadas por la app (JPEG/PNG/WebP en base64)
 function img(s){return /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(s||'')?s:''}
-function renderAll(){renderCal();renderPlants();renderRem();renderTips()}
+function renderAll(){renderCal();renderPlants();renderRem();renderTips();renderSeeds()}
 
 // ---------- El tiempo ----------
 const mm=n=>`${Math.round(n)} mm`,fday=d=>parse(d).toLocaleDateString('es-ES',{day:'numeric',month:'short'});
@@ -888,6 +910,12 @@ document.getElementById('locSeg').addEventListener('click',e=>{const b=e.target.
 document.addEventListener('click',e=>{
   const a=e.target.closest('[data-act]');
   const o=e.target.closest('[data-open]');if(o){openPlant(o.dataset.open);return}
+  if(e.target.closest('#goSeeds')){document.getElementById('t-pl').click();const sb=document.getElementById('seedBox');sb.open=true;sb.scrollIntoView({block:'start',behavior:'smooth'});return}
+  const rs=e.target.closest('[data-rmseed]');if(rs){const x=state.seeds.find(y=>y.id===rs.dataset.rmseed);state.seeds=state.seeds.filter(y=>y!==x);save('hv.seeds',state.seeds);renderSeeds();renderRem();toast(`Semillas de ${SP[x.sp].n.toLowerCase()} quitadas`);return}
+  const sw=e.target.closest('[data-sow]');if(sw){const x=state.seeds.find(y=>y.id===sw.dataset.sow),sp=SP[x.sp],n=state.plants.filter(p=>p.sp===sp.id).length;
+    const np={id:'p'+Date.now(),name:sp.n+(n?` ${n+1}`:''),sp:sp.id,loc:INDOOR.includes(sp.id)?'interior':'exterior',sown:iso(today),log:{}};
+    dropExamples();state.plants.push(np);save('hv.plants',state.plants);state.plGroup='todos';state.plLoc='todas';renderPlants();renderRem();
+    openPlant(np.id);state.editing=true;renderPlantFicha();toast(`Sembrada: ${np.name}. Cámbiale el nombre si quieres.`);return}
   const hv=e.target.closest('[data-harvest]');if(hv){openPlant(hv.dataset.harvest);const sec=document.getElementById('harvSec');sec?.scrollIntoView({block:'start'});document.getElementById('hQ')?.focus({preventScroll:true});return}
   if(a){const p=state.plants.find(x=>x.id===a.dataset.id);p.log=p.log||{};p.log[a.dataset.act]=iso(today);save('hv.plants',state.plants);renderPlants();renderRem();if(ficha.open&&state.mode==='plant')renderPlantFicha();toast(`${ACTIONS[a.dataset.act]} anotado: ${p.name}`);return}
   const d=e.target.closest('[data-del]');
@@ -928,6 +956,18 @@ const fSp=document.getElementById('fSp');
 fSp.innerHTML=Object.entries(GROUPS).map(([g,l])=>`<optgroup label="${l}">${SPECIES.filter(s=>s.g===g).map(s=>`<option value="${s.id}">${s.n}</option>`).join('')}</optgroup>`).join('');
 fSp.addEventListener('change',()=>{document.getElementById('fLoc').value=INDOOR.includes(fSp.value)?'interior':'exterior';refreshSelects()});
 enhanceSelect(fSp);enhanceSelect(document.getElementById('fLoc'));enhanceSelect(calGroupSel);calGroupSel.parentNode.querySelector('.csel-btn').setAttribute('aria-label','Mostrar cultivos');
+// Mis semillas: especie (sin árboles) y año de caducidad del sobre
+const sSp=document.getElementById('sSp'),sCad=document.getElementById('sCad');
+sSp.innerHTML=Object.entries(GROUPS).map(([g,l])=>{const o=SEEDABLE.filter(s=>s.g===g);return o.length?`<optgroup label="${l}">${o.map(s=>`<option value="${s.id}">${s.n}</option>`).join('')}</optgroup>`:''}).join('');
+sCad.innerHTML='<option value="">No lo sé</option>'+Array.from({length:9},(_,i)=>today.getFullYear()-2+i).map(y=>`<option value="${y}">${y}</option>`).join('');
+enhanceSelect(sSp);enhanceSelect(sCad);
+document.getElementById('seedForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  const x={id:'s'+Date.now(),sp:sSp.value,cad:sCad.value,note:document.getElementById('sNote').value.trim().slice(0,80)};
+  state.seeds.push(x);save('hv.seeds',state.seeds);document.getElementById('sNote').value='';sCad.value='';refreshSelects();
+  renderSeeds();renderRem();toast(`Semillas de ${SP[x.sp].n.toLowerCase()} apuntadas`);
+});
+document.getElementById('seedList').addEventListener('click',e=>{const m=e.target.closest('[data-remmore]');if(!m)return;const k=m.dataset.remmore;state.remMore[k]=!state.remMore[k];renderSeeds()});
 const tipSp=document.getElementById('tipSp');tipSp.innerHTML=fSp.innerHTML;enhanceSelect(tipSp);
 tipSp.addEventListener('change',()=>{state.tipSel=tipSp.value;renderTips()});
 // En el móvil los filtros van en desplegables
@@ -1004,7 +1044,7 @@ setupNotify();
 // Cuando llegan cambios de la nube (otro dispositivo) se recarga todo desde el almacén
 function reloadFromStore(){
   photos=load('hv.photos',{});state.plants=load('hv.plants',[]);
-  state.zone=(z=>OLD_ZONES[z]||(ZONES[z]?z:state.zone))(load('hv.zone',state.zone));state.alt=load('hv.alt',null);state.cp=load('hv.cp',null);
+  state.zone=(z=>OLD_ZONES[z]||(ZONES[z]?z:state.zone))(load('hv.zone',state.zone));state.alt=load('hv.alt',null);state.cp=load('hv.cp',null);state.seeds=load('hv.seeds',[]);
   drawZones();drawAlt();drawCp();drawZoneBox();renderAll();refreshSelects();refreshWx();
   if(ficha.open&&state.mode==='plant'){if(state.plants.some(p=>p.id===state.plantSel))renderPlantFicha();else ficha.close()}
 }

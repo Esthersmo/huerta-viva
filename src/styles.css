@@ -465,3 +465,15 @@ form.add label{display:flex;flex-direction:column;gap:4px;font-size:.85rem;color
 .harvsum li{display:flex;justify-content:space-between;gap:10px;border-bottom:1px dashed var(--line);padding:3px 0}
 @media (max-width:520px){.harvf{grid-template-columns:1fr 1fr}.harvf .btn{grid-column:1/-1}}
 .wx[hidden]{display:none}
+/* Mis semillas */
+@media (min-width:601px){.seedbox>summary{pointer-events:auto}.seedbox>summary h2::after{content:" ▾";color:var(--muted);font-weight:400;font-size:.8em}.seedbox[open]>summary h2::after{content:" ▴"}}
+.seedbox summary small{font-family:var(--body,inherit);font-weight:400;color:var(--muted);font-size:.8rem}
+#seedList{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+.seed{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;background:var(--card);border:1px solid var(--card-line);border-radius:10px;padding:10px 10px 10px 14px}
+.seed.now{background:var(--ok-soft);border-color:var(--ok-bar)}
+.seed p{margin:0} .seed .sub{color:var(--muted);font-size:.85rem}
+.seed .tag{font-weight:700;color:var(--ok)}
+.seed .cad.old{color:var(--danger)} .seed .cad{color:var(--warn)}
+.seed-acts{display:flex;gap:8px;align-items:center}
+.seed .rm{width:26px;height:26px;border-radius:50%;border:1px solid var(--del-line);background:var(--del-bg);color:var(--del-ink);cursor:pointer;line-height:1}
+.seed .btn.act{background:var(--act-bg);border-color:var(--act-line);color:var(--act-ink)}
