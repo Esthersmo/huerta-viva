@@ -812,25 +812,30 @@ function renderPlantsList(){
   renderHarvests();
   document.getElementById('plList').innerHTML=h||'<p class="lede" style="text-align:center;margin-inline:auto">No hay plantas con estos filtros. Añade una arriba.</p>';
 }
+// Iconos de cada tarea en Avisos
+const REM_IC={riego:'<path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/>',abono:'<path d="M6 8h12l-1 12H7z"/><path d="M9 8V5h6v3"/>',sustrato:'<path d="M5 10h14l-2 10H7z"/><path d="M4 10h16"/><path d="M12 10V6m0 0c0-2 2-3 4-3 0 2-2 3-4 3zm0 0c0-2-2-3-4-3 0 2 2 3 4 3"/>',poda:'<circle cx="6" cy="7" r="2.5"/><circle cx="6" cy="17" r="2.5"/><path d="M8 8.5L20 17M8 15.5L20 7"/>',semilla:'<path d="M12 21c0-6 0-9 0-11"/><path d="M12 12c-4 0-7-3-7-7 4 0 7 3 7 7zm0-2c0-3 2-6 6-6 0 4-3 6-6 6"/>'};
+const remIc=k=>`<span class="ric"><svg viewBox="0 0 24 24" aria-hidden="true">${REM_IC[k]}</svg></span>`;
+const REM_OK='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg>';
 function renderRem(){
   const all=state.plants.flatMap(dues).filter(x=>x.left<=7).sort((a,b)=>a.left-b.left);
   const done=state.plants.flatMap(p=>Object.keys(ACTIONS).filter(a=>p.log&&p.log[a]===iso(today)).map(a=>({p,a})));
   const over=all.filter(x=>x.left<0).length,tod=all.filter(x=>x.left===0).length;
   const b=document.getElementById('remCount');b.hidden=!(over+tod);b.textContent=over+tod;
-  document.getElementById('remLede').innerHTML=over+tod?`<span>La frecuencia de riego se ajusta a la temperatura de ${MONTHS_L[curM]} en tu zona.</span>`:'<span>Aquí aparecen las tareas de los próximos 7 días.</span>';
+  document.getElementById('remN').textContent=over+tod?`${over+tod} ${over+tod===1?'pendiente':'pendientes'}`:'';
   const cls=l=>l<0?'over':l===0?'today':'soon';
-  const tag=l=>l<0?'Se ha pasado':l===0?'Toca hoy':'';
-  // Máximo REM_MAX entradas por estado; el resto detrás de «Ver más»
+  const when=l=>l<0?`<em>hace ${-l} ${-l===1?'día':'días'}</em>`:l===0?'<em>toca hoy</em>':leftTxt(l).toLowerCase();
+  // Máximo REM_MAX entradas por grupo; el resto detrás de «Ver más»
   const more=state.remMore||(state.remMore={}),REM_MAX=3;
-  const lim=(k,rows)=>rows.length<=REM_MAX?rows.join(''):(more[k]?rows:rows.slice(0,REM_MAX)).join('')+`<button class="btn remmore rm-${k}" data-remmore="${k}" aria-expanded="${!!more[k]}">${more[k]?'Ver menos':`Ver ${rows.length-REM_MAX} más`}</button>`;
-  const row=x=>`<div class="rrow ${cls(x.left)}"><span class="bar"></span>
-    <div><p><strong>${VERB[x.a]}</strong> ${esc(x.p.name)}</p><p class="sub">${tag(x.left)?`<span class="tag">${tag(x.left)}</span> · `:''}${leftTxt(x.left)} · ${x.rain?`llovió ${mm(x.rain.rain)} el ${fday(x.rain.date)}`:`última vez ${x.last.toLocaleDateString('es-ES',{day:'numeric',month:'short'})}`} · ${x.p.loc}</p>${x.soon?`<p class="sub wxsoon">🌧️ Se esperan ${mm(x.soon.rain)} ${dayName(x.soon.date)}: puedes esperar a ver si llueve.</p>`:''}</div>
-    <button class="btn" data-act="${x.a}" data-id="${esc(x.p.id)}">Hecho</button></div>`;
-  let h=['over','today','soon'].map(k=>lim(k,all.filter(x=>cls(x.left)===k).map(row))).join('')||'<p class="lede">No hay tareas pendientes esta semana.</p>';
-  if(done.length)h+=`<p class="remhead">Hecho hoy</p>`+lim('done',done.map(x=>`<div class="rrow done"><span class="bar"></span>
-    <div><p><strong>${ACTIONS[x.a]}</strong> ${esc(x.p.name)}</p><p class="sub"><span class="tag">Hecho</span> · ${x.p.loc}</p></div><span></span></div>`));
+  const lim=(k,rows)=>rows.length<=REM_MAX?rows.join(''):(more[k]?rows:rows.slice(0,REM_MAX)).join('')+`<button class="rmore" data-remmore="${k}" aria-expanded="${!!more[k]}">${more[k]?'Ver menos':`Ver ${rows.length-REM_MAX} más`}</button>`;
+  const row=x=>`<div class="rrow">${remIc(x.a)}
+    <div class="rt"><b>${esc(x.p.name)}</b><span>${VERB[x.a]} · ${when(x.left)}${x.rain?` · <i class="wxsoon">llovió ${mm(x.rain.rain)}</i>`:x.soon?` · <i class="wxsoon">lluvia ${dayName(x.soon.date)}</i>`:''}</span></div>
+    <button class="rok" data-act="${x.a}" data-id="${esc(x.p.id)}" aria-label="Hecho: ${VERB[x.a].toLowerCase()} ${esc(x.p.name)}">${REM_OK}</button></div>`;
+  const grp=(k,t,rows)=>rows.length?`<section class="rgrp ${k}"><h3 class="rgh">${t} <span class="n">${rows.length}</span></h3><div class="rlist">${lim(k,rows)}</div></section>`:'';
+  const by=k=>all.filter(x=>cls(x.left)===k).map(row);
+  let h=grp('over','Atrasados',by('over'))+grp('today','Hoy',by('today'))+grp('soon','Próximos días',by('soon'))||'<p class="rempty">No hay tareas pendientes esta semana.</p>';
   const sow=seedRows().filter(r=>r.now);
-  if(sow.length)h+=`<p class="remhead">Tus semillas para sembrar este mes</p><div class="rrow soon"><span class="bar"></span><div><p>${sow.map(r=>r.s.n).join(', ')}</p></div><button class="btn" type="button" id="goSeeds">Ver semillas</button></div>`;
+  if(sow.length)h+=`<section class="rgrp seeds"><h3 class="rgh">Para sembrar este mes <span class="n">${sow.length}</span></h3><div class="rlist"><div class="rrow">${remIc('semilla')}<div class="rt"><b>${sow.map(r=>r.s.n).join(', ')}</b><span>De tus semillas</span></div><button class="btn" type="button" id="goSeeds">Ver</button></div></div></section>`;
+  if(done.length)h+=`<section class="rgrp done"><button class="rdone" data-remmore="done" aria-expanded="${!!more.done}">${REM_OK}${done.length} ${done.length===1?'hecho':'hechos'} hoy<span>${more.done?'Ocultar':'Ver'}</span></button>${more.done?`<div class="rlist">${done.map(x=>`<div class="rrow">${remIc(x.a)}<div class="rt"><b>${esc(x.p.name)}</b><span>${VERB[x.a]} · hecho</span></div><span></span></div>`).join('')}</div>`:''}</section>`;
   document.getElementById('remList').innerHTML=h;
   drawWx();
   // Próximas tareas para los avisos diarios
@@ -870,11 +875,10 @@ function drawWx(){
   if(hot&&hot.max>=HEAT_C)alerts.push(['heat',`<strong>Calor fuerte ${dayName(hot.date)}</strong> (máxima de ${Math.round(hot.max)}&nbsp;°C). Riega a primera hora o al atardecer y vigila las macetas, que se secan antes. Los riegos de fuera se adelantan.`]);
   const wet=state.plants.filter(p=>p.loc==='exterior').flatMap(dues).filter(x=>x.rain);
   if(wet.length){const r=wet[0].rain;alerts.push(['rain',`<strong>Ha llovido ${mm(r.rain)} ${dayName(r.date)==='hoy'?'hoy':`el ${fday(r.date)}`}.</strong> Cuenta como riego: se retrasa el de ${wet.length===1?esc(wet[0].p.name):`${wet.length} plantas de fuera`}.`])}
-  const upd=new Date(wx.at),old=Date.now()-wx.at>12*3600e3;
-  el.innerHTML=`<div class="wxhd"><h3>El tiempo en ${esc(wxPlace())}</h3></div>
-    <div class="wxdays">${days.map(d=>{const[ic,tx]=sky(d.code);return `<div class="wxd${d.date===t?' now':''}" title="${tx}"><span class="wn">${shortDay(d.date)}</span><span class="wi" role="img" aria-label="${tx}">${ic}</span><span class="wt"><b>${Math.round(d.max)}°</b> <span class="wmin">${Math.round(d.min)}°</span></span><span class="wr">${d.rain>=1?mm(d.rain):''}</span></div>`}).join('')}</div>
-    ${alerts.map(([k,txt])=>`<p class="wxa ${k}">${txt}</p>`).join('')}
-    <p class="note">Previsión de Open-Meteo${old?`, de hace ${Math.round((Date.now()-wx.at)/3600e3)} h (sin conexión)`:`, actualizada a las ${upd.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'})}`}.</p>`;
+  const old=Date.now()-wx.at>12*3600e3;
+  el.innerHTML=`<div class="wxdays">${days.map(d=>{const[ic,tx]=sky(d.code);return `<div class="wxd${d.date===t?' now':''}" title="${tx}"><span class="wn">${shortDay(d.date)}</span><span class="wi" role="img" aria-label="${tx}">${ic}</span><span class="wt"><b>${Math.round(d.max)}°</b> <span class="wmin">${Math.round(d.min)}°</span></span><span class="wr">${d.rain>=1?mm(d.rain):''}</span></div>`}).join('')}</div>
+    <p class="wxsrc">El tiempo en ${esc(wxPlace())}${old?`, de hace ${Math.round((Date.now()-wx.at)/3600e3)} h (sin conexión)`:''} · Datos: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo.com</a></p>
+    ${alerts.map(([k,txt])=>`<p class="wxa ${k}">${txt}</p>`).join('')}`;
 }
 // ---------- Consejos ----------
 const TIP_ROWS=[['s','Siembra'],['r','Riego'],['l','Luz'],['t','Suelo'],['a','Abonado'],['o','Poda'],['p','Plagas y problemas'],['c','Cosecha'],['b','Buenas compañeras'],['e','Mejor lejos de']];
