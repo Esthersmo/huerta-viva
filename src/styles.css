@@ -1089,3 +1089,5 @@ button.cmp{font-family:var(--body);color:var(--ink);cursor:pointer;transition:bo
 button.cmp:hover{border-color:var(--carob)}
 button.cmp.have{color:var(--ok)}button.cmp.warn{color:var(--danger)}
 .qback{align-self:flex-start;border:0;background:none;padding:0;font:500 .9rem var(--body);color:var(--carob-text);cursor:pointer}
+/* Ficha rápida: «Ver consejos» a la izquierda y «Añadir a mis plantas» a la derecha */
+@media (min-width:601px){.qacts{display:flex;justify-content:space-between;gap:12px;margin-top:4px}}
