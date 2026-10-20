@@ -42,8 +42,8 @@ function localDoc() {
   const plants = get('hv.plants', []).filter(p => !p.ej), ids = new Set(plants.map(p => p.id));
   const photos = {}, srcs = {};
   for (const [pid, list] of Object.entries(get('hv.photos', {})))
-    // «huerto:<id>» son las fotos de cada huerto del plano, que no son de ninguna planta («huerto», las de antes)
-    if (ids.has(pid) || pid === 'huerto' || pid.startsWith('huerto:')) for (const x of list || []) { photos[x.id] = {plant: pid, date: x.date}; srcs[x.id] = x.src; }
+    // «huerto:<id>» son las fotos de cada huerto del plano («huerto», las de antes) y «cosecha:<id>» las de cada cosecha
+    if (ids.has(pid) || pid === 'huerto' || pid.startsWith('huerto:') || pid.startsWith('cosecha:')) for (const x of list || []) { photos[x.id] = {plant: pid, date: x.date}; srcs[x.id] = x.src; }
   return {doc: {plants: Object.fromEntries(plants.map(p => [p.id, p])), photos, seeds: Object.fromEntries(get('hv.seeds', []).map(x => [x.id, x])), plano: get('hv.plan', null), cosechas: Object.fromEntries(get('hv.harv', []).map(x => [x.id, x])), zona: {zone: get('hv.zone', null), alt: get('hv.alt', null), cp: get('hv.cp', null)}}, srcs};
 }
 
