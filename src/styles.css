@@ -451,7 +451,7 @@ form.add label{display:flex;flex-direction:column;gap:4px;font-size:.85rem;color
 .wxa.rain{background:var(--ok-soft);border-color:var(--ok-bar)}
 .wx .note{text-align:center}
 .rrow .wxsoon{color:var(--ok)}
-@media (max-width:520px){.wx{padding:12px 8px}.wxd{font-size:.78rem;padding:5px 0}.wxd .wi{font-size:1.25rem}.wxd .wn{font-size:.72rem}}
+@media (max-width:520px){.wx{padding:12px 8px}.wxd{font-size:.78rem;padding:5px 0}.wxd .wi{font-size:1.25rem}.wxd .wn{font-size:.72rem}.wxd .wt{display:flex;flex-direction:column;align-items:center;line-height:1.25}}
 /* Compañeras y rotación */
 .cmprow{display:flex;flex-direction:column;gap:6px}
 .cmpl{margin:0;font-size:.85rem;font-weight:700;color:var(--muted)}
