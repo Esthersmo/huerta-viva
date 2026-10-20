@@ -707,3 +707,7 @@ html.plan-noscroll header,html.plan-noscroll .fab{display:none}
   .plan-gpick .csel-btn{width:100%;min-width:0}
   .plan-gpick .csel-btn>span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 }
+
+/* «+ Bancal» y «+ Maceta» en verde oliva */
+#planBed,#planPot{background:#66794F;border-color:#66794F;color:#FDFBF8}
+#planBed:hover,#planPot:hover{background:#5A6C45;border-color:#5A6C45}
