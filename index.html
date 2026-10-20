@@ -31,10 +31,10 @@
       </div>
     </div>
     <nav role="tablist" aria-label="Secciones">
-      <button role="tab" id="t-cal" aria-selected="true" data-tab="cal">Calendario</button>
-      <button role="tab" id="t-pl" aria-selected="false" data-tab="pl">Mis plantas</button>
-      <button role="tab" id="t-rem" aria-selected="false" data-tab="rem">Recordatorios<span class="badge" id="remCount" hidden></span></button>
-      <button role="tab" id="t-tip" aria-selected="false" data-tab="tip">Consejos</button>
+      <button role="tab" id="t-cal" aria-selected="true" data-tab="cal"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg><span class="nl">Calendario</span></button>
+      <button role="tab" id="t-pl" aria-selected="false" data-tab="pl"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21v-9"/><path d="M12 12c0-4 3-7 8-7 0 5-3 7-8 7z"/><path d="M12 14c0-3-2.5-5.5-7-5.5 0 4 2.5 5.5 7 5.5z"/></svg><span class="nl"><span class="lg">Mis plantas</span><span class="sm">Plantas</span></span></button>
+      <button role="tab" id="t-rem" aria-selected="false" data-tab="rem"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16v-5a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 21h4"/></svg><span class="nl"><span class="lg">Recordatorios</span><span class="sm">Avisos</span></span><span class="badge" id="remCount" hidden></span></button>
+      <button role="tab" id="t-tip" aria-selected="false" data-tab="tip"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4.5h9a5 5 0 0 1 5 5V20H10a5 5 0 0 1-5-5z"/><path d="M9 10h6M9 14h4"/></svg><span class="nl">Consejos</span></button>
     </nav>
   </div>
 </header>
@@ -84,7 +84,14 @@
     </section>
 
     <!-- MIS PLANTAS -->
-    <section id="p-pl" class="tabpanel" hidden>
+    <section id="p-pl" class="tabpanel" data-sub="plantas" hidden>
+      <div class="seg plsub" id="plSub" role="group" aria-label="Apartados de Mis plantas">
+        <button type="button" data-sub="plantas" aria-pressed="true">Plantas</button>
+        <button type="button" data-sub="plano" aria-pressed="false">Plano</button>
+        <button type="button" data-sub="cosechas" aria-pressed="false">Cosechas</button>
+        <button type="button" data-sub="semillas" aria-pressed="false">Semillas</button>
+      </div>
+      <button class="fab" type="button" id="plFab"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span id="plFabTxt">Añadir planta</span></button>
       <details class="panel addbox" id="addBox" style="margin-bottom:20px">
         <summary><h2>Añadir planta</h2></summary>
         <form class="add" id="addForm">

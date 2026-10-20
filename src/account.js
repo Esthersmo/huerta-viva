@@ -64,6 +64,9 @@ export function initAccount({refresh, toast}) {
   function draw() {
     const u = currentUser();
     let h = `<div class="hd"><h2 id="acctTitle">Mi cuenta</h2>${ask ? '' : '<button class="x" type="button" id="acctClose" aria-label="Cerrar">×</button>'}</div>`;
+    // Aspecto: en el móvil el selector Claro/Oscuro vive aquí
+    if (!ask) { const th = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+      h += `<div class="acrow"><span>Aspecto</span><div class="seg" role="group" aria-label="Aspecto"><button type="button" data-theme-set="light" aria-pressed="${th === 'light'}">Claro</button><button type="button" data-theme-set="dark" aria-pressed="${th === 'dark'}">Oscuro</button></div></div>`; }
     if (ask) {
       const pl = n => `${n} ${n === 1 ? 'planta' : 'plantas'}`;
       h += `<p>En este dispositivo tienes <strong>${pl(ask.nl)}</strong> y en tu cuenta hay <strong>${pl(ask.nr)}</strong>. ¿Qué quieres hacer?</p>

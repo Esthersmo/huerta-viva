@@ -617,3 +617,36 @@ html.plan-noscroll,html.plan-noscroll body{overflow:hidden}
 .gphotos .harvhead h3{margin:0;font-family:var(--display);font-size:1.1rem;color:var(--carob-text)}
 .planbox.full .gphotos{display:none}
 .btn.ready{background:var(--carob);border-color:var(--carob);color:var(--carob-ink)}
+
+/* Barra de pestañas abajo, cabecera fina y Mis plantas por apartados (solo móvil) */
+nav .ni,nav .sm,.plsub,.fab{display:none}
+.acctdlg .acrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+@media (max-width:600px){
+  header{background:var(--bg);-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:0 1px 0 var(--line)}
+  header .wrap{padding-block:10px;gap:0}
+  #themeSeg{display:none}
+  body{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
+  nav{position:fixed;left:0;right:0;bottom:0;z-index:6;display:grid;grid-template-columns:repeat(4,1fr);gap:0;overflow:visible;background:var(--surface);border-top:1px solid var(--line);padding:0 env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
+  nav button{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;font-family:var(--body);font-size:.74rem;font-weight:500;padding:8px 2px 9px;border:0;color:var(--muted)}
+  nav button[aria-selected="true"]{color:var(--carob-text)}
+  nav button[aria-selected="true"]::before{content:"";position:absolute;top:0;left:28%;right:28%;height:3px;border-radius:0 0 3px 3px;background:var(--sel)}
+  nav .ni{display:block;width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  nav .lg{display:none}nav .sm{display:inline}
+  nav .badge{position:absolute;top:4px;left:calc(50% + 5px);margin:0;min-width:18px;line-height:18px;font-size:.68rem;font-weight:700}
+  #toast{bottom:calc(140px + env(safe-area-inset-bottom,0px))}
+  main .wrap{padding-bottom:96px}
+  .plsub{display:grid;grid-template-columns:repeat(4,1fr);width:100%;margin-bottom:16px;border-radius:12px;padding:3px;background:var(--surface);gap:2px}
+  .plsub button{border-radius:9px;padding:8px 0;font-weight:500;background:none;color:var(--muted)}
+  .plsub button[aria-pressed="true"]{background:var(--sel);color:var(--sel-ink)}
+  .fab{position:fixed;z-index:6;right:max(16px,calc(env(safe-area-inset-right,0px) + 16px));bottom:calc(76px + env(safe-area-inset-bottom,0px));display:flex;align-items:center;gap:8px;border:0;border-radius:16px;background:var(--carob);color:var(--carob-ink);padding:13px 18px;font:700 .95rem var(--body);box-shadow:0 8px 22px rgba(30,22,10,.22);cursor:pointer}
+  .fab svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round}
+  #p-pl.adding .fab{display:none}
+  #p-pl>#addBox,#p-pl>#seedBox,#p-pl>#planBox,#p-pl>#harvPanel,#p-pl>div.panel{display:none}
+  #p-pl[data-sub="plantas"]>div.panel,#p-pl.adding[data-sub="plantas"]>#addBox,#p-pl[data-sub="plano"]>#planBox,#p-pl[data-sub="cosechas"]>#harvPanel,#p-pl[data-sub="semillas"]>#seedBox{display:block}
+  #p-pl>#seedBox>summary,#p-pl>#planBox>summary{display:none}
+}
+html.plan-noscroll header,html.plan-noscroll .fab{display:none}
+@media (max-width:600px){
+  #p-pl[data-sub="plano"] .fab{display:none}
+  #p-pl[data-sub="semillas"]:not(.adding) #seedForm{display:none}
+}

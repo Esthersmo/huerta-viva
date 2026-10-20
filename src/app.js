@@ -430,6 +430,7 @@ function newId(){return 'f'+Date.now().toString(36)+Math.random().toString(36).s
   if(fixed)try{store.setItem('hv.photos',JSON.stringify(photos))}catch(e){}})();
 let wx=loadWx(); // Tiempo real de la zona (ver «El tiempo»)
 let seedsInit=load('hv.seeds',[]);
+const MOBILE=matchMedia('(max-width:600px)');
 let state={tipSel:null,mode:'crop',plantSel:null,photoBig:null,zone:(z=>OLD_ZONES[z]||(ZONES[z]?z:'sevilla'))(load('hv.zone','sevilla')),alt:load('hv.alt',null),plants:load('hv.plants',EXAMPLES),calGroup:'todos',plGroup:'todos',plLoc:'todas',sel:null,seeds:seedsInit};
 // Añade una sola vez los ejemplos nuevos a quien ya tenía datos guardados
 if(load('hv.seedV',1)<2){const have=new Set(state.plants.map(p=>p.id));EXAMPLES.filter(e=>['e7','e8','e9','e10'].includes(e.id)&&!have.has(e.id)).forEach(e=>state.plants.push(e));save('hv.plants',state.plants);save('hv.seedV',2)}
@@ -1002,6 +1003,7 @@ document.querySelectorAll('nav button').forEach(b=>b.addEventListener('click',()
   document.querySelectorAll('.tabpanel').forEach(p=>p.hidden=p.id!=='p-'+b.dataset.tab);
   if(b.dataset.tab==='tip')renderTips();
   try{store.setItem('hv.tab',b.dataset.tab)}catch(e){}
+  if(MOBILE.matches&&b.dataset.init!==undefined)window.scrollTo(0,0);b.dataset.init='';
 }));
 document.getElementById('remList').addEventListener('click',e=>{const m=e.target.closest('[data-remmore]');if(!m)return;const k=m.dataset.remmore;state.remMore[k]=!state.remMore[k];renderRem();if(!state.remMore[k])document.querySelector(`[data-remmore="${k}"]`)?.scrollIntoView({block:'nearest'})});
 document.getElementById('calGroups').addEventListener('click',e=>{const g=e.target.closest('[data-g]');if(!g)return;state.calGroup=g.dataset.g;renderCal()});
@@ -1143,6 +1145,25 @@ document.getElementById('gPhotoList').addEventListener('click',e=>{
   if(sh){const zone=state.cp?.name||ZONES[state.zone]?.name.split(' (')[0]||'';shareBusy(sh,()=>shareGardenPhoto({src:big.src,date:fdate(big.date),zone,title:state.gpG?.name||'Mi huerto'}))}
 });
 gpMigrate();renderGPhotos();
+// ---------- Mis plantas en el móvil: apartados Plantas · Plano · Cosechas · Semillas y botón «+» ----------
+const plPanel=document.getElementById('p-pl'),plFab=document.getElementById('plFab');
+const PL_FAB={plantas:'Añadir planta',plano:'Añadir bancal',cosechas:'Anotar cosecha',semillas:'Añadir semillas'};
+function setPlSub(k){
+  plPanel.dataset.sub=k;document.querySelectorAll('#plSub [data-sub]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.sub===k));
+  document.getElementById('plFabTxt').textContent=PL_FAB[k];
+  if(MOBILE.matches){if(k==='plano')document.getElementById('planBox').open=true;if(k==='semillas')document.getElementById('seedBox').open=true}
+  plPanel.classList.remove('adding');try{store.setItem('hv.plsub',k)}catch(e){}
+}
+document.getElementById('plSub').addEventListener('click',e=>{const b=e.target.closest('[data-sub]');if(b){setPlSub(b.dataset.sub);window.scrollTo(0,0)}});
+plFab.addEventListener('click',()=>{const k=plPanel.dataset.sub;
+  if(k==='plantas'){const a=document.getElementById('addBox');plPanel.classList.add('adding');a.open=true;window.scrollTo(0,0);setTimeout(()=>document.getElementById('fName').focus({preventScroll:true}),50)}
+  else if(k==='plano')document.getElementById('planBed').click();
+  else if(k==='cosechas'){const h=document.getElementById('harvAdd');h.open=true;h.scrollIntoView({block:'center'})}
+  else{plPanel.classList.add('adding');const f=document.getElementById('seedForm');window.scrollTo(0,0);setTimeout(()=>f.querySelector('.csel-btn')?.focus({preventScroll:true}),50)}
+});
+document.getElementById('addBox').addEventListener('toggle',e=>{if(!e.target.open)plPanel.classList.remove('adding')});
+document.getElementById('seedForm').addEventListener('submit',()=>setTimeout(()=>{if(plPanel.dataset.sub==='semillas')plPanel.classList.remove('adding')},0));
+try{setPlSub(store.getItem('hv.plsub')||'plantas')}catch(e){setPlSub('plantas')}
 // ---------- Mis cosechas ----------
 // Suma las cosechas anotadas en cada planta y las sueltas (de cultivos que ya no tienes o de años pasados), por años
 let harvXInit=load('hv.harv',[]);
@@ -1193,11 +1214,12 @@ const harvYear=document.getElementById('harvYear');enhanceSelect(harvYear);harvY
 var planUI=initPlan({overdue:p=>dues(p).filter(x=>x.left<0).map(x=>`${ACTIONS[x.a].toLowerCase()} (${leftTxt(x.left).toLowerCase()})`),plants:()=>state.plants,savePlants:()=>save('hv.plants',state.plants),SP,REL,esc,toast,enhance:enhanceSelect,openPlant:id=>openPlant(id),onGarden:g=>{if(state.gpG?.id!==g.id)state.gpBig=null;state.gpG=g;if(document.getElementById('gPhotoList')&&typeof photos!=='undefined')try{renderGPhotos()}catch(e){}},onRemoveGarden:(from,to)=>gpMove(from,to)});
 renderAll();
 // Apariencia: claro por defecto; la elección se recuerda en este navegador
-function setTheme(t){document.documentElement.setAttribute('data-theme',t);document.querySelectorAll('#themeSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.themeSet===t))}
+function setTheme(t){document.documentElement.setAttribute('data-theme',t);document.querySelectorAll('[data-theme-set]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.themeSet===t))}
 try{if(matchMedia('(min-width:601px)').matches)document.getElementById('addBox').open=true}catch(e){}
 let savedTheme='light';try{savedTheme=store.getItem('hv.theme')||'light'}catch(e){}
 setTheme(savedTheme);
-document.getElementById('themeSeg').addEventListener('click',e=>{const b=e.target.closest('[data-theme-set]');if(!b)return;setTheme(b.dataset.themeSet);try{store.setItem('hv.theme',b.dataset.themeSet)}catch(e){}});
+// Claro/Oscuro: arriba en el ordenador y dentro de Mi cuenta en el móvil
+document.addEventListener('click',e=>{const b=e.target.closest('[data-theme-set]');if(!b)return;setTheme(b.dataset.themeSet);try{store.setItem('hv.theme',b.dataset.themeSet)}catch(e){}});
 try{const t=new URLSearchParams(location.search).get('tab')||store.getItem('hv.tab');if(t)document.querySelector(`nav [data-tab="${t}"]`)?.click()}catch(e){}
 
 // ---------- Ilustraciones de fondo ----------
