@@ -1180,15 +1180,14 @@ function renderHarvests(){
   if(!years.includes(state.harvY))state.harvY=YEAR;
   const hy=document.getElementById('harvYear'),hyOpts=years.map(y=>`<option value="${y}"${y===state.harvY?' selected':''}>Cosecha ${y}</option>`).join('');
   if(hy.dataset.opts!==hyOpts){hy.dataset.opts=hyOpts;hy.innerHTML=hyOpts;hy.value=state.harvY;hy._cselDraw?.()}
-  const Y=state.harvY,byS={};for(const x of all)if(x.d.startsWith(Y))(byS[x.sp]=byS[x.sp]||[]).push(x);
-  const hs=Object.entries(byS).map(([sp,l])=>[SP[sp].n,harvTot(l,Y)]).sort((a,b)=>a[0].localeCompare(b[0],'es'));
-  // Todas las cosechas del año, las de cada planta y las sueltas, para poder corregirlas aquí
+  const Y=state.harvY;
+  // Todas las cosechas del año, las de cada planta y las sueltas
   const rows=[...state.plants.flatMap(p=>(p.harv||[]).filter(x=>x.d.startsWith(Y)).map(x=>({...x,n:p.name||SP[p.sp]?.n||''}))),
     ...state.harvX.filter(x=>SP[x.sp]&&x.d.startsWith(Y)).map(x=>({...x,n:SP[x.sp].n}))].sort((a,b)=>a.d<b.d?1:-1);
   const more=state.harvXMore,shown=more?rows:rows.slice(0,6);
-  document.getElementById('harvSum').innerHTML=(hs.length?`<ul>${hs.map(([n,t])=>`<li><span>${n}</span><strong>${t}</strong></li>`).join('')}</ul>`
-    :`<p class="note">${Y===YEAR?'Anota lo que recoges en la ficha de cada planta o aquí abajo, y verás cuánto llevas este año de cada cultivo.':`No hay cosechas anotadas en ${Y}.`}</p>`)
-    +(rows.length?`<p class="harvxh">Cada cosecha</p><ul class="harvl">${shown.map(x=>`<li>${harvRow(x,esc(x.n),fdate(x.d))}</li>`).join('')}</ul>`
+  // Una sola lista: cada cosecha del año elegido, de la más reciente a la más antigua
+  document.getElementById('harvSum').innerHTML=(rows.length?'':`<p class="note">${Y===YEAR?'Anota lo que vas recogiendo con «Anotar cosecha» y aquí verás cada cosecha del año.':`No hay cosechas anotadas en ${Y}.`}</p>`)
+    +(rows.length?`<ul class="harvl">${shown.map(x=>`<li>${harvRow(x,esc(x.n),fdate(x.d))}</li>`).join('')}</ul>`
       +(rows.length>6?`<button class="btn remmore rm-soon" type="button" id="harvXMore">${more?'Ver menos':`Ver ${rows.length-6} más`}</button>`:''):'');
 }
 // Busca una cosecha por id, suelta o de una planta (p)

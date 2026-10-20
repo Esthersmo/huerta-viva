@@ -779,3 +779,7 @@ html.plan-noscroll header,html.plan-noscroll .fab{display:none}
 .hrow>span.hl{display:flex;flex-direction:column;gap:1px;min-width:0;color:var(--ink)}
 .hrow .hl small{color:var(--muted);font-size:.82rem}
 .harvl .hrow .hl>span{color:var(--ink)}
+/* Con cosechas, la lista va directa en el panel, sin otra caja alrededor */
+.harvsum:has(.harvl){background:none;border:0;padding:0}
+.harvsum .harvl{margin-top:0}
+.harvsum .hrow{background:var(--card);border-color:var(--card-line);padding:10px 10px 10px 14px}
