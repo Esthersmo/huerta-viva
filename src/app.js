@@ -571,7 +571,7 @@ function renderCal(){
   const f=document.getElementById('ficha');if(f.open&&state.mode==='crop')renderFicha();
 }
 function renderFicha(){
-  document.getElementById('ficha').classList.add('crop');
+  document.getElementById('ficha').classList.add('crop');document.getElementById('ficha').classList.remove('pfw');
   const z=zoneNow(),s=SP[state.sel];if(!s)return;
   const dir=[],sem=[],pot=[],dark=[];
   for(let m=0;m<12;m++){const st=cellState(s,z,m);if(st==='directa')dir.push(m);if(st==='semillero')sem.push(m);if(st==='maceta')pot.push(m);if(st&&!s.tree&&z.sun[m]<s.sun)dark.push(m)}
@@ -583,10 +583,11 @@ function renderFicha(){
   const c=s.care;const mine=state.plants.filter(p=>p.sp===s.id);
   if(state.quick){
     // Ficha rápida desde «Qué sembrar»: meses, temporada del mes elegido, consejo clave y dos acciones
-    const cm=state.calM??curM,st=cellState(s,z,cm),M=MONTHS_L[cm][0].toUpperCase()+MONTHS_L[cm].slice(1),k=TIPS[s.id]?.k;
+    const cm=state.qFrom?curM:state.calM??curM,st=cellState(s,z,cm),M=MONTHS_L[cm][0].toUpperCase()+MONTHS_L[cm].slice(1),k=TIPS[s.id]?.k;
     const qTxt=st==='directa'?`${M} es buen momento para ${s.tree?'plantarlo':'sembrarla directamente fuera'}.`:st==='semillero'?`En ${MONTHS_L[cm]} toca semillero protegido.`:st==='maceta'?`En ${MONTHS_L[cm]} se puede plantar en maceta y resguardarlo en invierno.`:`En ${MONTHS_L[cm]} no toca en tu zona.`;
     const sub=[GROUPS[s.g],state.seeds.some(x=>x.sp===s.id)?'tienes semillas':'',mine.some(p=>!p.ej)?'en tu huerto':''].filter(Boolean).join(' · ');
-    document.getElementById('fichaIn').innerHTML=`
+    const back=state.plants.find(p=>p.id===state.qFrom);
+    document.getElementById('fichaIn').innerHTML=`${back?`<button class="qback" type="button" id="fichaBack">‹ Volver a ${esc(back.name)}</button>`:''}
    <div class="hd"><div><h2 id="fichaTitle">${s.n}</h2><span class="sp">${sub}</span></div>
      <button class="x" id="fichaClose" aria-label="Cerrar ficha">×</button></div>
    <div class="tmonths" role="img" aria-label="Meses de siembra en tu zona">${MONTHS.map((l,m)=>{const x=cellState(s,z,m);return `<i class="${x==='directa'?'d':x?'s':''}${m===cm?' cur':''}">${l[0]}</i>`}).join('')}</div>
@@ -623,9 +624,10 @@ function renderFicha(){
    <button class="btn primary" id="fichaAdd">Añadir a mis plantas</button>`;
 }
 function cap(t){return t.charAt(0).toUpperCase()+t.slice(1)}
-function openFicha(id,quick){
-  state.mode='crop';state.sel=id;state.quick=!!quick&&MOBILE.matches;renderCal();renderFicha();
-  const f=document.getElementById('ficha');try{f.showModal()}catch(e){f.setAttribute('open','')}
+// from: planta desde cuya ficha se abre (Compañeras); la ficha rápida tiene entonces «Volver»
+function openFicha(id,quick,from){
+  state.mode='crop';state.sel=id;state.qFrom=from||null;state.quick=!!quick&&(MOBILE.matches||!!from);renderCal();renderFicha();
+  const f=document.getElementById('ficha');if(!f.open){try{f.showModal()}catch(e){f.setAttribute('open','')}}f.scrollTop=0;
 }
 function daysSince(p,d){return Math.max(0,Math.round((parse(d)-parse(p.sown))/DAY))}
 function fdate(d){return parse(d).toLocaleDateString('es-ES',{day:'numeric',month:'short',year:'numeric'})}
@@ -674,7 +676,7 @@ function renderSeeds(){
 }
 function compSec(p){
   const r=REL[p.sp],rot=rotNext(p.sp);if(!r.good.size&&!r.bad.size&&!rot)return '';
-  const chip=(id,bad)=>{const has=(bad?mineNear(id,p):mine(id)).length;return `<span class="cmp${has?(bad?' warn':' have'):''}">${SP[id].n}${has?(bad?' · la tienes cerca':' · la tienes'):''}</span>`};
+  const chip=(id,bad)=>{const has=(bad?mineNear(id,p):mine(id)).length;return `<button type="button" class="cmp${has?(bad?' warn':' have'):''}" data-cmp="${id}">${SP[id].n}${has?(bad?' · la tienes cerca':' · la tienes'):''}</button>`};
   // Primero las que tienes y luego por orden alfabético
   const sort=ids=>[...ids].sort((a,b)=>(mine(b).length>0)-(mine(a).length>0)||SP[a].n.localeCompare(SP[b].n,'es'));
   const ic=d=>`<svg viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`;
@@ -682,7 +684,7 @@ function compSec(p){
   return `<section class="pf-sec cmpsec"><div class="pf-sh"><h3>Compañeras</h3></div>
     ${r.good.size?`<div class="cmprow good">${head('Se lleva bien con','<path d="M5 12.5l4.5 4.5L19 7"/>',r.good.size)}<div class="cmps">${sort(r.good).map(id=>chip(id,0)).join('')}</div></div>`:''}
     ${r.bad.size?`<div class="cmprow bad">${head('Mejor lejos de','<path d="M6 6l12 12M18 6L6 18"/>',r.bad.size)}<div class="cmps">${sort(r.bad).map(id=>chip(id,1)).join('')}</div></div>`:''}
-    ${rot?`<div class="cmprow rot">${head('Cuando acabe, en su sitio','<path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v4h-4"/>')}<p class="cmpt">${SP[p.sp].n} es ${ROT[rot.f].n}: después siembra ${ROT[rot.f].why}.</p>${rot.now.length?`<p class="cmpl2">Ahora en tu zona</p><div class="cmps">${rot.now.map(id=>`<span class="cmp">${SP[id].n}</span>`).join('')}</div>`:''}</div>`:''}
+    ${rot?`<div class="cmprow rot">${head('Cuando acabe, en su sitio','<path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v4h-4"/>')}<p class="cmpt">${SP[p.sp].n} es ${ROT[rot.f].n}: después siembra ${ROT[rot.f].why}.</p>${rot.now.length?`<p class="cmpl2">Ahora en tu zona</p><div class="cmps">${rot.now.map(id=>`<button type="button" class="cmp" data-cmp="${id}">${SP[id].n}</button>`).join('')}</div>`:''}</div>`:''}
   </section>`;
 }
 function renderPlantFicha(){
@@ -803,6 +805,8 @@ ficha.addEventListener('click',e=>{
   if(e.target.closest('#editCancel')){state.editing=false;renderPlantFicha();return}
   const th=e.target.closest('[data-photo]');if(th){state.photoBig=th.dataset.photo;renderPlantFicha();return}
   const rm=e.target.closest('[data-rmphoto]');if(rm){const l=photos[state.plantSel]||[];photos[state.plantSel]=l.filter(x=>x.id!==rm.dataset.rmphoto);savePhotos();state.photoBig=null;renderPlantFicha();renderPlants();toast('Foto borrada');return}
+  const cp=e.target.closest('[data-cmp]');if(cp){openFicha(cp.dataset.cmp,true,state.plantSel);return}
+  if(e.target.closest('#fichaBack')){openPlant(state.qFrom);return}
   const cr=e.target.closest('#fichaCrop');if(cr){document.getElementById('t-cal').click();openFicha(cr.dataset.crop);return}
   if(e.target.closest('#fichaTips')){state.tipSel=state.sel;ficha.close();document.getElementById('t-tip').click();window.scrollTo(0,0);return}
   if(e.target.closest('#fichaAdd')){

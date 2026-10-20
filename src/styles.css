@@ -1084,3 +1084,8 @@ html.plan-noscroll header,html.plan-noscroll .fab{display:none}
 .cmpsec .cmp{background:var(--card);font-size:.88rem;padding:4px 12px}
 .cmpsec .cmpt{margin:0;font-size:.92rem;line-height:1.5;color:var(--ink)}
 .cmpsec .cmpl2{margin:2px 0 0;font-size:.8rem;font-weight:500;color:var(--muted)}
+/* Compañeras: cada cultivo es un botón que abre su ficha rápida (con «Volver» a la planta) */
+button.cmp{font-family:var(--body);color:var(--ink);cursor:pointer;transition:border-color .15s,background .15s}
+button.cmp:hover{border-color:var(--carob)}
+button.cmp.have{color:var(--ok)}button.cmp.warn{color:var(--danger)}
+.qback{align-self:flex-start;border:0;background:none;padding:0;font:500 .9rem var(--body);color:var(--carob-text);cursor:pointer}
