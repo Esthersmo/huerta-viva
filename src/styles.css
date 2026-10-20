@@ -708,6 +708,6 @@ html.plan-noscroll header,html.plan-noscroll .fab{display:none}
   .plan-gpick .csel-btn>span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 }
 
-/* «+ Bancal» y «+ Maceta» en verde oliva */
-#planBed,#planPot{background:#66794F;border-color:#66794F;color:#FDFBF8}
-#planBed:hover,#planPot:hover{background:#5A6C45;border-color:#5A6C45}
+/* «+ Bancal» y «+ Maceta» en el verde de «día» del logo */
+#planBed,#planPot{background:var(--title-viva);border-color:var(--title-viva);color:var(--sel-ink)}
+#planBed:hover,#planPot:hover{filter:brightness(.94)}
