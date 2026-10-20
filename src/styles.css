@@ -789,3 +789,8 @@ html.plan-noscroll header,html.plan-noscroll .fab{display:none}
 .hf-viewhd{align-items:center;gap:12px}
 .hf-viewhd h2{flex:1;min-width:0;margin:0;overflow-wrap:anywhere}
 .hf-qty{font-family:var(--display);font-size:1.25rem;color:var(--carob-text);white-space:nowrap}
+.hf-viewhd{align-items:baseline}
+.hf-viewhd h2,.hf-viewhd .hf-qty{font-size:1.5rem;line-height:1.2}
+.hf-viewhd .x{align-self:center}
+.hf-top{display:flex;justify-content:flex-end;margin-bottom:-6px}
+.hf-viewhd{display:flex;justify-content:space-between;gap:12px}

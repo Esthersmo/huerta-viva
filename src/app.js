@@ -1211,7 +1211,7 @@ function renderHarvFicha(){
   const sp=SP[p?p.sp:x.sp],name=p?p.name:sp?.n||'';
   let h=hf.isNew?`<div class="hd hf-newhd"><h2 id="hfTitle">Nueva cosecha</h2><button class="x" type="button" data-hclose aria-label="Cerrar">×</button></div>`
     :hf.edit?`<div class="hd"><h2 id="hfTitle">${esc(name)}</h2><button class="x" type="button" data-hclose aria-label="Cerrar">×</button></div>`
-    :`<div class="hd hf-viewhd"><h2 id="hfTitle">${esc(name)}</h2><strong class="hf-qty">${qtyTxt(x.q,x.u)}</strong><button class="x" type="button" data-hclose aria-label="Cerrar">×</button></div>`;
+    :`<div class="hf-top"><button class="x" type="button" data-hclose aria-label="Cerrar">×</button></div><div class="hf-viewhd"><h2 id="hfTitle">${esc(name)}</h2><strong class="hf-qty">${qtyTxt(x.q,x.u)}</strong></div>`;
   if(!hf.edit){
     const list=hfSort(photos['cosecha:'+hf.id]||[]),big=list.find(y=>y.id===hf.big)||list[0];
     h+=`<p class="hf-q"><span>${p&&sp?esc(sp.n)+' · ':''}${fdate(x.d)}</span></p>
