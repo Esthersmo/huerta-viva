@@ -959,7 +959,7 @@ html.plan-noscroll header,html.plan-noscroll .fab{display:none}
   .pgh{display:flex;align-items:center;gap:8px;margin:8px 2px 8px;font:700 .78rem var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--carob-text)}
   .pgh .n{background:var(--panel);border:1px solid var(--panel-line);border-radius:999px;padding:0 8px;font-size:.72rem;letter-spacing:0}
   .plist{background:var(--card);border:1px solid var(--card-line);border-radius:16px;overflow:hidden;margin-bottom:10px}
-  .prow{display:grid;grid-template-columns:56px minmax(0,1fr) 40px;gap:12px;align-items:center;padding:10px 12px;cursor:pointer}
+  .prow{display:grid;grid-template-columns:56px minmax(0,1fr);gap:12px;align-items:center;padding:10px 12px;cursor:pointer}
   .prow+.prow{border-top:1px solid var(--line)}
   .prow:focus-visible{outline:2px solid var(--carob);outline-offset:-2px}
   .pth{width:56px;height:56px;border-radius:14px;background:var(--panel);display:grid;place-items:center;overflow:hidden;flex:none}

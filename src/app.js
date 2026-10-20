@@ -852,11 +852,10 @@ function renderPlantsMobile(){
   const key={care:p=>nextDue(p)?.left??999,name:p=>0,new:p=>-parse(p.sown)};
   list.sort((a,b)=>key[sort](a)-key[sort](b)||a.name.localeCompare(b.name,'es'));
   const when=l=>l<0?`hace ${-l} ${-l===1?'día':'días'}`:l===0?'hoy':leftTxt(l).toLowerCase();
-  const OK='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg>';
   const row=p=>{const d=nextDue(p),c=d?(d.left<0?'over':d.left===0?'today':'fine'):'fine';
     return `<div class="prow" data-open="${esc(p.id)}" role="button" tabindex="0" aria-label="Abrir ficha de ${esc(p.name)}">${plantThumb(p)}
       <div class="pt"><b>${esc(p.name)}</b><small>${SP[p.sp].n} · ${p.loc}</small>${d?`<span class="nx ${c}">${VERB[d.a]} · ${when(d.left)}</span>`:''}</div>
-      ${d?`<button class="pok ${c}" data-act="${d.a}" data-id="${esc(p.id)}" aria-label="Hecho: ${VERB[d.a].toLowerCase()} ${esc(p.name)}">${OK}</button>`:'<span></span>'}</div>`};
+</div>`};
   let h='';
   for(const g of Object.keys(GROUPS)){const ps=list.filter(p=>SP[p.sp].g===g);if(!ps.length)continue;
     h+=`<h3 class="pgh">${GROUPS[g]} <span class="n">${ps.length}</span></h3><div class="plist">${ps.map(row).join('')}</div>`}
