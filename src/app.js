@@ -1209,7 +1209,8 @@ function renderHarvFicha(){
   const f=hf.isNew?{}:findHarv(hf.id),x=f.x||{},p=hf.isNew?state.plants.find(y=>y.id===hf.pid):f.p;
   if(!hf.isNew&&!f.x){harvDlg.close();return}
   const sp=SP[p?p.sp:x.sp],name=p?p.name:sp?.n||'';
-  let h=`<div class="hd"><div><p class="k">${hf.isNew?'Anotar cosecha':'Cosecha'}</p><h2 id="hfTitle">${hf.isNew&&!p?'Nueva cosecha':esc(name)}</h2></div><button class="x" type="button" data-hclose aria-label="Cerrar">×</button></div>`;
+  let h=hf.isNew?`<div class="hd hf-newhd"><h2 id="hfTitle">Nueva cosecha</h2><button class="x" type="button" data-hclose aria-label="Cerrar">×</button></div>`
+    :`<div class="hd"><div><p class="k">Cosecha</p><h2 id="hfTitle">${esc(name)}</h2></div><button class="x" type="button" data-hclose aria-label="Cerrar">×</button></div>`;
   if(!hf.edit){
     const list=hfSort(photos['cosecha:'+hf.id]||[]),big=list.find(y=>y.id===hf.big)||list[0];
     h+=`<p class="hf-q"><strong>${qtyTxt(x.q,x.u)}</strong><span>${p&&sp?esc(sp.n)+' · ':''}${fdate(x.d)}</span></p>

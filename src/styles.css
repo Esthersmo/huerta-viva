@@ -783,3 +783,6 @@ html.plan-noscroll header,html.plan-noscroll .fab{display:none}
 .harvsum:has(.harvl){background:none;border:0;padding:0}
 .harvsum .harvl{margin-top:0}
 .harvsum .hrow{background:var(--card);border-color:var(--card-line);padding:10px 10px 10px 14px}
+.hf-newhd{position:relative;justify-content:center;align-items:center;padding-inline:48px;text-align:center}
+.hf-newhd .x{position:absolute;right:0;top:50%;transform:translateY(-50%)}
+.hf-newhd h2{flex:1;margin:0;text-align:center}
