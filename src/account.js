@@ -63,10 +63,11 @@ export function initAccount({refresh, toast}) {
 
   function draw() {
     const u = currentUser();
-    let h = `<div class="hd"><h2 id="acctTitle">Mi cuenta</h2>${ask ? '' : '<button class="x" type="button" id="acctClose" aria-label="Cerrar">×</button>'}</div>`;
-    // Aspecto: en el móvil el selector Claro/Oscuro vive aquí
-    if (!ask) { const th = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
-      h += `<div class="acrow"><span>Aspecto</span><div class="seg" role="group" aria-label="Aspecto"><button type="button" data-theme-set="light" aria-pressed="${th === 'light'}">Claro</button><button type="button" data-theme-set="dark" aria-pressed="${th === 'dark'}">Oscuro</button></div></div>`; }
+    // Cabecera (título, correo y estado) y ajustes fijos (aspecto, avisos y zona) van aparte del cuerpo, que se repinta
+    document.getElementById('acctHd').innerHTML = `<div class="hd"><h2 id="acctTitle">Mi cuenta</h2>${ask ? '' : '<button class="x" type="button" id="acctClose" aria-label="Cerrar">×</button>'}</div>`
+      + (u && !ask ? `<p class="who">${esc(u.email)}</p><p class="sync ${st.state}" role="status">${statusLine()}</p>` : '');
+    document.getElementById('acctSet').hidden = !!ask;
+    let h = '';
     if (ask) {
       const pl = n => `${n} ${n === 1 ? 'planta' : 'plantas'}`;
       h += `<p>En este dispositivo tienes <strong>${pl(ask.nl)}</strong> y en tu cuenta hay <strong>${pl(ask.nr)}</strong>. ¿Qué quieres hacer?</p>
@@ -74,9 +75,7 @@ export function initAccount({refresh, toast}) {
         <button class="btn" type="button" data-merge="juntar">Juntar las de aquí con las de mi cuenta</button></div>
         <p class="tip">Si eliges la cuenta, las plantas que hay ahora en este dispositivo se quitan y se cambian por las de tu cuenta.</p>`;
     } else if (u) {
-      h += `<p>Has entrado como <strong>${esc(u.email)}</strong>.</p>
-        <p class="sync ${st.state}" role="status">${statusLine()}</p>
-        <p class="tip">Tus plantas, riegos, fotos y tu zona se guardan en tu cuenta y aparecen en cualquier móvil u ordenador donde entres con este correo.</p>
+      h += `<p class="tip">Tus plantas, riegos, fotos y tu zona se guardan en tu cuenta y aparecen en cualquier móvil u ordenador donde entres con este correo.</p>
         <div class="acts"><button class="btn" type="button" id="acctSync"${st.state === 'syncing' ? ' disabled' : ''}>Sincronizar ahora</button>
         <button class="btn" type="button" id="acctOut">Cerrar sesión</button></div>
         <p class="tip"><a href="privacidad.html" target="_blank" rel="noopener">Política de privacidad</a></p>

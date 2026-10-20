@@ -949,6 +949,7 @@ function drawZoneBox(){
   const c=state.cp,fold=!!c&&!zoneOpen;
   document.getElementById('zoneSum').hidden=!fold;document.getElementById('zoneFull').hidden=fold;
   document.getElementById('zoneDoneRow').hidden=!c||fold;
+  document.getElementById('zoneHint').hidden=!!c||!document.getElementById('zoneBox').closest('dialog');
   if(c)document.getElementById('zoneSumTxt').textContent=`${c.name} (${ZONES[PROV_INE[c.prov]].name.split(' (')[0]})${state.alt!=null?` · ${state.alt} m`:''}`;
 }
 document.getElementById('zoneEdit').addEventListener('click',()=>{zoneOpen=true;drawZoneBox();cpIn.focus()});
@@ -1279,5 +1280,12 @@ function reloadFromStore(){
   if(ficha.open&&state.mode==='plant'){if(state.plants.some(p=>p.id===state.plantSel))renderPlantFicha();else ficha.close()}
 }
 initAccount({refresh:reloadFromStore,toast});
+// En el móvil la zona y los avisos viven dentro de «Mi cuenta»; en el ordenador, en su pestaña
+{const acct=document.getElementById('acctBtn'),homes=['zoneBox','avisos'].map(id=>{const el=document.getElementById(id);return [el,el.parentNode,el.nextSibling]});
+ function placeSettings(){const inAcct=MOBILE.matches&&!acct.hidden;
+  homes.forEach(([el,par,nx],i)=>{if(inAcct)document.getElementById(i?'acctAvisos':'acctZona').append(el);else par.insertBefore(el,nx)});
+  drawZoneBox()}
+ MOBILE.addEventListener('change',placeSettings);placeSettings();
+ document.getElementById('zoneHint').addEventListener('click',()=>{zoneOpen=true;drawZoneBox();acct.click()})}
 refreshWx();
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refreshWx()});

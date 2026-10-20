@@ -43,6 +43,7 @@
   <div class="wrap">
     <!-- CALENDARIO -->
     <section id="p-cal" class="tabpanel">
+      <button class="zhint" type="button" id="zoneHint" hidden>Pon tu código postal en <strong>Mi cuenta</strong> para ajustar el calendario a tu zona</button>
       <div class="panel zonebox" id="zoneBox">
         <div class="zsum" id="zoneSum" hidden><span><strong>Tu zona:</strong> <span id="zoneSumTxt"></span></span><button class="btn" type="button" id="zoneEdit">Cambiar</button></div>
         <div class="zfull" id="zoneFull">
@@ -201,7 +202,15 @@
   </div>
 </main>
 <dialog class="ficha" id="ficha" aria-labelledby="fichaTitle"><div class="in" id="fichaIn"></div></dialog>
-<dialog class="ficha acctdlg" id="acct" aria-labelledby="acctTitle"><div class="in" id="acctIn"></div></dialog>
+<dialog class="ficha acctdlg" id="acct" aria-labelledby="acctTitle"><div class="in">
+  <div class="achd" id="acctHd"></div>
+  <div class="acset" id="acctSet">
+    <div class="acrow"><span>Aspecto</span><div class="seg" role="group" aria-label="Aspecto"><button type="button" data-theme-set="light" aria-pressed="true">Claro</button><button type="button" data-theme-set="dark" aria-pressed="false">Oscuro</button></div></div>
+    <div class="acrow acblk acmob" id="acctAvisos"><span>Avisos en el móvil</span></div>
+    <div class="acrow acblk acmob" id="acctZona"><span>Tu zona</span></div>
+  </div>
+  <div class="acbody" id="acctIn"></div>
+</div></dialog>
 <div id="toast" hidden></div>
 </body>
 </html>

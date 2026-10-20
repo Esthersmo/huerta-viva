@@ -651,3 +651,27 @@ html.plan-noscroll header,html.plan-noscroll .fab{display:none}
   #p-pl[data-sub="plano"] .fab{display:none}
   #p-pl[data-sub="semillas"]:not(.adding) #seedForm{display:none}
 }
+
+/* «Mi cuenta» como en la maqueta: correo y estado arriba, ajustes en filas y la cuenta al final */
+.acctdlg .achd{display:flex;flex-direction:column;gap:8px}
+.acctdlg .who{color:var(--muted);overflow-wrap:anywhere}
+.acctdlg .acset{display:flex;flex-direction:column}
+.acctdlg .acset[hidden]{display:none}
+.acctdlg .acset>.acrow{padding:12px 0;border-bottom:1px solid var(--line)}
+.acctdlg .acrow>span{font-weight:500}
+.acctdlg .acbody{display:flex;flex-direction:column;gap:12px}
+.acctdlg .acbody:empty{display:none}
+.acctdlg .acmob{display:none}
+.zhint{display:none}
+@media (max-width:600px){
+  .acctdlg .acmob{display:flex}
+  .acctdlg .acblk{flex-direction:column;align-items:stretch;gap:10px}
+  .acctdlg .zonebox{background:none;border:0;box-shadow:none;padding:0;margin:0}
+  .acctdlg .zonebox .zonetitle,.acctdlg .zsum strong{display:none}
+  .acctdlg .zonebox .note{text-align:left;font-size:.85rem;margin-top:10px}
+  .acctdlg .avisos{margin:0;padding:0;border:0;text-align:left;font-size:.92rem}
+  .acctdlg .avisos p{margin:0 0 10px;max-width:none}
+  .acctdlg .avisos-btns{justify-content:flex-start}
+  .zhint:not([hidden]){display:block;width:100%;margin-bottom:16px;padding:12px 14px;border-radius:12px;border:1px dashed var(--line);background:var(--surface);color:var(--ink);font:inherit;font-size:.9rem;text-align:left;cursor:pointer}
+  .acctdlg{margin:auto 0 0;width:100%;max-width:100%;border-radius:20px 20px 0 0;max-height:88vh}
+}
