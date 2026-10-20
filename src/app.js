@@ -1170,8 +1170,8 @@ try{setPlSub(store.getItem('hv.plsub')||'plantas')}catch(e){setPlSub('plantas')}
 // Suma las cosechas anotadas en cada planta y las sueltas (de cultivos que ya no tienes o de años pasados), por años
 let harvXInit=load('hv.harv',[]);
 // Una fila de cosecha: al tocarla se abre su ficha; un icono si tiene fotos u observaciones
-function harvRow(x,lbl){const ph=(photos['cosecha:'+x.id]||[]).length;
-  return `<button type="button" class="hrow" data-hopen="${esc(x.id)}"><span>${lbl}</span><strong>${qtyTxt(x.q,x.u)}</strong><span class="hico">${ph?`<svg viewBox="0 0 24 24" aria-label="${ph} ${ph===1?'foto':'fotos'}"><rect x="3" y="6" width="18" height="14" rx="3"/><circle cx="12" cy="13" r="3.5"/><path d="M8.5 6l1.5-2h4l1.5 2"/></svg>`:''}${x.o?'<svg viewBox="0 0 24 24" aria-label="Con observaciones"><path d="M5 4h14v16H5z"/><path d="M8.5 9h7M8.5 13h7M8.5 17h4"/></svg>':''}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span></button>`}
+function harvRow(x,lbl,sub){const ph=(photos['cosecha:'+x.id]||[]).length;
+  return `<button type="button" class="hrow" data-hopen="${esc(x.id)}"><span class="hl"><span>${lbl}</span>${sub?`<small>${sub}</small>`:''}</span><strong>${qtyTxt(x.q,x.u)}</strong><span class="hico">${ph?`<svg viewBox="0 0 24 24" aria-label="${ph} ${ph===1?'foto':'fotos'}"><rect x="3" y="6" width="18" height="14" rx="3"/><circle cx="12" cy="13" r="3.5"/><path d="M8.5 6l1.5-2h4l1.5 2"/></svg>`:''}${x.o?'<svg viewBox="0 0 24 24" aria-label="Con observaciones"><path d="M5 4h14v16H5z"/><path d="M8.5 9h7M8.5 13h7M8.5 17h4"/></svg>':''}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span></button>`}
 const qtyTxt=(q,u)=>`${num(q)} ${u==='ud'?(q===1?'unidad':'unidades'):u==='manojo'?(q===1?'manojo':'manojos'):u}`;
 function renderHarvests(){
   if(!state.harvX)state.harvX=harvXInit;
@@ -1188,7 +1188,7 @@ function renderHarvests(){
   const more=state.harvXMore,shown=more?rows:rows.slice(0,6);
   document.getElementById('harvSum').innerHTML=(hs.length?`<ul>${hs.map(([n,t])=>`<li><span>${n}</span><strong>${t}</strong></li>`).join('')}</ul>`
     :`<p class="note">${Y===YEAR?'Anota lo que recoges en la ficha de cada planta o aquí abajo, y verás cuánto llevas este año de cada cultivo.':`No hay cosechas anotadas en ${Y}.`}</p>`)
-    +(rows.length?`<p class="harvxh">Cada cosecha</p><ul class="harvl">${shown.map(x=>`<li>${harvRow(x,`${esc(x.n)} · ${fdate(x.d)}`)}</li>`).join('')}</ul>`
+    +(rows.length?`<p class="harvxh">Cada cosecha</p><ul class="harvl">${shown.map(x=>`<li>${harvRow(x,esc(x.n),fdate(x.d))}</li>`).join('')}</ul>`
       +(rows.length>6?`<button class="btn remmore rm-soon" type="button" id="harvXMore">${more?'Ver menos':`Ver ${rows.length-6} más`}</button>`:''):'');
 }
 // Busca una cosecha por id, suelta o de una planta (p)

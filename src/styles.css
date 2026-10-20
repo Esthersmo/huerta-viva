@@ -775,3 +775,7 @@ html.plan-noscroll header,html.plan-noscroll .fab{display:none}
 .hf-new{display:flex;justify-content:center;margin:4px 0 8px}
 .hf-form .acmsg{color:var(--danger);font-weight:500;margin:0}
 .hf-form .acmsg[hidden]{display:none}
+/* Fila de cosecha: el cultivo arriba y la fecha debajo */
+.hrow>span.hl{display:flex;flex-direction:column;gap:1px;min-width:0;color:var(--ink)}
+.hrow .hl small{color:var(--muted);font-size:.82rem}
+.harvl .hrow .hl>span{color:var(--ink)}
