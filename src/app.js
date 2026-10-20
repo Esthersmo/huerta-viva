@@ -156,7 +156,7 @@ const SPECIES=[
  {id:'limonero',n:'Limonero',g:'frutal',tree:1,tMin:13,tMax:22,sun:7,seed:0,yrs:3,frost:9,pm:'Primavera, tras las heladas',care:{riego:5,abono:45,sustrato:0,poda:365}},
  {id:'naranjo',n:'Naranjo',g:'frutal',tree:1,tMin:13,tMax:22,sun:7,seed:0,yrs:3,frost:10,pm:'Primavera, tras la cosecha',care:{riego:5,abono:45,sustrato:0,poda:365}},
  {id:'nispero',n:'Níspero',g:'frutal',tree:1,tMin:12,tMax:21,sun:6,seed:0,yrs:3,frost:7,pm:'Tras la cosecha, a inicios de verano',care:{riego:7,abono:60,sustrato:0,poda:365}},
- {id:'kaki',dec:1,lc:'Rojo Brillante',n:'Kaki',g:'frutal',tree:1,tMin:5,tMax:14,sun:7,seed:0,yrs:3,chill:13,pm:'Final del invierno',care:{riego:7,abono:90,sustrato:0,poda:365}},
+ {id:'kaki',dec:1,lc:'Rojo Brillante',n:'Caqui',g:'frutal',tree:1,tMin:5,tMax:14,sun:7,seed:0,yrs:3,chill:13,pm:'Final del invierno',care:{riego:7,abono:90,sustrato:0,poda:365}},
  {id:'nogal',dec:1,lc:'Chandler o Serr, aunque producirá poco',n:'Nogal',g:'frutal',tree:1,tMin:4,tMax:13,sun:7,seed:0,yrs:6,chill:9,pm:'Final del verano, solo lo justo',care:{riego:10,abono:120,sustrato:0,poda:730}},
  {id:'mango',n:'Mango',g:'frutal',tree:1,tMin:18,tMax:26,sun:8,seed:0,yrs:4,frost:11,pm:'Tras la cosecha',care:{riego:6,abono:60,sustrato:0,poda:365}},
  {id:'aguacate',n:'Aguacate',g:'frutal',tree:1,tMin:15,tMax:24,sun:6,seed:0,yrs:4,frost:11,pm:'Tras la cosecha, poda ligera',care:{riego:4,abono:60,sustrato:0,poda:365}},
