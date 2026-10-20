@@ -1,8 +1,10 @@
 // Ventana «Mi cuenta»: entrar con el correo y un código, ver el estado de la sincronización, salir o borrar la cuenta.
 import {TURNSTILE_SITE_KEY} from './cloud-config.js';
+import {listLinks, deleteLink, linkUrl} from './links.js';
 import {cloudOn, initCloud, onCloud, currentUser, setMergeAsker, setOnLogin, googleEnabled, signInGoogle, sendCode, verifyCode, syncNow, signOut, deleteAccount} from './cloud.js';
 
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
+let links = null, linksOpen = false, linksErr = false;
 let step = 'email', email = '', busy = false, msg = '', st = {state: 'off'}, ask = null, google = null, captcha = null;
 
 // Captcha de Cloudflare Turnstile: casi siempre invisible; solo pide un clic si sospecha de un robot
@@ -56,6 +58,16 @@ function statusLine() {
   }[st.state] || '';
 }
 
+// Enlaces que se han compartido: copiar o borrar (al borrarlo, el enlace deja de funcionar)
+function linksHtml() {
+  if (linksErr) return '<p class="tip">No se han podido cargar. Vuelve a intentarlo con conexión.</p>';
+  if (!links) return '<p class="tip">Cargando…</p>';
+  if (!links.length) return '<p class="tip">Aún no has compartido nada con un enlace. Usa «Compartir» en la ficha de una planta o en las fotos de un huerto.</p>';
+  const f = d => new Date(d).toLocaleDateString('es-ES', {day: 'numeric', month: 'short', year: 'numeric'});
+  return `<p class="tip">Quien tenga el enlace ve lo que había al compartirlo. Si lo borras, deja de funcionar.</p><ul class="lklist">${links.map(l => `<li><div><b>${esc(l.titulo)}</b><small>${l.tipo === 'huerto' ? 'Huerto' : 'Planta'} · ${f(l.creado)}</small></div>
+    <button class="btn" type="button" data-lkcopy="${esc(l.id)}">Copiar</button><button class="btn warn" type="button" data-lkdel="${esc(l.id)}">Borrar</button></li>`).join('')}</ul>`;
+}
+
 export function initAccount({refresh, toast}) {
   if (!cloudOn) return;
   const btn = document.getElementById('acctBtn'), dlg = document.getElementById('acct'), body = document.getElementById('acctIn');
@@ -78,6 +90,7 @@ export function initAccount({refresh, toast}) {
       h += `<p class="tip">Tus plantas, riegos, fotos y tu zona se guardan en tu cuenta y aparecen en cualquier móvil u ordenador donde entres con este correo.</p>
         <div class="acts"><button class="btn" type="button" id="acctSync"${st.state === 'syncing' ? ' disabled' : ''}>Sincronizar ahora</button>
         <button class="btn" type="button" id="acctOut">Cerrar sesión</button></div>
+        <details class="aclinks" id="acctLinks"${linksOpen ? ' open' : ''}><summary>Enlaces compartidos${links ? ` <small>${links.length}</small>` : ''}</summary>${linksHtml()}</details>
         <p class="tip"><a href="privacidad.html" target="_blank" rel="noopener">Política de privacidad</a></p>
         <details class="danger"><summary>Borrar mi cuenta</summary>
           <p class="tip">Se borran de la nube tu huerto y tus fotos, y no se puede deshacer. Lo que hay en este dispositivo se queda.</p>
@@ -102,13 +115,16 @@ export function initAccount({refresh, toast}) {
     if (TURNSTILE_SITE_KEY && !u && !ask && step === 'email') mountCaptcha();
   }
   function open() {
-    msg = '';
+    msg = ''; links = null; if (linksOpen && currentUser()) loadLinks();
     if (google === null) googleEnabled().then(g => { google = g; const i = document.getElementById('acctEmail'); if (i) email = i.value; if (dlg.open) draw(); });
     draw(); try { dlg.showModal(); } catch (e) { dlg.setAttribute('open', ''); } }
 
   btn.addEventListener('click', open);
   setOnLogin(() => toast('¡Dentro! Tu huerto ya se guarda en tu cuenta'));
   setMergeAsker((nl, nr) => new Promise(res => { ask = {nl, nr, res}; busy = false; if (!dlg.open) open(); else draw(); }));
+  async function loadLinks() { linksErr = false; try { links = await listLinks(); } catch (e) { linksErr = true; } if (dlg.open) draw(); }
+  // Al repintar, el «open» del nuevo <details> también lanza «toggle»: solo cuenta si cambia de verdad
+  dlg.addEventListener('toggle', e => { if (e.target.id !== 'acctLinks' || e.target.open === linksOpen) return; linksOpen = e.target.open; if (linksOpen && !links) loadLinks(); }, true);
   dlg.addEventListener('click', async e => {
     const mg = e.target.closest('[data-merge]');
     if (mg && ask) { const r = ask.res; ask = null; draw(); r(mg.dataset.merge); return; }
@@ -117,6 +133,15 @@ export function initAccount({refresh, toast}) {
     if (e.target.closest('#acctGoogle')) { try { await signInGoogle(); } catch (err) { msg = errText(err); draw(); } return; }
     if (e.target.closest('#acctBack')) { step = 'email'; msg = ''; draw(); return; }
     if (e.target.closest('#acctSync')) { syncNow(); return; }
+    const lc = e.target.closest('[data-lkcopy]');
+    if (lc) { try { await navigator.clipboard.writeText(linkUrl(lc.dataset.lkcopy)); toast('Enlace copiado'); } catch (err) { toast('No se pudo copiar'); } return; }
+    const ld = e.target.closest('[data-lkdel]');
+    if (ld) {
+      if (!ld.dataset.sure) { ld.dataset.sure = '1'; ld.textContent = '¿Seguro?'; setTimeout(() => { if (ld.isConnected) { delete ld.dataset.sure; ld.textContent = 'Borrar'; } }, 4000); return; }
+      ld.disabled = true;
+      try { await deleteLink(ld.dataset.lkdel); links = links.filter(l => l.id !== ld.dataset.lkdel); toast('Enlace borrado'); } catch (err) { toast('No se pudo borrar. Vuelve a intentarlo.'); }
+      draw(); return;
+    }
     if (e.target.closest('#acctOut')) { await signOut(); toast('Has cerrado sesión. Tus plantas siguen en este dispositivo.'); draw(); return; }
     if (e.target.closest('#acctDel')) {
       if (!confirm('¿Seguro que quieres borrar tu cuenta y todo lo guardado en la nube?')) return;

@@ -1091,3 +1091,51 @@ button.cmp.have{color:var(--ok)}button.cmp.warn{color:var(--danger)}
 .qback{align-self:flex-start;border:0;background:none;padding:0;font:500 .9rem var(--body);color:var(--carob-text);cursor:pointer}
 /* Ficha rápida: «Ver consejos» a la izquierda y «Añadir a mis plantas» a la derecha */
 @media (min-width:601px){.qacts{display:flex;justify-content:space-between;gap:12px;margin-top:4px}}
+/* Mi cuenta: enlaces compartidos */
+.aclinks{border-top:1px solid var(--line);padding-top:12px}
+.aclinks summary{cursor:pointer;font-weight:500}
+.aclinks summary small{color:var(--muted);font-weight:400;margin-left:4px}
+.lklist{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column}
+.lklist li{display:flex;align-items:center;gap:8px;padding:8px 0;border-top:1px solid var(--line)}
+.lklist li>div{flex:1;min-width:0;display:flex;flex-direction:column}
+.lklist b{font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lklist small{color:var(--muted);font-size:.8rem}
+.lklist .btn{padding:6px 12px;font-size:.85rem}
+.lklist .btn.warn{background:var(--del-bg);border-color:var(--del-line);color:var(--del-ink)}
+.cfm .btn.primary{background:var(--carob);border-color:var(--carob);color:var(--carob-ink)}
+/* Página de un enlace compartido (ver.html): solo lectura */
+body.ver{padding:0 16px 32px}
+.vtop{max-width:720px;margin:0 auto;padding:18px 2px 10px}
+.vlogo{color:var(--ink);text-decoration:none;display:inline-block}
+.vmain{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+.vmsg{text-align:center;color:var(--muted);padding:40px 0}
+.vcard{background:var(--card);border:1px solid var(--card-line);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.vhero .tstats{border:1px solid var(--line);border-radius:14px}
+.vhd{display:flex;align-items:center;gap:14px}
+.vth{width:72px;height:72px;flex:none;border-radius:16px;overflow:hidden;background:var(--panel);display:grid;place-items:center}
+.vth img{width:100%;height:100%;object-fit:cover}.vth img.ilu{width:60px;height:60px;object-fit:contain}
+.vth span{width:100%;height:100%;display:grid;place-items:center;background:linear-gradient(135deg,var(--leaf-soft),var(--leaf-cell));color:#fff;font:700 1.6rem var(--display)}
+.vname{font:700 1.6rem var(--display);color:var(--title-ficha);margin:0;letter-spacing:0;font-variation-settings:normal}
+.vsub{margin:2px 0 0;color:var(--muted)}
+.vh{font:700 .8rem var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--carob-text);margin:0;display:flex;align-items:center;gap:8px}
+.vh small{font-size:.75rem;letter-spacing:0;border:1px solid var(--line);border-radius:999px;padding:0 8px;color:var(--muted)}
+.vcare{list-style:none;margin:0;padding:0;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.vcare li{display:flex;justify-content:space-between;gap:12px;padding:10px 14px}.vcare li+li{border-top:1px solid var(--line)}
+.vcare b{font-weight:500}.vcare span{color:var(--muted);text-align:right}
+.vnote{margin:0;color:var(--muted)}.vnote b{color:var(--ok)}
+.vbig{margin:0;display:flex;flex-direction:column;gap:6px}
+.vbig img{width:100%;max-height:70vh;object-fit:contain;border-radius:14px;background:var(--surface-2)}
+.vbig figcaption{text-align:center;color:var(--muted);font-size:.9rem}
+.vthumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:8px}
+.vthumbs button{padding:0;border:2px solid transparent;border-radius:12px;overflow:hidden;background:none;cursor:pointer;aspect-ratio:1}
+.vthumbs button[aria-pressed="true"]{border-color:var(--carob)}
+.vthumbs img{width:100%;height:100%;object-fit:cover;display:block}
+.vplan{width:100%;height:auto;display:block}
+.vlegend{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px 14px}
+.vlegend li{display:flex;align-items:center;gap:8px;font-size:.92rem}
+.vlegend small{color:var(--muted)}
+.vlegend i{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font:700 .62rem var(--display);font-style:normal;color:#2E2618;border:2px solid rgba(46,38,24,.3);background:#809671}
+.vlegend .g-aro{background:#B3B792}.vlegend .g-fru{background:#D2AB80}.vlegend .g-orn{background:#D9B3A5}.vlegend .g-for{background:#C8BE8E}
+.vwhen{text-align:center;color:var(--muted);font-size:.85rem;margin:0}
+.vfoot{max-width:720px;margin:20px auto 0;text-align:center;color:var(--muted);font-size:.85rem}
+.vfoot a{color:var(--carob-text)}

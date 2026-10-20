@@ -112,7 +112,7 @@ export async function shareGardenPlan(d) {
 // El plano del huerto a escala, con los mismos colores que en la app
 const PC = {ground: '#E7E1D3', grid: 'rgba(114,92,58,.15)', soil: '#B79A72', soilEdge: '#8C7148', pot: '#C98E68', potEdge: '#9E6A4A', canopy: 'rgba(128,150,113,.28)', canopyEdge: 'rgba(95,118,81,.6)',
   ali: '#809671', aro: '#B3B792', fru: '#D2AB80', orn: '#D9B3A5', for: '#C8BE8E'};
-function drawPlan(c, g, x0, y0, w0, h0) {
+export function drawPlan(c, g, x0, y0, w0, h0) {
   const s = Math.min(w0 / g.w, h0 / g.h), w = g.w * s, h = g.h * s, x = x0 + (w0 - w) / 2, y = y0;
   c.save(); rr(c, x, y, w, h, 20); c.fillStyle = PC.ground; c.fill(); c.clip();
   c.strokeStyle = PC.grid; c.lineWidth = 2; c.beginPath();

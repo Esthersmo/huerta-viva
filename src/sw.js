@@ -5,7 +5,7 @@ import { CacheFirst, StaleWhileRevalidate } from 'workbox-strategies';
 self.skipWaiting();
 cleanupOutdatedCaches();
 precacheAndRoute(self.__WB_MANIFEST);
-registerRoute(new NavigationRoute(createHandlerBoundToURL('index.html'), { denylist: [/privacidad\.html$/] }));
+registerRoute(new NavigationRoute(createHandlerBoundToURL('index.html'), { denylist: [/privacidad\.html$/, /ver\.html/] }));
 // Códigos postales: se descargan la primera vez que se usan
 registerRoute(({ url }) => url.pathname.endsWith('/cp.json'), new StaleWhileRevalidate({ cacheName: 'cp' }));
 // Tipografías de Google: disponibles sin conexión después de la primera visita

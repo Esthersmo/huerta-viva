@@ -3,6 +3,8 @@ import {store} from './store.js';
 import {setupNotify,updateSchedule} from './notify.js';
 import {sharePlant,shareGardenPlan} from './share.js';
 import {initAccount} from './account.js';
+import {cloudOn,currentUser} from './cloud.js';
+import {createLink,sendLink} from './links.js';
 import {initPlan} from './plan.js';
 import {loadWx,fetchWx,isFresh,capital,rainSince,rainSoon,hotNow,coldest,hottest,next as wxNext,sky,FROST_C,HEAT_C} from './weather.js';
 const ILUS=import.meta.env.BASE_URL+'ilus/';
@@ -1262,7 +1264,8 @@ document.getElementById('gPhotoList').addEventListener('click',e=>{
 document.getElementById('gShare').addEventListener('click',e=>{
   const g=planUI.current(),zone=state.cp?.name||ZONES[state.zone]?.name.split(' (')[0]||'';
   const list=(photos[gpKey()]||[]).slice().sort((a,b)=>a.date<b.date?1:-1),big=list.find(x=>x.id===state.gpBig)||list[0];
-  shareBusy(e.currentTarget,()=>shareGardenPlan({title:g.name,zone,n:g.n,plan:g,photo:big?{src:big.src,date:fdate(big.date)}:null}));
+  const img=()=>shareGardenPlan({title:g.name,zone,n:g.n,plan:g,photo:big?{src:big.src,date:fdate(big.date)}:null});
+  shareLink(e.currentTarget,'huerto',g.name,()=>({data:{name:g.name,zone,at:iso(today),plan:g},fotos:list.slice().reverse().map(x=>({src:x.src,date:x.date}))}),img);
 });
 // «Cambiar foto»: la foto que se está viendo se sustituye por otra, con la fecha de la nueva
 document.getElementById('gPhotoList').addEventListener('change',async e=>{
@@ -1433,19 +1436,30 @@ padHead();try{new ResizeObserver(padHead).observe(document.querySelector('header
 // ---------- Compartir como imagen ----------
 const relTxt=d=>{const n=Math.round((today-parse(d))/DAY);return n<=0?'hoy':n===1?'ayer':`hace ${n} días`};
 const decoFor=id=>DECO[id]?decoUrl(id):null;
-async function shareBusy(btn,fn){if(btn.disabled)return;
-  // Imagen ya preparada esperando otro toque: se envía en este mismo toque
-  if(btn._again){const go=btn._again;btn._again=null;btn.textContent=btn._label;btn.classList.remove('ready');go();return}
+const shareDone=r=>{if(r==='downloaded')toast('Imagen guardada en descargas');else if(r==='copied')toast('Enlace copiado: pégalo donde quieras');else if(r==='blocked')toast('No se pudo abrir el menú de compartir')};
+async function shareBusy(btn,fn,err='No se pudo crear la imagen'){if(btn.disabled)return;
+  // Imagen o enlace ya preparado esperando otro toque: se envía en este mismo toque
+  if(btn._again){const go=btn._again;btn._again=null;btn.textContent=btn._label;btn.classList.remove('ready');go().then(shareDone);return}
   const t=btn.textContent;btn.disabled=true;btn.textContent='Preparando…';
   try{const r=await fn();
     if(r&&r.again){btn._again=r.again;btn._label=t;btn.disabled=false;btn.textContent='Toca para enviar';btn.classList.add('ready');
       setTimeout(()=>{if(btn._again===r.again){btn._again=null;btn.textContent=t;btn.classList.remove('ready')}},60000);return}
-    if(r==='downloaded')toast('Imagen guardada en descargas')}catch(e){toast('No se pudo crear la imagen')}
+    shareDone(r)}catch(e){toast(navigator.onLine===false?'Sin conexión: el enlace se puede crear cuando vuelva internet':err)}
   btn.disabled=false;btn.textContent=t}
+// Compartir con enlace de solo lectura (copia fija en la nube). Sin sesión se ofrece entrar o mandar la imagen de antes
+function shareLink(btn,tipo,title,snap,imgFn){
+  if(!cloudOn)return shareBusy(btn,imgFn);
+  if(!currentUser()){confirmQ('Compartir con un enlace','Para compartir con un enlace hay que entrar en tu cuenta. También puedes mandar una imagen.',
+    ()=>document.getElementById('acctBtn').click(),{yes:'Entrar',no:'Mandar imagen',onNo:()=>shareBusy(btn,imgFn)});return}
+  shareBusy(btn,async()=>{const x=snap();const url=await createLink(tipo,title,x.data,x.fotos);return sendLink(url,title,`${title} · Sembradía`)},'No se pudo crear el enlace. Vuelve a intentarlo.');
+}
 // Quitar con confirmación y «Deshacer» (móvil)
-const cfm=document.getElementById('cfmDlg');let cfmYes=null;
-function confirmQ(t,txt,yes){document.getElementById('cfmT').textContent=t;document.getElementById('cfmP').textContent=txt;cfmYes=yes;try{cfm.showModal()}catch(e){cfm.setAttribute('open','')}}
-document.getElementById('cfmNo').addEventListener('click',()=>cfm.close());
+const cfm=document.getElementById('cfmDlg');let cfmYes=null,cfmNo=null;
+// o: {yes, no, onNo} para otros textos (sin «yes», es «Quitar» en rojo)
+function confirmQ(t,txt,yes,o={}){document.getElementById('cfmT').textContent=t;document.getElementById('cfmP').textContent=txt;cfmYes=yes;cfmNo=o.onNo||null;
+  const y=document.getElementById('cfmYes');y.textContent=o.yes||'Quitar';y.classList.toggle('danger',!o.yes);y.classList.toggle('primary',!!o.yes);
+  document.getElementById('cfmNo').textContent=o.no||'Cancelar';try{cfm.showModal()}catch(e){cfm.setAttribute('open','')}}
+document.getElementById('cfmNo').addEventListener('click',()=>{cfm.close();const f=cfmNo;cfmNo=null;f?.()});
 document.getElementById('cfmYes').addEventListener('click',()=>{cfm.close();const f=cfmYes;cfmYes=null;f?.()});
 cfm.addEventListener('click',e=>{if(e.target===cfm)cfm.close()});
 function removePlant(p){
@@ -1469,9 +1483,12 @@ ficha.addEventListener('click',e=>{const b=e.target.closest('#sharePlantBtn');if
   const ph=(photos[p.id]||[]).slice().sort((a,b)=>a.date<b.date?-1:1);const big=ph.find(x=>x.id===state.photoBig)||ph[ph.length-1];
   const age=daysSince(p,iso(today));
   const care=Object.keys(ACTIONS).filter(a=>s.care&&s.care[a]&&p.log&&p.log[a]).map(a=>`${ACTIONS[a]} ${relTxt(p.log[a])}`);
-  shareBusy(b,()=>sharePlant({name:p.name,species:s.n,loc:p.loc==='interior'?'Interior':'Exterior',
+  const img=()=>sharePlant({name:p.name,species:s.n,loc:p.loc==='interior'?'Interior':'Exterior',
     sownTxt:`${s.tree?'Plantada':'Sembrada'} el ${fdate(p.sown)}`,ageTxt:age===0?'hoy':age===1?'1 día':`${age} días`,
-    photo:big?{src:big.src,caption:`Día ${daysSince(p,big.date)}`}:null,care:care.length?[care.join(' · ')]:[],deco:decoFor(s.id)}));
+    photo:big?{src:big.src,caption:`Día ${daysSince(p,big.date)}`}:null,care:care.length?[care.join(' · ')]:[],deco:decoFor(s.id)});
+  shareLink(b,'planta',p.name,()=>({data:{name:p.name,sp:s.id,species:s.n,group:GROUPS[s.g],loc:p.loc,sown:p.sown,tree:!!s.tree,at:iso(today),
+    care:dues(p).map(x=>({a:x.a,iv:x.iv,last:p.log?.[x.a]||null})),harv:harvTot(p.harv,YEAR)||'',ilu:ILU_SP.includes(s.id)},
+    fotos:ph.map(x=>({src:x.src,date:x.date}))}),img);
 });
 setupNotify();
 // Cuando llegan cambios de la nube (otro dispositivo) se recarga todo desde el almacén

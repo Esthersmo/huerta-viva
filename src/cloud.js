@@ -232,6 +232,12 @@ export async function deleteAccount() {
     const {error: e} = await c.storage.from(BUCKET).remove(data.map(f => `${user.id}/${f.name}`));
     if (e) throw e;
   }
+  // Fotos de los enlaces compartidos (las filas se borran solas con la cuenta)
+  const {data: dirs} = await c.storage.from('compartidas').list(user.id, {limit: 1000});
+  for (const d of dirs || []) {
+    const {data: fs} = await c.storage.from('compartidas').list(`${user.id}/${d.name}`, {limit: 100});
+    if (fs?.length) await c.storage.from('compartidas').remove(fs.map(f => `${user.id}/${d.name}/${f.name}`));
+  }
   const {error} = await c.rpc('borrar_cuenta');
   if (error) throw error;
   await signOut();

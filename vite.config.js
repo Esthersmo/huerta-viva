@@ -10,7 +10,7 @@ const CSP = [
   `script-src 'self' ${CF}`,
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src https://fonts.gstatic.com",
-  "img-src 'self' data: blob:",
+  `img-src 'self' data: blob: https://${SUPA}`,
   `connect-src 'self' data: https://${SUPA} wss://${SUPA} https://api.open-meteo.com`,
   `frame-src ${CF}`,
   "worker-src 'self'",
@@ -23,7 +23,8 @@ const csp = { name: 'csp', transformIndexHtml: html => html.replace('<meta chars
 
 export default defineConfig({
   base: './',
-  build: { target: 'es2022' },
+  // Dos páginas: la app y la de los enlaces compartidos (ver.html)
+  build: { target: 'es2022', rollupOptions: { input: { main: 'index.html', ver: 'ver.html' } } },
   plugins: [
     csp,
     VitePWA({
