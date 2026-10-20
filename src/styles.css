@@ -1072,3 +1072,15 @@ html.plan-noscroll header,html.plan-noscroll .fab{display:none}
 /* Avisos: «Deshacer» a la derecha de cada tarea hecha hoy */
 .rundo{border:1px solid var(--card-line);background:none;border-radius:999px;padding:6px 12px;font:500 .84rem var(--body);color:var(--carob-text);cursor:pointer}
 .rundo:hover{background:var(--panel)}
+/* Compañeras de la ficha: cada bloque en su caja, título marcado con icono y número, y las plantas en orden */
+.cmpsec .cmprow{gap:10px;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:var(--card);text-align:left}
+.cmpsec .cmprow.good{background:color-mix(in srgb,var(--ok-soft) 40%,var(--card));border-color:color-mix(in srgb,var(--ok-bar) 45%,var(--line))}
+.cmpsec .cmprow.bad{background:color-mix(in srgb,var(--danger-soft) 40%,var(--card));border-color:color-mix(in srgb,var(--danger-bar) 40%,var(--line))}
+.cmpsec .cmpl{display:flex;align-items:center;gap:8px;font:700 .8rem var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--carob-text)}
+.cmpsec .cmpl svg{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.cmpsec .good .cmpl{color:var(--ok)}.cmpsec .bad .cmpl{color:var(--danger)}
+.cmpsec .cmpl .n{font-size:.72rem;letter-spacing:0;border-radius:999px;padding:0 8px;background:var(--card);border:1px solid var(--line)}
+.cmpsec .cmps{gap:6px 8px}
+.cmpsec .cmp{background:var(--card);font-size:.88rem;padding:4px 12px}
+.cmpsec .cmpt{margin:0;font-size:.92rem;line-height:1.5;color:var(--ink)}
+.cmpsec .cmpl2{margin:2px 0 0;font-size:.8rem;font-weight:500;color:var(--muted)}

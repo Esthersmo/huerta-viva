@@ -675,11 +675,14 @@ function renderSeeds(){
 function compSec(p){
   const r=REL[p.sp],rot=rotNext(p.sp);if(!r.good.size&&!r.bad.size&&!rot)return '';
   const chip=(id,bad)=>{const has=(bad?mineNear(id,p):mine(id)).length;return `<span class="cmp${has?(bad?' warn':' have'):''}">${SP[id].n}${has?(bad?' · la tienes cerca':' · la tienes'):''}</span>`};
-  const sort=ids=>[...ids].sort((a,b)=>mine(b).length-mine(a).length);
-  return `<section class="pf-sec"><div class="pf-sh"><h3>Compañeras</h3></div>
-    ${r.good.size?`<div class="cmprow"><p class="cmpl">Se lleva bien con</p><div class="cmps">${sort(r.good).map(id=>chip(id,0)).join('')}</div></div>`:''}
-    ${r.bad.size?`<div class="cmprow"><p class="cmpl">Mejor lejos de</p><div class="cmps">${sort(r.bad).map(id=>chip(id,1)).join('')}</div></div>`:''}
-    ${rot?`<div class="cmprow"><p class="cmpl">Cuando acabe, en su sitio</p><p class="tip">${SP[p.sp].n} es ${ROT[rot.f].n}: después siembra ${ROT[rot.f].why}.${rot.now.length?` Ahora en tu zona: ${rot.now.map(id=>SP[id].n.toLowerCase()).join(', ')}.`:''}</p></div>`:''}
+  // Primero las que tienes y luego por orden alfabético
+  const sort=ids=>[...ids].sort((a,b)=>(mine(b).length>0)-(mine(a).length>0)||SP[a].n.localeCompare(SP[b].n,'es'));
+  const ic=d=>`<svg viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`;
+  const head=(t,d,n)=>`<p class="cmpl">${ic(d)}${t}${n?` <span class="n">${n}</span>`:''}</p>`;
+  return `<section class="pf-sec cmpsec"><div class="pf-sh"><h3>Compañeras</h3></div>
+    ${r.good.size?`<div class="cmprow good">${head('Se lleva bien con','<path d="M5 12.5l4.5 4.5L19 7"/>',r.good.size)}<div class="cmps">${sort(r.good).map(id=>chip(id,0)).join('')}</div></div>`:''}
+    ${r.bad.size?`<div class="cmprow bad">${head('Mejor lejos de','<path d="M6 6l12 12M18 6L6 18"/>',r.bad.size)}<div class="cmps">${sort(r.bad).map(id=>chip(id,1)).join('')}</div></div>`:''}
+    ${rot?`<div class="cmprow rot">${head('Cuando acabe, en su sitio','<path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v4h-4"/>')}<p class="cmpt">${SP[p.sp].n} es ${ROT[rot.f].n}: después siembra ${ROT[rot.f].why}.</p>${rot.now.length?`<p class="cmpl2">Ahora en tu zona</p><div class="cmps">${rot.now.map(id=>`<span class="cmp">${SP[id].n}</span>`).join('')}</div>`:''}</div>`:''}
   </section>`;
 }
 function renderPlantFicha(){
