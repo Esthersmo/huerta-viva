@@ -794,3 +794,12 @@ html.plan-noscroll header,html.plan-noscroll .fab{display:none}
 .hf-viewhd .x{align-self:center}
 .hf-top{display:flex;justify-content:flex-end;margin-bottom:-6px}
 .hf-viewhd{display:flex;justify-content:space-between;gap:12px}
+/* Ficha de cosecha: título con la × en la misma fila y los datos en dos columnas */
+.hf-vhd{align-items:center}
+.hf-vhd h2{margin:0}
+.hf-sp{margin:2px 0 0;color:var(--muted);font-size:.9rem}
+.hf-stats{display:grid;grid-template-columns:1fr 1fr;margin:0;border:1px solid var(--card-line);border-radius:12px;background:var(--surface);overflow:hidden}
+.hf-stats>div{padding:10px 14px;text-align:center}
+.hf-stats>div+div{border-left:1px solid var(--card-line)}
+.hf-stats dt{font-size:.72rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--title-ficha)}
+.hf-stats dd{margin:2px 0 0;font-family:var(--display);font-weight:700;font-size:1.15rem;color:var(--carob-text)}
