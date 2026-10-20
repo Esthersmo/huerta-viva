@@ -70,6 +70,7 @@ export function initPlan(ctx) {
   }
   function drawTray() {
     const un = plants().filter(p => !p.pos && SP[p.sp]);
+    el('planTray').closest('.plan-card').hidden = !un.length; // Con todas colocadas, la caja «Sin colocar» desaparece
     el('planTray').innerHTML = un.length ? un.map(p => `<button type="button" class="g-${GCOL[SP[p.sp].g] || 'ali'}" data-place="${esc(p.id)}"><span class="dot">${ab(SP[p.sp])}</span>${esc(p.name)}</button>`).join('')
       : `<p class="note">Todas tus plantas están colocadas${all.list.length > 1 ? ' en tus huertos' : ' en el plano'}.</p>`;
   }
@@ -84,7 +85,7 @@ export function initPlan(ctx) {
         <label class="pf">Nombre<input id="planName" maxlength="30" value="${esc(b.name)}"></label>
         ${b.k === 'pot' ? `<label class="pf">Tamaño<select id="planSize">${opts}</select></label>`
           : `<div class="pf"><span>Tamaño</span><span class="pf-size"><input id="planBW" inputmode="decimal" value="${num(b.w)}" aria-label="Ancho del bancal en metros"> × <input id="planBH" inputmode="decimal" value="${num(b.h)}" aria-label="Largo del bancal en metros"> m</span></div>`}
-        <p class="sub">${kids.length ? 'Tiene ' + kids.map(q => esc(q.name)).join(', ') : 'Vacía. Arrastra una planta dentro.'}</p>
+        <p class="sub kids">${kids.length ? 'Tiene ' + kids.map(q => esc(q.name)).join(', ') : 'Vacía. Arrastra una planta dentro.'}</p>
         <div class="row rm"><button class="btn del" type="button" id="planRm">Quitar ${b.k === 'pot' ? 'maceta' : 'bancal'}</button></div>`;
       if (el('planSize')) ctx.enhance?.(el('planSize'));
       return;
