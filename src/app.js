@@ -478,7 +478,15 @@ function cellState(s,z,m){
   // semillero: aún hace frío fuera, pero en 1-2 meses se podrá trasplantar
   const t=z.t[m];
   if(s.seed&&t>=s.tMin-6&&t<s.tMin&&(directa(s,z,(m+1)%12)||directa(s,z,(m+2)%12))) return 'semillero';
+  if(s.tree&&!treeFits(s,z)&&potMonths(s,z).includes(m)) return 'maceta';
   return '';
+}
+// Frutales que no aguantan el invierno de la zona: meses buenos para plantarlos en maceta y resguardarlos.
+// De marzo a junio y septiembre, para que arraigue antes del frío; de esos, los de temperatura adecuada o, si ninguno llega, los más cálidos.
+function potMonths(s,z){
+  const ok=[2,3,4,5,8];
+  const fit=ok.filter(m=>z.t[m]>=s.tMin&&z.t[m]<=s.tMax);if(fit.length)return fit;
+  const top=Math.max(...ok.map(m=>z.t[m]));return ok.filter(m=>z.t[m]>=top-2);
 }
 function directa(s,z,m){
   const t=z.t[m];
@@ -529,19 +537,19 @@ function renderCal(){
     if(state.calGroup==='todos'&&s.g!==lastG){lastG=s.g;h+=`<tr class="grp"><th colspan="13" scope="colgroup">${s.g==='alimentario'?'Alimentarios':GROUPS[s.g]}</th></tr>`}
     h+=`<tr class="crop${state.sel===s.id?' sel':''}" data-sp="${s.id}"><th class="name" scope="row">${nm(s.n)}</th>`;
     for(let m=0;m<12;m++){const st=cellState(s,z,m);const luz=st&&!s.tree&&z.sun[m]<s.sun?' luz':'';
-      const tip=st==='directa'?(s.tree?'Plantación':'Siembra directa'):st==='semillero'?'Semillero protegido':'No recomendado';
+      const tip=st==='directa'?(s.tree?'Plantación':'Siembra directa'):st==='semillero'?'Semillero protegido':st==='maceta'?'En maceta resguardada':'No recomendado';
       h+=`<td class="${nowCls(m).trim()}"><div class="cell ${st}${luz}" title="${s.n}, ${MONTHS_L[m]}: ${tip}${luz?' (pocas horas de sol)':''}"></div></td>`}
     h+='</tr>';
   }
   document.getElementById('cal').innerHTML=h+'</tbody>';
   // Móvil: lo que se puede sembrar o plantar este mes, antes de la tabla del año
-  const now=list.map(s=>({s,st:cellState(s,z,curM)})).filter(o=>o.st==='directa'||o.st==='semillero');
-  const anySem=now.some(o=>o.st==='semillero');
-  const chip=o=>`<button class="chip cn-${o.st==='directa'?'dir':'sem'}" type="button" data-sp="${o.s.id}"><i></i>${o.s.n}</button>`;
+  const now=list.map(s=>({s,st:cellState(s,z,curM)})).filter(o=>o.st);
+  const anySem=now.some(o=>o.st==='semillero'),anyPot=now.some(o=>o.st==='maceta');
+  const chip=o=>`<button class="chip cn-${o.st==='directa'?'dir':o.st==='maceta'?'pot':'sem'}" type="button" data-sp="${o.s.id}"><i></i>${o.s.n}</button>`;
   document.getElementById('calNow').innerHTML=`<h3>Qué sembrar en ${MONTHS_L[curM]}</h3>`+
-    (now.length?`<p class="cn-lbl"><span><i class="cn-dir"></i>Siembra directa o plantación</span>${anySem?'<span><i class="cn-sem"></i>En semillero protegido</span>':''}</p>`+
+    (now.length?`<p class="cn-lbl"><span><i class="cn-dir"></i>Siembra directa o plantación</span>${anySem?'<span><i class="cn-sem"></i>En semillero protegido</span>':''}${anyPot?'<span><i class="cn-pot"></i>En maceta resguardada</span>':''}</p>`+
       Object.keys(GROUPS).map(g=>{const a=now.filter(o=>o.s.g===g);if(!a.length)return '';
-        a.sort((x,y)=>(x.st===y.st?x.s.n.localeCompare(y.s.n,'es'):x.st==='directa'?-1:1));
+        const ord={directa:0,semillero:1,maceta:2};a.sort((x,y)=>(x.st===y.st?x.s.n.localeCompare(y.s.n,'es'):ord[x.st]-ord[y.st]));
         return `<section class="cn-grp"><h4>${GROUPS[g]}</h4><div class="chips">${a.map(chip).join('')}</div></section>`}).join('')
     :`<p class="cn-none">Este mes no toca sembrar nada de este grupo en tu zona.</p>`);
   const f=document.getElementById('ficha');if(f.open&&state.mode==='crop')renderFicha();
@@ -549,20 +557,21 @@ function renderCal(){
 function renderFicha(){
   document.getElementById('ficha').classList.add('crop');
   const z=zoneNow(),s=SP[state.sel];if(!s)return;
-  const dir=[],sem=[],dark=[];
-  for(let m=0;m<12;m++){const st=cellState(s,z,m);if(st==='directa')dir.push(m);if(st==='semillero')sem.push(m);if(st&&!s.tree&&z.sun[m]<s.sun)dark.push(m)}
+  const dir=[],sem=[],pot=[],dark=[];
+  for(let m=0;m<12;m++){const st=cellState(s,z,m);if(st==='directa')dir.push(m);if(st==='semillero')sem.push(m);if(st==='maceta')pot.push(m);if(st&&!s.tree&&z.sun[m]<s.sun)dark.push(m)}
   const nowSt=cellState(s,z,curM);
-  const nowTxt=s.tree?(nowSt?`Este mes (${MONTHS_L[curM]}) es buen momento para plantarlo.`:treeWhy(s,z)||`Este mes (${MONTHS_L[curM]}) no es buen momento para plantarlo en tu zona.`)
+  const nowTxt=s.tree&&pot.length?(nowSt?`Tus inviernos son demasiado fríos para tenerlo fuera, pero este mes (${MONTHS_L[curM]}) es buen momento para plantarlo en maceta y resguardarlo en invierno.`:`Tus inviernos son demasiado fríos para tenerlo fuera. En maceta resguardada, mejor plantarlo en ${ranges(pot).toLowerCase().replace(/, ([^,]*)$/,' y $1')}.`)
+    :s.tree?(nowSt?`Este mes (${MONTHS_L[curM]}) es buen momento para plantarlo.`:treeWhy(s,z)||`Este mes (${MONTHS_L[curM]}) no es buen momento para plantarlo en tu zona.`)
     :nowSt==='directa'?`Este mes (${MONTHS_L[curM]}) puedes sembrarlo directamente fuera.`:nowSt==='semillero'?`Este mes (${MONTHS_L[curM]}) toca semillero protegido.`:`Este mes (${MONTHS_L[curM]}) no es buen momento en tu zona.`;
   const strip=MONTHS.map((m,i)=>{const st=cellState(s,z,i);const luz=st&&!s.tree&&z.sun[i]<s.sun?' luz':'';return `<div><span class="cell ${st}${luz}" title="${MONTHS_L[i]}"></span>${i===curM?`<b>${m[0]}</b>`:m[0]}</div>`}).join('');
   const c=s.care;const mine=state.plants.filter(p=>p.sp===s.id);
   document.getElementById('fichaIn').innerHTML=`
    <div class="hd"><div><h2 id="fichaTitle">${s.n}</h2><span class="sp">${GROUPS[s.g]} · ${z.name}</span></div>
      <button class="x" id="fichaClose" aria-label="Cerrar ficha">×</button></div>
-   <div class="now ${nowSt||'no'}">${nowTxt}</div>
+   <div class="now ${nowSt||(pot.length?'maceta':'no')}">${nowTxt}</div>
    <div class="strip" aria-label="Meses de siembra">${strip}</div>
    <div class="facts">
-     ${s.tree?`<div class="fact"><span>Plantación</span><strong>${cap(ranges(dir))}</strong></div>
+     ${s.tree?`<div class="fact"><span>${pot.length?'En maceta resguardada':'Plantación'}</span><strong>${cap(ranges(pot.length?pot:dir))}</strong></div>
      <div class="fact"><span>Cómo plantarlo</span><strong>${s.dec?'A raíz desnuda en invierno, o en cepellón':'En cepellón (maceta)'}</strong></div>`
      :`<div class="fact"><span>Siembra directa</span><strong>${cap(ranges(dir))}</strong></div>
      <div class="fact"><span>Semillero protegido</span><strong>${s.seed?cap(ranges(sem)):'No conviene trasplantar'}</strong></div>`}
@@ -893,6 +902,7 @@ function renderTips(){
   ms.closest('.tip-mine-sel').classList.toggle('empty',!mine.length);
   const st=s.pot?null:cellState(s,z,curM);
   const now=s.pot?`<p class="now semillero">Planta de maceta: se cuida todo el año.</p>`
+    :s.tree&&!treeFits(s,z)?`<p class="now maceta">Tus inviernos son demasiado fríos para tenerlo fuera. ${st?`En ${MONTHS_L[curM]} es buen momento para plantarlo en maceta y resguardarlo en invierno.`:`En maceta resguardada, mejor plantarlo en ${ranges(potMonths(s,z)).toLowerCase().replace(/, ([^,]*)$/,' y $1')}.`}</p>`
     :s.tree?`<p class="now ${st||'no'}">${st?`En ${MONTHS_L[curM]} es buen momento para plantarlo en tu zona.`:treeWhy(s,z)||`En ${MONTHS_L[curM]} no es buen momento para plantarlo en tu zona.`}</p>`+(lowChill(s,z)?`<p class="tip chill">${chillTxt(s)}</p>`:'')
     :`<p class="now ${st||'no'}">${st==='directa'?`En ${MONTHS_L[curM]} puedes sembrarla directamente fuera en tu zona.`:st==='semillero'?`En ${MONTHS_L[curM]} toca semillero protegido en tu zona.`:`En ${MONTHS_L[curM]} no es buen momento para sembrarla en tu zona.`}</p>`;
   const care=Object.keys(ACTIONS).filter(a=>s.care&&s.care[a]).map(a=>`${ACTIONS[a]} ${ivTxt(s.care[a])}`).join(' · ');

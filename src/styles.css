@@ -2,7 +2,7 @@
 /* Paleta de Esther: matcha #809671, almond #E5E0D8, pistache #B3B792, chai #D2AB80, carob #725C3A, vanilla #E5D2B8 */
 :root{
   --bg:#F6F3EE; --surface:#FDFBF8; --surface-2:#E5E0D8; --ink:#3D3121; --muted:#76664F; --line:#DDD6CA;
-  --leaf:#5F7651; --leaf-soft:#B3B792; --leaf-cell:#809671; --seed:#E5D2B8; --seed-ink:#D2AB80;
+  --leaf:#5F7651; --leaf-soft:#B3B792; --leaf-cell:#809671; --seed:#E5D2B8; --seed-ink:#D2AB80; --pot-cell:#C49A6C; --pot-soft:#F1E3D2;
   --sun:#D2AB80; --accent:#9C7748; --peach:#E5D2B8; --water:#5F7F89;
   --ok:#516A44; --ok-bar:#809671; --ok-soft:#E2E6D6;
   --warn:#866518; --warn-bar:#DDBA68; --warn-soft:#F5EACB;
@@ -13,7 +13,7 @@
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --bg:#1D1913; --surface:#27221A; --surface-2:#332C22; --ink:#EFE8DC; --muted:#BCAF99; --line:#4A4134;
-  --leaf:#A9BC97; --leaf-soft:#4A5440; --leaf-cell:#809671; --seed:#4A3D2C; --seed-ink:#D2AB80;
+  --leaf:#A9BC97; --leaf-soft:#4A5440; --leaf-cell:#809671; --seed:#4A3D2C; --seed-ink:#D2AB80; --pot-cell:#B08455; --pot-soft:#4A3A28;
   --sun:#D2AB80; --accent:#D2AB80; --peach:#3A3227; --water:#9DB5BC;
   --ok:#B7C9A5; --ok-bar:#809671; --ok-soft:#2F3628;
   --warn:#E8CD86; --warn-bar:#BF9D47; --warn-soft:#3D3420;
@@ -21,7 +21,7 @@
   --card:#4A3D2C; --card-line:#6A5841; --luz:#D2AB80; --carob-text:#C9AD86; --carob:#725C3A; --carob-ink:#F6F3EE; --title-viva:#A9BC97; --title-ficha:#B7C9A5; --sel:#A9BC97; --tip-bg:#4A3D2C; --tipk-bg:#27221A; --tip-line:#6A5841; --tip-shadow:none; --sel-ink:#27221A; --foot-line:#8C7148; --del-bg:#2C1A13; --del-line:#B9705C; --del-ink:#E8A592; --act-bg:#27221A; --act-line:#4A4134; --act-ink:#C9AD86; --panel:#27221A; --panel-line:#4A4134; --sem-a:#D2AB80; --sem-b:#8C7148; --sem-line:#E5D2B8; --luz-mark:#1D1913; --luz-sample:#809671; --deco-op:.07; --grp-bg:#4A5440; --grp-line:#5E6A51; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#1D1913; --surface:#27221A; --surface-2:#332C22; --ink:#EFE8DC; --muted:#BCAF99; --line:#4A4134;
-  --leaf:#A9BC97; --leaf-soft:#4A5440; --leaf-cell:#809671; --seed:#4A3D2C; --seed-ink:#D2AB80;
+  --leaf:#A9BC97; --leaf-soft:#4A5440; --leaf-cell:#809671; --seed:#4A3D2C; --seed-ink:#D2AB80; --pot-cell:#B08455; --pot-soft:#4A3A28;
   --sun:#D2AB80; --accent:#D2AB80; --peach:#3A3227; --water:#9DB5BC;
   --ok:#B7C9A5; --ok-bar:#809671; --ok-soft:#2F3628;
   --warn:#E8CD86; --warn-bar:#BF9D47; --warn-soft:#3D3420;
@@ -124,6 +124,7 @@ table.cal{border-collapse:collapse;width:100%;min-width:720px;font-variant-numer
 .cal tbody tr.crop.sel th.name{color:var(--leaf);text-decoration:underline}
 .cell{height:30px;margin:3px 2px;border-radius:4px}
 .cell.directa{background:var(--leaf-cell)}
+.cell.maceta{background:var(--pot-cell)}
 .cell.semillero{background:repeating-linear-gradient(135deg,var(--sem-a,var(--seed)) 0 4px,var(--sem-b,var(--leaf-soft)) 4px 8px);border:1px solid var(--sem-line,var(--seed-ink))}
 .cell.luz{outline:2px dotted var(--luz-mark,var(--luz));outline-offset:-3px}
 .ficha{border:0;padding:0;background:var(--surface);color:var(--ink);width:min(560px,100%);max-width:100%;max-height:88vh;border-radius:16px;box-shadow:0 20px 50px rgba(20,15,8,.35)}
@@ -133,11 +134,13 @@ table.cal{border-collapse:collapse;width:100%;min-width:720px;font-variant-numer
 .ficha h2{font-size:1.5rem}
 .ficha .x{font:inherit;font-size:1.4rem;line-height:1;width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--surface-2);color:var(--ink);cursor:pointer;flex:none}
 .ficha .now{border-radius:10px;padding:10px 12px;font-weight:700}
+.ficha .now.maceta,#tipBody .now.maceta{background:var(--pot-soft);color:var(--ink);border:1px solid var(--pot-cell)}
 .ficha .now.directa{background:var(--ok-soft);color:var(--ok)} .ficha .now.semillero{background:var(--peach);color:var(--ink)} .ficha .now.no{background:var(--danger-soft);color:var(--danger);border:1px solid var(--danger-bar)}
 .strip{display:grid;grid-template-columns:repeat(12,1fr);gap:3px}
 .strip div{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:.68rem;color:var(--muted)}
 .strip .cell{width:100%;height:22px;margin:0;background:var(--surface-2)}
 .strip .cell.directa{background:var(--leaf-cell)}
+.strip .cell.maceta{background:var(--pot-cell)}
 .strip .cell.semillero{background:repeating-linear-gradient(135deg,var(--sem-a,var(--seed)) 0 4px,var(--sem-b,var(--leaf-soft)) 4px 8px)}
 .strip b{color:var(--ink)}
 .facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
@@ -377,6 +380,7 @@ form.add label{display:flex;flex-direction:column;gap:4px;font-size:.85rem;color
   .calnow .chip{display:inline-flex;align-items:center;gap:6px}
   .calnow .chip i{width:10px;height:10px;border-radius:2px}
   .cn-lbl .cn-dir,.chip.cn-dir i{background:var(--leaf-cell)}
+  .cn-lbl .cn-pot,.chip.cn-pot i{background:var(--pot-cell)}
   .cn-lbl .cn-sem,.chip.cn-sem i{background:repeating-linear-gradient(135deg,var(--sem-a,var(--seed)) 0 3px,var(--sem-b,var(--leaf-soft)) 3px 6px);border:1px solid var(--sem-line,var(--seed-ink))}
   .cn-grp{width:100%;box-sizing:border-box;background:var(--card);border:1px solid var(--card-line);border-radius:12px;padding:10px 12px 12px;box-shadow:var(--tip-shadow)}
   .cn-grp .chips{display:grid;grid-template-columns:1fr 1fr;gap:8px}
