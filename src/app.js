@@ -874,11 +874,11 @@ function renderPlantsList(){
   for(const[id,v]of[['plLocSel',state.plLoc],['plGroupSel',state.plGroup]]){const el=document.getElementById(id);if(el&&el.value!==v){el.value=v;el._cselDraw&&el._cselDraw()}}
   renderPlantsMobile();
 }
-// Solo se puede deshacer lo marcado en este dispositivo, del que se guardó la fecha anterior
-const canUndo=(p,k)=>!!p.logPrev&&k in p.logPrev;
 function careChanged(){save('hv.plants',state.plants);renderPlants();renderRem();if(ficha.open&&state.mode==='plant')renderPlantFicha()}
 // Deshacer una tarea marcada hoy: vuelve la fecha que tenía antes
-function undoCare(p,k){if(!p||p.log?.[k]!==iso(today)||!canUndo(p,k))return;const prev=p.logPrev?.[k];
+function undoCare(p,k){if(!p||p.log?.[k]!==iso(today))return;
+  // Si no se guardó la fecha anterior (marcada antes de existir «Deshacer» o en otro dispositivo), vuelve a tocar hoy
+  const prev=p.logPrev&&k in p.logPrev?p.logPrev[k]:iso(new Date(today.getTime()-interval(p,k)*DAY));
   if(prev)p.log[k]=prev;else delete p.log[k];if(p.logPrev){delete p.logPrev[k];if(!Object.keys(p.logPrev).length)delete p.logPrev}
   careChanged();toast(`${ACTIONS[k]} deshecho: ${p.name}`)}
 // Iconos de cada tarea en Avisos
@@ -905,7 +905,7 @@ function renderRem(){
   const sow=seedRows().filter(r=>r.now);
   if(sow.length)h+=`<section class="rgrp seeds"><h3 class="rgh">Para sembrar este mes <span class="n">${sow.length}</span></h3><div class="rlist"><div class="rrow">${remIc('semilla')}<div class="rt"><b>${sow.map(r=>r.s.n).join(', ')}</b><span>De tus semillas</span></div><button class="btn" type="button" id="goSeeds">Ver</button></div></div></section>`;
   // Lo hecho hoy va aparte: en el ordenador, en la columna de la derecha bajo el tiempo
-  document.getElementById('remDone').innerHTML=done.length?`<section class="rgrp done"><button class="rdone" data-remmore="done" aria-expanded="${!!more.done}">${REM_OK}${done.length} ${done.length===1?'hecho':'hechos'} hoy<span>${more.done?'Ocultar':'Ver'}</span></button>${more.done?`<div class="rlist">${done.map(x=>`<div class="rrow">${remIc(x.a)}<div class="rt"><b>${esc(x.p.name)}</b><span>${VERB[x.a]} · hecho</span></div>${canUndo(x.p,x.a)?`<button class="rundo" type="button" data-undo="${x.a}" data-id="${esc(x.p.id)}" aria-label="Deshacer: ${VERB[x.a].toLowerCase()} ${esc(x.p.name)}">Deshacer</button>`:'<span></span>'}</div>`).join('')}</div>`:''}</section>`:'';
+  document.getElementById('remDone').innerHTML=done.length?`<section class="rgrp done"><button class="rdone" data-remmore="done" aria-expanded="${!!more.done}">${REM_OK}${done.length} ${done.length===1?'hecho':'hechos'} hoy<span>${more.done?'Ocultar':'Ver'}</span></button>${more.done?`<div class="rlist">${done.map(x=>`<div class="rrow">${remIc(x.a)}<div class="rt"><b>${esc(x.p.name)}</b><span>${VERB[x.a]} · hecho</span></div>${`<button class="rundo" type="button" data-undo="${x.a}" data-id="${esc(x.p.id)}" aria-label="Deshacer: ${VERB[x.a].toLowerCase()} ${esc(x.p.name)}">Deshacer</button>`}</div>`).join('')}</div>`:''}</section>`:'';
   document.getElementById('remList').innerHTML=h;
   drawWx();
   // Próximas tareas para los avisos diarios
