@@ -431,7 +431,7 @@ function newId(){return 'f'+Date.now().toString(36)+Math.random().toString(36).s
 let wx=loadWx(); // Tiempo real de la zona (ver «El tiempo»)
 let seedsInit=load('hv.seeds',[]);
 const MOBILE=matchMedia('(max-width:600px)');
-let state={tipSel:null,mode:'crop',plantSel:null,photoBig:null,zone:(z=>OLD_ZONES[z]||(ZONES[z]?z:'sevilla'))(load('hv.zone','sevilla')),alt:load('hv.alt',null),plants:load('hv.plants',EXAMPLES),calGroup:'todos',plGroup:'todos',plLoc:'todas',sel:null,seeds:seedsInit};
+let state={tipSel:null,mode:'crop',plantSel:null,photoBig:null,zone:(z=>OLD_ZONES[z]||(ZONES[z]?z:'sevilla'))(load('hv.zone','sevilla')),alt:load('hv.alt',null),plants:load('hv.plants',EXAMPLES),calSpan:load('hv.calspan','mes'),calGroup:'todos',plGroup:'todos',plLoc:'todas',sel:null,seeds:seedsInit};
 // Añade una sola vez los ejemplos nuevos a quien ya tenía datos guardados
 if(load('hv.seedV',1)<2){const have=new Set(state.plants.map(p=>p.id));EXAMPLES.filter(e=>['e7','e8','e9','e10'].includes(e.id)&&!have.has(e.id)).forEach(e=>state.plants.push(e));save('hv.plants',state.plants);save('hv.seedV',2)}
 if(load('hv.seedV',1)<3){if(!state.plants.some(p=>p.id==='e11')){state.plants.push(EXAMPLES.find(e=>e.id==='e11'));save('hv.plants',state.plants)}save('hv.seedV',3)}
@@ -522,11 +522,18 @@ function ranges(months){
 }
 function renderCal(){
   const z=zoneNow();
-  document.getElementById('calLede').innerHTML=`<span>Toca un cultivo para abrir su ficha.</span>`;
+  const zl=state.cp?`${esc(state.cp.name)} · ${esc(state.cp.cp)}`:'';
+  document.getElementById('calLede').innerHTML=`<span>Toca un cultivo para abrir su ficha.${zl?` <button type="button" class="calzone" id="calZone">${zl} · cambia la zona en Mi cuenta</button>`:''}</span>`;
   const groups=['todos',...Object.keys(GROUPS)];
   document.getElementById('calGroups').innerHTML=groups.map(g=>`<button class="chip" data-g="${g}" aria-pressed="${state.calGroup===g}">${g==='todos'?'Todos':GROUPS[g]}</button>`).join('');
   const gs=document.getElementById('calGroupSel');if(gs&&gs.value!==state.calGroup){gs.value=state.calGroup;gs._cselDraw&&gs._cselDraw()}
   const list=SPECIES.filter(s=>!s.pot&&(state.calGroup==='todos'||s.g===state.calGroup));
+  // Ordenador: buscador, «Todo el año» / «Este mes» y «Con tus semillas» sobre la tabla
+  const has=new Set(state.seeds.map(x=>x.sp)),grown=new Set(state.plants.filter(p=>!p.ej).map(p=>p.sp));
+  const span=state.calSpan||'mes',q=cselNorm(document.getElementById('calQ').value.trim()),dk=!MOBILE.matches;
+  document.querySelectorAll('#calSpan [data-span]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.span===span));
+  document.getElementById('calSeeds').setAttribute('aria-pressed',!!state.calSeeds);
+  const rows=dk?list.filter(s=>(!q||cselNorm(s.n).includes(q))&&(span==='year'||cellState(s,z,curM))&&(!state.calSeeds||has.has(s.id))):list;
   const nowCls=m=>m===curM?' now':'';
   let h=`<thead><tr><th class="name" scope="col">Cultivo</th>${MONTHS.map((m,i)=>`<th scope="col" class="${nowCls(i).trim()}" title="${MONTHS_L[i]}"><span class="ml">${m}</span><span class="ms" aria-hidden="true">${m[0]}</span></th>`).join('')}</tr></thead><tbody>`;
   // Guiones de corte para los nombres largos en la columna estrecha del móvil
@@ -534,19 +541,21 @@ function renderCal(){
   const nm=n=>n.split(' ').map(w=>SHY[w]||w).join(' ');
   // Con «Todos», un título de grupo antes de cada tipo de cultivo
   const gk=Object.keys(GROUPS);let lastG=null;
-  for(const s of [...list].sort((a,b)=>gk.indexOf(a.g)-gk.indexOf(b.g))){
-    if(state.calGroup==='todos'&&s.g!==lastG){lastG=s.g;h+=`<tr class="grp"><th colspan="13" scope="colgroup">${s.g==='alimentario'?'Alimentarios':GROUPS[s.g]}</th></tr>`}
-    h+=`<tr class="crop${state.sel===s.id?' sel':''}" data-sp="${s.id}"><th class="name" scope="row">${nm(s.n)}</th>`;
+  const nNow=g=>rows.filter(s=>s.g===g&&cellState(s,z,curM)).length;
+  for(const s of [...rows].sort((a,b)=>gk.indexOf(a.g)-gk.indexOf(b.g))){
+    if(state.calGroup==='todos'&&s.g!==lastG){lastG=s.g;const n=dk&&nNow(s.g);h+=`<tr class="grp"><th colspan="13" scope="colgroup">${s.g==='alimentario'?'Alimentarios':GROUPS[s.g]}${n?`<span class="gn"> · ${n} ${n===1?'se puede':'se pueden'} sembrar en ${MONTHS_L[curM]}</span>`:''}</th></tr>`}
+    const mk=dk&&(has.has(s.id)||grown.has(s.id))?`<span class="cmk">${[has.has(s.id)?'🌱 semillas':'',grown.has(s.id)?'en tu huerto':''].filter(Boolean).join(' · ')}</span>`:'';
+    h+=`<tr class="crop${state.sel===s.id?' sel':''}" data-sp="${s.id}"><th class="name" scope="row">${nm(s.n)}${mk}</th>`;
     for(let m=0;m<12;m++){const st=cellState(s,z,m);const luz=st&&!s.tree&&z.sun[m]<s.sun?' luz':'';
       const tip=st==='directa'?(s.tree?'Plantación':'Siembra directa'):st==='semillero'?'Semillero protegido':st==='maceta'?'En maceta resguardada':'No recomendado';
       h+=`<td class="${nowCls(m).trim()}"><div class="cell ${st}${luz}" title="${s.n}, ${MONTHS_L[m]}: ${tip}${luz?' (pocas horas de sol)':''}"></div></td>`}
     h+='</tr>';
   }
+  if(!rows.length)h+=`<tr class="cempty"><td colspan="13">${q?'No hay cultivos con ese nombre.':state.calSeeds?'No tienes semillas de estos cultivos para sembrar ahora.':'No hay cultivos con estos filtros.'}</td></tr>`;
   document.getElementById('cal').innerHTML=h+'</tbody>';
   // Móvil: lo que se puede sembrar o plantar en el mes elegido (con flechas), antes de la tabla del año
   const cm=state.calM??curM;
   const now=list.map(s=>({s,st:cellState(s,z,cm)})).filter(o=>o.st);
-  const has=new Set(state.seeds.map(x=>x.sp)),grown=new Set(state.plants.filter(p=>!p.ej).map(p=>p.sp));
   const kinds=new Set(now.map(o=>o.st));
   const ord={directa:0,semillero:1,maceta:2},srt=(x,y)=>x.st===y.st?x.s.n.localeCompare(y.s.n,'es'):ord[x.st]-ord[y.st];
   const chip=o=>`<button class="chip cn-${o.st==='directa'?'dir':o.st==='maceta'?'pot':'sem'}" type="button" data-sp="${o.s.id}"><span class="cn-n">${o.s.n}</span>${grown.has(o.s.id)?'<span class="cn-mine">🌱 en tu huerto</span>':''}</button>`;
@@ -674,7 +683,7 @@ function compSec(p){
   </section>`;
 }
 function renderPlantFicha(){
-  document.getElementById('ficha').classList.remove('crop','quick');
+  document.getElementById('ficha').classList.remove('crop','quick','pfw');
   const p=state.plants.find(x=>x.id===state.plantSel);if(!p)return;
   const s=SP[p.sp],ph=(photos[p.id]||[]).slice().sort((a,b)=>a.date<b.date?-1:1);
   const big=ph.find(x=>x.id===state.photoBig)||ph[ph.length-1];
@@ -694,7 +703,7 @@ function renderPlantFicha(){
      :`<div class="empty-ph">Aún no hay fotos. Añade la primera y vuelve a hacer una cada pocas semanas para ver cómo crece.</div>`}
    </section>`;
   const age2=age===0?'Hoy':age>=365?`${(age/365).toFixed(1).replace('.0','').replace('.',',')} años`:`${age} días`;
-  if(MOBILE.matches&&!state.editing)return renderPlantFichaM(p,s,age2,photoSec);
+  if(!state.editing)return renderPlantFichaM(p,s,age2,photoSec);
   document.getElementById('fichaIn').innerHTML=`
    <div class="pf-hd">
      <div class="pf-id">
@@ -721,7 +730,7 @@ ${photoSec}
   const hU=document.getElementById('hU');if(hU)enhanceSelect(hU);
   if(state.editing){document.getElementById('eSp').value=p.sp;document.getElementById('eLoc').value=p.loc;enhanceSelect(document.getElementById('eSp'));enhanceSelect(document.getElementById('eLoc'));const n=document.getElementById('eName');n.focus();n.select()}
 }
-// Ficha de planta en el móvil: cabecera con foto, datos, cuidados, fotos, cosechas y compañeras plegadas, y Quitar con confirmación
+// Ficha de planta (móvil y, a dos columnas, ordenador): cabecera con foto, datos, cuidados, fotos, cosechas y compañeras plegadas, y Quitar con confirmación
 function renderPlantFichaM(p,s,age,photoSec){
   const d=dues(p),when=l=>l<0?`Hace ${-l} ${-l===1?'día':'días'}`:l===0?'Toca hoy':leftTxt(l);
   const BTN={riego:'Regada hoy',abono:'Abonada hoy',sustrato:'Sustrato cambiado',poda:'Podada hoy'};
@@ -730,14 +739,16 @@ function renderPlantFichaM(p,s,age,photoSec){
   document.getElementById('fichaIn').innerHTML=`
    <div class="pf-hd m">${plantThumb(p)}<div class="pf-id"><h2 id="fichaTitle">${esc(p.name)}</h2><small>${s.n} · ${GROUPS[s.g]}</small></div>
      <button class="x" id="fichaClose" aria-label="Cerrar ficha">×</button></div>
+   <div class="pf-cols"><div class="pf-l">
    <div class="tstats" style="--n:3"><div><span>Ubicación</span><b>${p.loc==='interior'?'Interior':'Exterior'}</b></div><div><span>${s.tree?'Plantación':'Siembra'}</span><b>${parse(p.sown).toLocaleDateString('es-ES',{day:'numeric',month:'short'})}</b></div><div><span>Edad</span><b>${age}</b></div></div>
    ${d.length?`<section class="pf-sec pcare-s"><div class="pf-sh"><h3>Cuidados</h3></div><div class="pcare">${d.map(x=>{const c=x.left<0?'over':x.left===0?'today':'';
      return `<div class="pcr ${c}">${remIc(x.a)}<div><b>${ACTIONS[x.a]}</b><small>${ivTxt(x.iv).replace(/^c/,'C')} · <em>${when(x.left).toLowerCase()}</em></small></div><button class="btn act" data-act="${x.a}" data-id="${esc(p.id)}">${BTN[x.a]}</button></div>`}).join('')}</div></section>`:''}
-   ${photoSec}
    ${fold('harv','Cosechas',tot?`${tot} en ${YEAR}`:(p.harv||[]).length?'Ver':'Anotar',hs)}
    ${fold('comp','Compañeras',have?`${have} ${have===1?'la tienes':'las tienes'}`:'Ver',cs)}
    ${s.pot?'':`<button class="btn pf-cal" id="fichaCrop" data-crop="${s.id}">Ver calendario de ${s.tree?'plantación':'siembra'} de ${s.n.toLowerCase()}</button>`}
-   <div class="pf-bot"><button class="btn" id="sharePlantBtn">Compartir</button><button class="btn" id="editToggle" aria-expanded="false">Editar datos</button><button class="btn danger" id="plantDel">Quitar</button></div>`;
+   <div class="pf-bot"><button class="btn" id="sharePlantBtn">Compartir</button><button class="btn" id="editToggle" aria-expanded="false">Editar datos</button><button class="btn danger" id="plantDel">Quitar</button></div>
+   </div><div class="pf-r">${photoSec}</div></div>`;
+  document.getElementById('ficha').classList.add('pfw');
   const hU=document.getElementById('hU');if(hU)enhanceSelect(hU);
 }
 function openPlant(id){
@@ -826,7 +837,7 @@ function leftTxt(l){return l<0?`Hace ${-l} ${-l===1?'día':'días'}`:l===0?'Hoy'
 function leftCls(l){return l<0?'over':l===0?'today':'ok'}
 
 function renderPlants(){planUI?.draw();renderPlantsList()}
-// Móvil: tarjetas compactas con la próxima tarea, buscador y orden
+// Tarjetas compactas con la próxima tarea, buscador y orden (móvil y ordenador)
 const ILU_SP=['tomate','pimiento','zanahoria','col','rabano','monstera','sandia'];
 function plantThumb(p){
   const ph=(photos[p.id]||[]).slice().sort((a,b)=>a.date<b.date?-1:1).pop();
@@ -836,7 +847,8 @@ const nextDue=p=>dues(p).sort((a,b)=>a.left-b.left)[0];
 function renderPlantsMobile(){
   document.getElementById('plmEj').hidden=!state.plants.some(p=>p.ej);
   const q=cselNorm(document.getElementById('plmQ').value.trim()),sort=state.plSort||'care';
-  const list=state.plants.filter(p=>!q||cselNorm(p.name).includes(q)||cselNorm(SP[p.sp].n).includes(q));
+  // Ubicación y tipo solo se filtran en el ordenador (en el móvil no se ven esos desplegables)
+  const fl=!MOBILE.matches,list=state.plants.filter(p=>(!q||cselNorm(p.name).includes(q)||cselNorm(SP[p.sp].n).includes(q))&&(!fl||state.plLoc==='todas'||p.loc===state.plLoc)&&(!fl||state.plGroup==='todos'||SP[p.sp].g===state.plGroup));
   const key={care:p=>nextDue(p)?.left??999,name:p=>0,new:p=>-parse(p.sown)};
   list.sort((a,b)=>key[sort](a)-key[sort](b)||a.name.localeCompare(b.name,'es'));
   const when=l=>l<0?`hace ${-l} ${-l===1?'día':'días'}`:l===0?'hoy':leftTxt(l).toLowerCase();
@@ -858,28 +870,7 @@ function renderPlantsList(){
   const all=state.plLoc==='todas'&&state.plGroup==='todos';
   document.querySelectorAll('#locSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.loc==='todas'?all:b.dataset.loc===state.plLoc));
   for(const[id,v]of[['plLocSel',state.plLoc],['plGroupSel',state.plGroup]]){const el=document.getElementById(id);if(el&&el.value!==v){el.value=v;el._cselDraw&&el._cselDraw()}}
-  if(MOBILE.matches)return renderPlantsMobile();
-  const list=state.plants.filter(p=>(state.plLoc==='todas'||p.loc===state.plLoc)&&(state.plGroup==='todos'||SP[p.sp].g===state.plGroup));
-  let h='';
-  for(const g of Object.keys(GROUPS)){
-    const ps=list.filter(p=>SP[p.sp].g===g);if(!ps.length)continue;
-    h+=`<div class="grouphead"><h3>${GROUPS[g]}</h3><small>${ps.length} ${ps.length===1?'planta':'plantas'}</small></div><div class="cards">`;
-    for(const p of ps){
-      const d=dues(p);
-      const ph=(photos[p.id]||[]).slice().sort((a,b)=>a.date<b.date?-1:1),last=ph[ph.length-1];
-      h+=`<article class="card">
-       <div class="pills"><span class="pill ${p.loc==='interior'?'int':'ext'}">${p.loc}</span>${p.ej?'<span class="pill ej">Ejemplo</span>':''}</div>
-       ${last?`<img class="thumb" src="${img(last.src)}" alt="">`:''}
-       <div><h3>${esc(p.name)}</h3><div class="sp">${SP[p.sp].n} · desde ${parse(p.sown).toLocaleDateString('es-ES',{day:'numeric',month:'short',year:'numeric'})}</div>${(t=>t?`<p class="harvc">Cosechado en ${YEAR}: ${t}</p>`:'')(harvTot(p.harv,YEAR))}${(f=>f.length?`<p class="foe">Mejor lejos de ${f.map(id=>SP[id].n.toLowerCase()).join(' y ')}, que la tienes en ${p.loc}</p>`:'')(foesNear(p))}</div>
-       <div class="dues">${d.map(x=>`<div class="du"><span class="dl">${ACTIONS[x.a]}</span> <span class="dv">${ivTxt(x.iv)}</span> <span class="st ${leftCls(x.left)}">${leftTxt(x.left)}</span></div>`).join('')}</div>
-       <div class="care-acts">${d.map(x=>`<button class="btn act" data-act="${x.a}" data-id="${esc(p.id)}">${{riego:'Regada hoy',abono:'Abonada hoy',sustrato:'Sustrato cambiado',poda:'Podada hoy'}[x.a]}</button>`).join('')}${canHarv(p)&&!p.ej?`<button class="btn act harvb" data-harvest="${esc(p.id)}">Cosechar</button>`:''}</div>
-       <div class="card-foot"><button class="btn" data-open="${esc(p.id)}">Ficha y fotos${ph.length?` (${ph.length})`:''}</button>
-       <button class="btn ghost" data-del="${esc(p.id)}" aria-label="Quitar ${esc(p.name)}">Quitar</button></div></article>`;
-    }
-    h+='</div>';
-  }
-  renderHarvests();
-  document.getElementById('plList').innerHTML=h||'<p class="lede" style="text-align:center;margin-inline:auto">No hay plantas con estos filtros. Añade una arriba.</p>';
+  renderPlantsMobile();
 }
 // Iconos de cada tarea en Avisos
 const REM_IC={riego:'<path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/>',abono:'<path d="M6 8h12l-1 12H7z"/><path d="M9 8V5h6v3"/>',sustrato:'<path d="M5 10h14l-2 10H7z"/><path d="M4 10h16"/><path d="M12 10V6m0 0c0-2 2-3 4-3 0 2-2 3-4 3zm0 0c0-2-2-3-4-3 0 2 2 3 4 3"/>',poda:'<circle cx="6" cy="7" r="2.5"/><circle cx="6" cy="17" r="2.5"/><path d="M8 8.5L20 17M8 15.5L20 7"/>',semilla:'<path d="M12 21c0-6 0-9 0-11"/><path d="M12 12c-4 0-7-3-7-7 4 0 7 3 7 7zm0-2c0-3 2-6 6-6 0 4-3 6-6 6"/>'};
@@ -904,7 +895,8 @@ function renderRem(){
   let h=grp('over','Atrasados',by('over'))+grp('today','Hoy',by('today'))+grp('soon','Próximos días',by('soon'))||'<p class="rempty">No hay tareas pendientes esta semana.</p>';
   const sow=seedRows().filter(r=>r.now);
   if(sow.length)h+=`<section class="rgrp seeds"><h3 class="rgh">Para sembrar este mes <span class="n">${sow.length}</span></h3><div class="rlist"><div class="rrow">${remIc('semilla')}<div class="rt"><b>${sow.map(r=>r.s.n).join(', ')}</b><span>De tus semillas</span></div><button class="btn" type="button" id="goSeeds">Ver</button></div></div></section>`;
-  if(done.length)h+=`<section class="rgrp done"><button class="rdone" data-remmore="done" aria-expanded="${!!more.done}">${REM_OK}${done.length} ${done.length===1?'hecho':'hechos'} hoy<span>${more.done?'Ocultar':'Ver'}</span></button>${more.done?`<div class="rlist">${done.map(x=>`<div class="rrow">${remIc(x.a)}<div class="rt"><b>${esc(x.p.name)}</b><span>${VERB[x.a]} · hecho</span></div><span></span></div>`).join('')}</div>`:''}</section>`;
+  // Lo hecho hoy va aparte: en el ordenador, en la columna de la derecha bajo el tiempo
+  document.getElementById('remDone').innerHTML=done.length?`<section class="rgrp done"><button class="rdone" data-remmore="done" aria-expanded="${!!more.done}">${REM_OK}${done.length} ${done.length===1?'hecho':'hechos'} hoy<span>${more.done?'Ocultar':'Ver'}</span></button>${more.done?`<div class="rlist">${done.map(x=>`<div class="rrow">${remIc(x.a)}<div class="rt"><b>${esc(x.p.name)}</b><span>${VERB[x.a]} · hecho</span></div><span></span></div>`).join('')}</div>`:''}</section>`:'';
   document.getElementById('remList').innerHTML=h;
   drawWx();
   // Próximas tareas para los avisos diarios
@@ -1100,7 +1092,7 @@ document.querySelectorAll('nav button').forEach(b=>b.addEventListener('click',()
   try{store.setItem('hv.tab',b.dataset.tab)}catch(e){}
   if(MOBILE.matches&&b.dataset.init!==undefined)window.scrollTo(0,0);b.dataset.init='';
 }));
-document.getElementById('remList').addEventListener('click',e=>{const m=e.target.closest('[data-remmore]');if(!m)return;const k=m.dataset.remmore;state.remMore[k]=!state.remMore[k];renderRem();if(!state.remMore[k])document.querySelector(`[data-remmore="${k}"]`)?.scrollIntoView({block:'nearest'})});
+for(const id of ['remList','remDone'])document.getElementById(id).addEventListener('click',e=>{const m=e.target.closest('[data-remmore]');if(!m)return;const k=m.dataset.remmore;state.remMore[k]=!state.remMore[k];renderRem();if(!state.remMore[k])document.querySelector(`[data-remmore="${k}"]`)?.scrollIntoView({block:'nearest'})});
 document.getElementById('calGroups').addEventListener('click',e=>{const g=e.target.closest('[data-g]');if(!g)return;state.calGroup=g.dataset.g;renderCal()});
 // En el móvil los filtros del calendario van en un desplegable
 const calGroupSel=document.getElementById('calGroupSel');
@@ -1109,6 +1101,11 @@ calGroupSel.addEventListener('change',()=>{state.calGroup=calGroupSel.value;rend
 document.getElementById('cal').addEventListener('click',e=>{const r=e.target.closest('tr.crop');if(!r)return;openFicha(r.dataset.sp)});
 document.getElementById('calNow').addEventListener('click',e=>{const b=e.target.closest('[data-sp]');if(b)openFicha(b.dataset.sp,true)});
 for(const[id,d]of[['calPrev',11],['calNext',1]])document.getElementById(id).addEventListener('click',()=>{state.calM=((state.calM??curM)+d)%12;renderCal()});
+document.getElementById('calQ').addEventListener('input',renderCal);
+document.getElementById('calSpan').addEventListener('click',e=>{const b=e.target.closest('[data-span]');if(!b)return;state.calSpan=b.dataset.span;save('hv.calspan',state.calSpan);renderCal()});
+document.getElementById('calSeeds').addEventListener('click',()=>{state.calSeeds=!state.calSeeds;renderCal()});
+document.getElementById('calLede').addEventListener('click',e=>{if(e.target.closest('#calZone'))document.getElementById('acctBtn').click()});
+MOBILE.addEventListener('change',renderCal);
 const yearBtn=document.getElementById('yearBtn');
 yearBtn.addEventListener('click',()=>{const on=document.getElementById('p-cal').classList.toggle('showyear');yearBtn.setAttribute('aria-expanded',on);yearBtn.textContent=on?'Ocultar el calendario del año':'Ver todo el año'});
 document.getElementById('plGroups').addEventListener('click',e=>{const g=e.target.closest('[data-g]');if(!g)return;state.plGroup=state.plGroup===g.dataset.g?'todos':g.dataset.g;renderPlants()});
@@ -1207,7 +1204,7 @@ document.getElementById('addForm').addEventListener('submit',e=>{
   const sown=document.getElementById('fDate').value||iso(today);
   const p={id:'p'+Date.now(),name,sp:fSp.value,loc:document.getElementById('fLoc').value,sown,log:{}};
   dropExamples();state.plants.push(p);save('hv.plants',state.plants);e.target.reset();document.getElementById('fDate').value=iso(today);refreshSelects();
-  state.plGroup='todos';state.plLoc='todas';renderPlants();renderRem();toast(`${name} añadida`);try{if(!matchMedia("(min-width:601px)").matches)document.getElementById("addBox").open=false}catch(e){}
+  state.plGroup='todos';state.plLoc='todas';renderPlants();renderRem();toast(`${name} añadida`);document.getElementById("addBox").open=false
 });
 // ---------- Fotos del huerto ----------
 // Cada huerto del plano tiene las suyas, guardadas con las fotos de las plantas bajo «huerto:<id del huerto>», y se sincronizan igual
@@ -1265,7 +1262,7 @@ const PL_FAB={plantas:'Añadir planta',plano:'Añadir huerto',cosechas:'Anotar c
 function setPlSub(k){
   plPanel.dataset.sub=k;document.querySelectorAll('#plSub [data-sub]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.sub===k));
   document.getElementById('plFabTxt').textContent=PL_FAB[k];
-  if(MOBILE.matches){if(k==='plano')document.getElementById('planBox').open=true;if(k==='semillas')document.getElementById('seedBox').open=true}
+  if(k==='plano')document.getElementById('planBox').open=true;if(k==='semillas')document.getElementById('seedBox').open=true;
   plPanel.classList.remove('adding');try{store.setItem('hv.plsub',k)}catch(e){}
 }
 document.getElementById('plSub').addEventListener('click',e=>{const b=e.target.closest('[data-sub]');if(b){setPlSub(b.dataset.sub);window.scrollTo(0,0)}});
@@ -1388,7 +1385,6 @@ var planUI=initPlan({overdue:p=>dues(p).filter(x=>x.left<0).map(x=>`${ACTIONS[x.
 renderAll();
 // Apariencia: claro por defecto; la elección se recuerda en este navegador
 function setTheme(t){document.documentElement.setAttribute('data-theme',t);document.querySelectorAll('[data-theme-set]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.themeSet===t))}
-try{if(matchMedia('(min-width:601px)').matches)document.getElementById('addBox').open=true}catch(e){}
 let savedTheme='light';try{savedTheme=store.getItem('hv.theme')||'light'}catch(e){}
 setTheme(savedTheme);
 // Claro/Oscuro: arriba en el ordenador y dentro de Mi cuenta en el móvil

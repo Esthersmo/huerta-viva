@@ -33,7 +33,7 @@
     <nav role="tablist" aria-label="Secciones">
       <button role="tab" id="t-cal" aria-selected="true" data-tab="cal"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg><span class="nl">Calendario</span></button>
       <button role="tab" id="t-pl" aria-selected="false" data-tab="pl"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21v-9"/><path d="M12 12c0-4 3-7 8-7 0 5-3 7-8 7z"/><path d="M12 14c0-3-2.5-5.5-7-5.5 0 4 2.5 5.5 7 5.5z"/></svg><span class="nl"><span class="lg">Mis plantas</span><span class="sm">Plantas</span></span></button>
-      <button role="tab" id="t-rem" aria-selected="false" data-tab="rem"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16v-5a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 21h4"/></svg><span class="nl"><span class="lg">Recordatorios</span><span class="sm">Avisos</span></span><span class="badge" id="remCount" hidden></span></button>
+      <button role="tab" id="t-rem" aria-selected="false" data-tab="rem"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16v-5a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 21h4"/></svg><span class="nl"><span class="lg">Avisos</span><span class="sm">Avisos</span></span><span class="badge" id="remCount" hidden></span></button>
       <button role="tab" id="t-tip" aria-selected="false" data-tab="tip"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4.5h9a5 5 0 0 1 5 5V20H10a5 5 0 0 1-5-5z"/><path d="M9 10h6M9 14h4"/></svg><span class="nl">Consejos</span></button>
     </nav>
   </div>
@@ -68,6 +68,11 @@
         <div class="zdone" id="zoneDoneRow" hidden><button class="btn primary" type="button" id="zoneDone">Listo</button></div>
       </div>
       <div class="panel">
+        <div class="calbar" id="calBar">
+          <label class="plm-q calq"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input type="search" id="calQ" placeholder="Buscar cultivo" aria-label="Buscar cultivo" autocomplete="off"></label>
+          <div class="calspan" id="calSpan" role="group" aria-label="Qué cultivos ver"><button class="chip" type="button" data-span="year">Todo el año</button><button class="chip" type="button" data-span="mes">Este mes</button></div>
+          <button class="chip calseeds" type="button" id="calSeeds" aria-pressed="false">🌱 Con tus semillas</button>
+        </div>
         <div class="chips" id="calGroups"></div>
         <div class="cn-mon"><button class="cn-arr" type="button" id="calPrev" aria-label="Mes anterior">‹</button><div><h3 class="calnow-h" id="calNowH"></h3><small id="calNowN"></small></div><button class="cn-arr" type="button" id="calNext" aria-label="Mes siguiente">›</button></div>
         <div class="cal-gsel"><span>Mostrar</span><select id="calGroupSel" aria-label="Mostrar cultivos"></select></div>
@@ -162,15 +167,15 @@
             <button data-loc="exterior" aria-pressed="false">Exterior</button>
           </div>
           <div class="chips" id="plGroups"></div>
-          <div class="m-filters">
-            <label class="tip-all">Ubicación<select id="plLocSel"><option value="todas">Todas</option><option value="interior">Interior</option><option value="exterior">Exterior</option></select></label>
-            <label class="tip-all">Tipo<select id="plGroupSel"></select></label>
-          </div>
         </div>
         <div class="plm" id="plm">
-          <div class="plm-ej" id="plmEj" hidden><span aria-hidden="true">🌱</span><b>Son plantas de ejemplo.</b><button type="button" id="plmEjX">Quitarlas</button></div>
+          <div class="plm-ej" id="plmEj" hidden><span aria-hidden="true">🌱</span><b>Son plantas de ejemplo para que veas cómo funciona.</b><button type="button" id="plmEjX">Quitarlas</button></div>
           <div class="plm-tools"><label class="plm-q"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input type="search" id="plmQ" placeholder="Buscar planta" aria-label="Buscar planta" autocomplete="off"></label>
-            <select id="plmSort" aria-label="Ordenar plantas"><option value="care">Cuidado primero</option><option value="name">Por nombre</option><option value="new">Más recientes</option></select></div>
+            <select id="plmSort" aria-label="Ordenar plantas"><option value="care">Cuidado primero</option><option value="name">Por nombre</option><option value="new">Más recientes</option></select>
+            <div class="m-filters">
+              <label class="tip-all"><span class="sr-only">Ubicación</span><select id="plLocSel" aria-label="Ubicación"><option value="todas">Todas las ubicaciones</option><option value="interior">Interior</option><option value="exterior">Exterior</option></select></label>
+              <label class="tip-all"><span class="sr-only">Tipo</span><select id="plGroupSel" aria-label="Tipo"></select></label>
+            </div></div>
         </div>
         <div id="plList"></div>
       </div>
@@ -193,6 +198,7 @@
         <div class="remtop"><h2>Avisos</h2><small id="remN"></small></div>
         <div class="wx" id="wx" hidden></div>
         <div class="rem" id="remList"></div>
+        <div class="rem" id="remDone"></div>
         <div class="avisos" id="avisos"></div>
       </div>
     </section>

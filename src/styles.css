@@ -239,7 +239,7 @@ input[type=date]{cursor:pointer}input[type=date]::-webkit-calendar-picker-indica
 .addbox>summary::-webkit-details-marker{display:none}
 .addbox>summary h2{display:inline}
 .addbox[open]>summary{margin-bottom:12px}
-@media (min-width:601px){.addbox>summary{pointer-events:none}}
+
 @media (max-width:600px){
   .addbox:not([open]){padding:0;background:none;border:0}
   .addbox:not([open])>summary{display:flex;justify-content:center;align-items:center;padding:12px;border-radius:10px;background:var(--sel);color:var(--sel-ink)}
@@ -619,7 +619,7 @@ html.plan-noscroll,html.plan-noscroll body{overflow:hidden}
 .btn.ready{background:var(--carob);border-color:var(--carob);color:var(--carob-ink)}
 
 /* Barra de pestañas abajo, cabecera fina y Mis plantas por apartados (solo móvil) */
-nav .ni,nav .sm,.plsub,.fab{display:none}
+nav .sm{display:none}
 .acctdlg .acrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-bottom:12px;border-bottom:1px solid var(--line)}
 @media (max-width:600px){
   header{background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:0 1px 0 var(--line)}
@@ -636,21 +636,20 @@ nav .ni,nav .sm,.plsub,.fab{display:none}
   nav .badge{position:absolute;top:4px;left:calc(50% + 5px);margin:0;min-width:18px;line-height:18px;font-size:.68rem;font-weight:700}
   #toast{bottom:calc(140px + env(safe-area-inset-bottom,0px))}
   main .wrap{padding-bottom:96px}
-  .plsub{display:grid;grid-template-columns:repeat(4,1fr);width:100%;margin-bottom:16px;border-radius:12px;padding:3px;background:var(--surface);gap:2px}
-  .plsub button{border-radius:9px;padding:8px 0;font-weight:500;background:none;color:var(--muted)}
-  .plsub button[aria-pressed="true"]{background:var(--sel);color:var(--sel-ink)}
-  .fab{position:fixed;z-index:6;right:max(16px,calc(env(safe-area-inset-right,0px) + 16px));bottom:calc(76px + env(safe-area-inset-bottom,0px));display:flex;align-items:center;gap:8px;border:0;border-radius:16px;background:var(--carob);color:var(--carob-ink);padding:13px 18px;font:700 .95rem var(--body);box-shadow:0 8px 22px rgba(30,22,10,.22);cursor:pointer}
-  .fab svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round}
-  #p-pl.adding .fab{display:none}
-  #p-pl>#addBox,#p-pl>#seedBox,#p-pl>#planBox,#p-pl>#harvPanel,#p-pl>div.panel{display:none}
-  #p-pl[data-sub="plantas"]>div.panel,#p-pl.adding[data-sub="plantas"]>#addBox,#p-pl[data-sub="plano"]>#planBox,#p-pl[data-sub="cosechas"]>#harvPanel,#p-pl[data-sub="semillas"]>#seedBox{display:block}
-  #p-pl>#seedBox>summary,#p-pl>#planBox>summary{display:none}
 }
 html.plan-noscroll header,html.plan-noscroll .fab{display:none}
-@media (max-width:600px){
-  #p-pl[data-sub="plano"] #planGAdd{display:none}
-  #p-pl[data-sub="semillas"]:not(.adding) #seedForm{display:none}
-}
+/* Apartados de Mis plantas y botón de añadir: en el móvil y, desde el 20/10, también en el ordenador */
+.plsub{display:grid;grid-template-columns:repeat(4,1fr);width:100%;margin-bottom:16px;border-radius:12px;padding:3px;background:var(--surface);gap:2px}
+.plsub button{border-radius:9px;padding:8px 0;font-weight:500;background:none;color:var(--muted)}
+.plsub button[aria-pressed="true"]{background:var(--sel);color:var(--sel-ink)}
+.fab{position:fixed;z-index:6;right:max(16px,calc(env(safe-area-inset-right,0px) + 16px));bottom:calc(76px + env(safe-area-inset-bottom,0px));display:flex;align-items:center;gap:8px;border:0;border-radius:16px;background:var(--carob);color:var(--carob-ink);padding:13px 18px;font:700 .95rem var(--body);box-shadow:0 8px 22px rgba(30,22,10,.22);cursor:pointer}
+.fab svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round}
+#p-pl.adding .fab{display:none}
+#p-pl>#addBox,#p-pl>#seedBox,#p-pl>#planBox,#p-pl>#harvPanel,#p-pl>div.panel{display:none}
+#p-pl[data-sub="plantas"]>div.panel,#p-pl.adding[data-sub="plantas"]>#addBox,#p-pl[data-sub="plano"]>#planBox,#p-pl[data-sub="cosechas"]>#harvPanel,#p-pl[data-sub="semillas"]>#seedBox{display:block}
+#p-pl>#seedBox>summary,#p-pl>#planBox>summary{display:none}
+#p-pl[data-sub="plano"] #planGAdd{display:none}
+#p-pl[data-sub="semillas"]:not(.adding) #seedForm{display:none}
 
 /* «Mi cuenta» como en la maqueta: correo y estado arriba, ajustes en filas y la cuenta al final */
 .acctdlg .achd{display:flex;flex-direction:column;gap:8px}
@@ -763,7 +762,7 @@ html.plan-noscroll header,html.plan-noscroll .fab{display:none}
 .harvadd{border-top:1px solid var(--line);padding-top:12px}
 .harvadd .harvxh{margin-top:0}
 .harvnew{padding:6px 14px}
-@media (max-width:600px){.harvnew{display:none}}
+.harvnew{display:none}
 .hficha .gp-big img{max-height:42vh}
 /* Anotar o editar una cosecha: fotos en miniatura con × y un + para añadir */
 .hf-phs{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px}
@@ -946,8 +945,7 @@ html.plan-noscroll header,html.plan-noscroll .fab{display:none}
 .cfm h3{margin:0 0 6px;font:700 1.15rem var(--display)}.cfm p{margin:0 0 16px;color:var(--muted);font-size:.92rem}
 .cfm-b{display:flex;gap:8px}.cfm-b .btn{flex:1;justify-content:center}
 .cfm .btn.danger{background:var(--danger-bar);border-color:var(--danger-bar);color:#fff}
-@media (max-width:600px){
-  #p-pl .m-filters{display:none!important}
+@media (max-width:600px){#p-pl .m-filters{display:none!important}}
   .plm{display:flex;flex-direction:column;gap:10px;margin-bottom:4px}
   .plm-ej{display:flex;align-items:center;gap:8px;background:var(--warn-soft);border-radius:12px;padding:10px 12px;font-size:.88rem}
   .plm-ej[hidden]{display:none}
@@ -996,12 +994,76 @@ html.plan-noscroll header,html.plan-noscroll .fab{display:none}
   .pf-fold .pf-sh h3{display:none}
   .pf-bot{display:flex;gap:8px}.pf-bot .btn{flex:1;justify-content:center}
   .pf-bot .btn.danger{flex:none;background:var(--del-bg);border-color:var(--del-line);color:var(--del-ink)}
-}
 .pcr .btn.act{background:var(--act-bg);border-color:var(--act-line);color:var(--act-ink)}
-@media (max-width:600px){
-  .ficha .pcare-s{background:none;border:0;padding:0}
-  .pcr small em{font-style:normal}.pcr small{color:var(--muted)!important}
-  .pcr.over small em{color:var(--danger)}.pcr.today small em{color:var(--warn)}
-  .pf-fold .tch{margin-left:0}
-}
+.ficha .pcare-s{background:none;border:0;padding:0}
+.pcr small em{font-style:normal}.pcr small{color:var(--muted)!important}
+.pcr.over small em{color:var(--danger)}.pcr.today small em{color:var(--warn)}
+.pf-fold .tch{margin-left:0}
 @media (max-width:600px){#toast.act{left:16px;right:16px;transform:none;padding:12px 16px;border-radius:12px;bottom:calc(140px + env(safe-area-inset-bottom,0px))}}
+
+/* Ordenador (20/10): pestañas con iconos, Claro/Oscuro solo en «Mi cuenta», y Mis plantas como en el móvil en tarjetas */
+#themeSeg,#p-pl .filters{display:none}
+@media (min-width:601px){
+  nav button{display:inline-flex;align-items:center;gap:8px}
+  nav .ni{display:block;flex:none;width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  #p-pl{position:relative}
+  .plsub{display:inline-grid;width:auto;grid-template-columns:repeat(4,minmax(104px,auto));margin-bottom:18px;border-radius:14px;padding:4px;background:var(--surface);border:1px solid var(--line);gap:2px}
+  .plsub button{border-radius:10px;padding:9px 22px;font-weight:500;background:none;color:var(--ink);border:0;cursor:pointer}
+  .plsub button[aria-pressed="true"]{background:var(--sel);color:var(--sel-ink)}
+  .fab{position:absolute;top:0;right:0;bottom:auto;padding:12px 20px;border-radius:12px;box-shadow:none}
+  .fab svg{width:18px;height:18px}
+  .plm{gap:14px;margin-bottom:6px}
+  .plm-ej{padding:12px 16px;font-size:.95rem}
+  .plm-tools{gap:10px}
+  .plm-q input{padding:11px 0}
+  .plm-tools .m-filters{display:flex;gap:10px}
+  .plm-tools .m-filters .tip-all{display:block;flex:none;min-width:0;font-size:inherit;color:var(--ink)}
+  .pgh{margin:14px 2px 10px}
+  .plist{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;background:none;border:0;border-radius:0;overflow:visible;margin-bottom:8px}
+  .prow{background:var(--card);border:1px solid var(--card-line);border-radius:16px;padding:14px;transition:border-color .15s}
+  .prow+.prow{border-top:1px solid var(--card-line)}
+  .prow:hover{border-color:var(--carob)}
+  .pt b{font-size:1.05rem;white-space:normal}
+}
+@media (min-width:601px) and (max-width:900px){.plist{grid-template-columns:repeat(2,minmax(0,1fr))}.plm-tools{flex-wrap:wrap}.plm-q{flex-basis:100%}}
+/* Ficha de planta: en el móvil una sola columna (fotos tras los cuidados); en el ordenador, datos a la izquierda y fotos a la derecha */
+.pf-cols,.pf-l,.pf-r{display:contents}
+.pf-l>.pf-fold,.pf-l>.pf-cal,.pf-l>.pf-bot{order:2}
+.pf-r>.pf-sec{order:1}
+@media (min-width:861px){
+  .ficha.pfw{width:min(1040px,calc(100% - 48px))}
+  .ficha.pfw .in{padding:22px 24px 24px}
+  .pf-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:24px;align-items:start}
+  .pf-l{display:flex;flex-direction:column;gap:12px}
+  .pf-r{display:block;position:sticky;top:0}
+  .pf-l>.pf-bot{margin-top:6px}
+  .ficha.pfw .pf-cal{align-self:stretch;justify-content:center}
+  .ficha.pfw .big img{max-height:52vh}
+}
+/* Avisos: lo hecho hoy al final; en el ordenador, a dos columnas (tareas a la izquierda; tiempo y hecho hoy a la derecha) */
+#remDone:not(:empty){margin-top:18px}
+@media (min-width:861px){
+  #p-rem>.panel{display:grid;grid-template-columns:minmax(0,1fr) 340px;grid-template-rows:auto auto 1fr;column-gap:24px;align-items:start}
+  #p-rem .remtop{grid-column:1/-1}
+  #p-rem #remList{grid-column:1;grid-row:2/span 2}
+  #p-rem #wx{grid-column:2;grid-row:2;margin:0;background:var(--card);border:1px solid var(--card-line);border-radius:16px;padding:14px;gap:10px}
+  #p-rem #remDone{grid-column:2;grid-row:3;margin-top:14px}
+  #p-rem #wx[hidden]+#remList+#remDone{grid-row:2;margin-top:0}
+  #p-rem .avisos{grid-column:1/-1}
+  #p-rem .wxdays{grid-template-columns:repeat(4,1fr)}
+  #p-rem .wxa{margin:0}
+}
+/* Calendario en el ordenador: buscador y filtros sobre la tabla, cuántos se pueden sembrar este mes y marcas de tus semillas y plantas */
+.calbar{display:none}
+@media (min-width:601px){
+  .calbar{display:flex;flex-wrap:wrap;justify-content:center;align-items:stretch;gap:10px;margin-bottom:12px}
+  .calq{flex:1 1 260px;max-width:380px}
+  .calspan{display:flex;gap:8px}
+  .calbar .chip{padding:8px 16px;font-size:.92rem}
+  .calbar .calseeds[aria-pressed="true"]{background:var(--ok-soft);border-color:var(--leaf-cell);color:var(--ok)}
+  .calbar+#calGroups{margin-bottom:12px}
+  .cal tr.grp .gn{text-transform:none;letter-spacing:0;font-family:var(--body);font-weight:500;font-size:.85rem;color:var(--muted)}
+  .cal .cmk{display:inline-block;margin-left:8px;padding:1px 8px;border-radius:999px;background:var(--ok-soft);color:var(--ok);font:500 .74rem var(--body);vertical-align:middle;white-space:nowrap}
+  .cal tr.cempty td{padding:22px;color:var(--muted);font-size:.92rem}
+  .calzone{border:0;background:none;padding:0;font:inherit;color:var(--carob-text);text-decoration:underline;text-underline-offset:2px;cursor:pointer}
+}
