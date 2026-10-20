@@ -547,7 +547,8 @@ function renderCal(){
   const now=list.map(s=>({s,st:cellState(s,z,curM)})).filter(o=>o.st);
   const anySem=now.some(o=>o.st==='semillero'),anyPot=now.some(o=>o.st==='maceta');
   const chip=o=>`<button class="chip cn-${o.st==='directa'?'dir':o.st==='maceta'?'pot':'sem'}" type="button" data-sp="${o.s.id}"><i></i>${o.s.n}</button>`;
-  document.getElementById('calNow').innerHTML=`<h3>Qué sembrar en ${MONTHS_L[curM]}</h3>`+
+  document.getElementById('calNowH').textContent=`Qué sembrar en ${MONTHS_L[curM]}`;
+  document.getElementById('calNow').innerHTML=
     (now.length?`<p class="cn-lbl"><span><i class="cn-dir"></i>Siembra directa o plantación</span>${anySem?'<span><i class="cn-sem"></i>En semillero protegido</span>':''}${anyPot?'<span><i class="cn-pot"></i>En maceta resguardada</span>':''}</p>`+
       Object.keys(GROUPS).map(g=>{const a=now.filter(o=>o.s.g===g);if(!a.length)return '';
         const ord={directa:0,semillero:1,maceta:2};a.sort((x,y)=>(x.st===y.st?x.s.n.localeCompare(y.s.n,'es'):ord[x.st]-ord[y.st]));

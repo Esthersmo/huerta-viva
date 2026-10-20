@@ -177,20 +177,19 @@ export function initPlan(ctx) {
   // Huertos: pestañas, nombre y medidas del que se está viendo
   const wIn = el('planW'), hIn = el('planH'), nIn = el('planGName');
   const drawSize = () => { const keep = document.activeElement; if (keep !== wIn) wIn.value = num(pl.w); if (keep !== hIn) hIn.value = num(pl.h); if (keep !== nIn) nIn.value = pl.name; el('planGRm').hidden = all.list.length < 2; };
+  // Con varios huertos se elige en un desplegable; con uno solo basta el botón para añadir otro
+  const gSel = el('planGSel'); ctx.enhance?.(gSel);
   function drawGardens() {
-    el('planTabs').innerHTML = all.list.map(x => `<button type="button" data-garden="${esc(x.id)}" aria-pressed="${x === pl}">${esc(x.name)}</button>`).join('')
-      + '<button type="button" class="add" id="planGAdd">+ Huerto</button>';
+    gSel.innerHTML = all.list.map(x => `<option value="${esc(x.id)}"${x === pl ? ' selected' : ''}>${esc(x.name)}</option>`).join('');
+    el('planGPick').hidden = all.list.length < 2; gSel._cselDraw?.();
     drawSize(); ctx.onGarden?.(pl);
   }
-  el('planTabs').addEventListener('click', e => {
-    const t = e.target.closest('[data-garden]');
-    if (t) { all.cur = t.dataset.garden; pl = current(); sel = null; save(); drawGardens(); draw(); return; }
-    if (e.target.closest('#planGAdd')) {
-      let n = all.list.length + 1; while (all.list.some(x => x.name === `Huerto ${n}`)) n++;
-      const g = {id: 'h' + Date.now(), name: `Huerto ${n}`, w: 4, h: 3, beds: []};
-      all.list.push(g); all.cur = g.id; pl = g; sel = null; save(); drawGardens(); draw();
-      nIn.focus(); nIn.select(); ctx.toast('Huerto nuevo: ponle nombre y medidas');
-    }
+  gSel.addEventListener('change', () => { all.cur = gSel.value; pl = current(); sel = null; save(); drawGardens(); draw(); });
+  el('planGAdd').addEventListener('click', () => {
+    let n = all.list.length + 1; while (all.list.some(x => x.name === `Huerto ${n}`)) n++;
+    const g = {id: 'h' + Date.now(), name: `Huerto ${n}`, w: 4, h: 3, beds: []};
+    all.list.push(g); all.cur = g.id; pl = g; sel = null; save(); drawGardens(); draw();
+    nIn.focus(); nIn.select(); ctx.toast('Huerto nuevo: ponle nombre y medidas');
   });
   nIn.addEventListener('change', () => { pl.name = nIn.value.trim().slice(0, 30) || pl.name; save(); drawGardens(); });
   // Quitar un huerto en dos toques: el primero pide confirmación
