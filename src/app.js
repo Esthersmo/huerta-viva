@@ -872,6 +872,13 @@ function renderPlantsList(){
   for(const[id,v]of[['plLocSel',state.plLoc],['plGroupSel',state.plGroup]]){const el=document.getElementById(id);if(el&&el.value!==v){el.value=v;el._cselDraw&&el._cselDraw()}}
   renderPlantsMobile();
 }
+// Solo se puede deshacer lo marcado en este dispositivo, del que se guardó la fecha anterior
+const canUndo=(p,k)=>!!p.logPrev&&k in p.logPrev;
+function careChanged(){save('hv.plants',state.plants);renderPlants();renderRem();if(ficha.open&&state.mode==='plant')renderPlantFicha()}
+// Deshacer una tarea marcada hoy: vuelve la fecha que tenía antes
+function undoCare(p,k){if(!p||p.log?.[k]!==iso(today)||!canUndo(p,k))return;const prev=p.logPrev?.[k];
+  if(prev)p.log[k]=prev;else delete p.log[k];if(p.logPrev){delete p.logPrev[k];if(!Object.keys(p.logPrev).length)delete p.logPrev}
+  careChanged();toast(`${ACTIONS[k]} deshecho: ${p.name}`)}
 // Iconos de cada tarea en Avisos
 const REM_IC={riego:'<path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/>',abono:'<path d="M6 8h12l-1 12H7z"/><path d="M9 8V5h6v3"/>',sustrato:'<path d="M5 10h14l-2 10H7z"/><path d="M4 10h16"/><path d="M12 10V6m0 0c0-2 2-3 4-3 0 2-2 3-4 3zm0 0c0-2-2-3-4-3 0 2 2 3 4 3"/>',poda:'<circle cx="6" cy="7" r="2.5"/><circle cx="6" cy="17" r="2.5"/><path d="M8 8.5L20 17M8 15.5L20 7"/>',semilla:'<path d="M12 21c0-6 0-9 0-11"/><path d="M12 12c-4 0-7-3-7-7 4 0 7 3 7 7zm0-2c0-3 2-6 6-6 0 4-3 6-6 6"/>'};
 const remIc=k=>`<span class="ric"><svg viewBox="0 0 24 24" aria-hidden="true">${REM_IC[k]}</svg></span>`;
@@ -896,7 +903,7 @@ function renderRem(){
   const sow=seedRows().filter(r=>r.now);
   if(sow.length)h+=`<section class="rgrp seeds"><h3 class="rgh">Para sembrar este mes <span class="n">${sow.length}</span></h3><div class="rlist"><div class="rrow">${remIc('semilla')}<div class="rt"><b>${sow.map(r=>r.s.n).join(', ')}</b><span>De tus semillas</span></div><button class="btn" type="button" id="goSeeds">Ver</button></div></div></section>`;
   // Lo hecho hoy va aparte: en el ordenador, en la columna de la derecha bajo el tiempo
-  document.getElementById('remDone').innerHTML=done.length?`<section class="rgrp done"><button class="rdone" data-remmore="done" aria-expanded="${!!more.done}">${REM_OK}${done.length} ${done.length===1?'hecho':'hechos'} hoy<span>${more.done?'Ocultar':'Ver'}</span></button>${more.done?`<div class="rlist">${done.map(x=>`<div class="rrow">${remIc(x.a)}<div class="rt"><b>${esc(x.p.name)}</b><span>${VERB[x.a]} · hecho</span></div><span></span></div>`).join('')}</div>`:''}</section>`:'';
+  document.getElementById('remDone').innerHTML=done.length?`<section class="rgrp done"><button class="rdone" data-remmore="done" aria-expanded="${!!more.done}">${REM_OK}${done.length} ${done.length===1?'hecho':'hechos'} hoy<span>${more.done?'Ocultar':'Ver'}</span></button>${more.done?`<div class="rlist">${done.map(x=>`<div class="rrow">${remIc(x.a)}<div class="rt"><b>${esc(x.p.name)}</b><span>${VERB[x.a]} · hecho</span></div>${canUndo(x.p,x.a)?`<button class="rundo" type="button" data-undo="${x.a}" data-id="${esc(x.p.id)}" aria-label="Deshacer: ${VERB[x.a].toLowerCase()} ${esc(x.p.name)}">Deshacer</button>`:'<span></span>'}</div>`).join('')}</div>`:''}</section>`:'';
   document.getElementById('remList').innerHTML=h;
   drawWx();
   // Próximas tareas para los avisos diarios
@@ -1120,7 +1127,11 @@ document.addEventListener('click',e=>{
     dropExamples();state.plants.push(np);save('hv.plants',state.plants);state.plGroup='todos';state.plLoc='todas';renderPlants();renderRem();
     openPlant(np.id);state.editing=true;renderPlantFicha();toast(`Sembrada: ${np.name}. Cámbiale el nombre si quieres.`);return}
   const hv=e.target.closest('[data-harvest]');if(hv){openPlant(hv.dataset.harvest);const sec=document.getElementById('harvSec');sec?.closest('details')?.setAttribute('open','');sec?.scrollIntoView({block:'start'});document.getElementById('hQ')?.focus({preventScroll:true});return}
-  if(a){const p=state.plants.find(x=>x.id===a.dataset.id);p.log=p.log||{};p.log[a.dataset.act]=iso(today);save('hv.plants',state.plants);renderPlants();renderRem();if(ficha.open&&state.mode==='plant')renderPlantFicha();toast(`${ACTIONS[a.dataset.act]} anotado: ${p.name}`);return}
+  const un=e.target.closest('[data-undo]');if(un){undoCare(state.plants.find(x=>x.id===un.dataset.id),un.dataset.undo);return}
+  if(a){const p=state.plants.find(x=>x.id===a.dataset.id),k=a.dataset.act;p.log=p.log||{};
+    // Se guarda la fecha anterior para poder deshacerlo
+    if(p.log[k]!==iso(today)){p.logPrev=p.logPrev||{};p.logPrev[k]=p.log[k]??null}
+    p.log[k]=iso(today);careChanged();toast(`${ACTIONS[k]} anotado: ${p.name}`,'Deshacer',()=>undoCare(p,k),5000);return}
   const d=e.target.closest('[data-del]');
   if(d){const p=state.plants.find(x=>x.id===d.dataset.del);state.plants=state.plants.filter(x=>x!==p);save('hv.plants',state.plants);renderPlants();renderRem();toast(`${p.name} quitada`)}
 });

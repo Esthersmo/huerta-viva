@@ -1069,3 +1069,6 @@ html.plan-noscroll header,html.plan-noscroll .fab{display:none}
 }
 /* Consejos: sin acuarela, el nombre y el grupo van centrados */
 .ttop.noimg,.ttop.noimg>div{justify-content:center;text-align:center}
+/* Avisos: «Deshacer» a la derecha de cada tarea hecha hoy */
+.rundo{border:1px solid var(--card-line);background:none;border-radius:999px;padding:6px 12px;font:500 .84rem var(--body);color:var(--carob-text);cursor:pointer}
+.rundo:hover{background:var(--panel)}
