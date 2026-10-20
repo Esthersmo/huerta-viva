@@ -849,7 +849,7 @@ function renderAll(){renderCal();renderPlants();renderRem();renderTips();renderS
 // ---------- El tiempo ----------
 const mm=n=>`${Math.round(n)} mm`,fday=d=>parse(d).toLocaleDateString('es-ES',{day:'numeric',month:'short'});
 function dayName(d){const t=iso(today),n=Math.round((parse(d)-today)/DAY);return d===t?'hoy':n===1?'mañana':`el ${parse(d).toLocaleDateString('es-ES',{weekday:'long'})}`}
-const shortDay=d=>{const n=Math.round((parse(d)-today)/DAY);return n===0?'Hoy':n===1?'Mañana':parse(d).toLocaleDateString('es-ES',{weekday:'short'}).replace('.','')};
+const shortDay=d=>{const n=Math.round((parse(d)-today)/DAY);return n===0?'Hoy':n===1?'Mañ':parse(d).toLocaleDateString('es-ES',{weekday:'short'}).replace('.','')};
 // Plantas de fuera que sufren con el frío: las de verano y los frutales tropicales
 const tender=p=>p.loc==='exterior'&&(SP[p.sp].tMin>=12||SP[p.sp].frost>=8);
 function wxPlace(){return state.cp?.name||ZONES[state.zone]?.name.split(' (')[0]||''}
@@ -876,7 +876,7 @@ function drawWx(){
   const wet=state.plants.filter(p=>p.loc==='exterior').flatMap(dues).filter(x=>x.rain);
   if(wet.length){const r=wet[0].rain;alerts.push(['rain',`<strong>Ha llovido ${mm(r.rain)} ${dayName(r.date)==='hoy'?'hoy':`el ${fday(r.date)}`}.</strong> Cuenta como riego: se retrasa el de ${wet.length===1?esc(wet[0].p.name):`${wet.length} plantas de fuera`}.`])}
   const old=Date.now()-wx.at>12*3600e3;
-  el.innerHTML=`<div class="wxdays">${days.map(d=>{const[ic,tx]=sky(d.code);return `<div class="wxd${d.date===t?' now':''}" title="${tx}"><span class="wn">${shortDay(d.date)}</span><span class="wi" role="img" aria-label="${tx}">${ic}</span><span class="wt"><b>${Math.round(d.max)}°</b> <span class="wmin">${Math.round(d.min)}°</span></span><span class="wr">${d.rain>=1?mm(d.rain):''}</span></div>`}).join('')}</div>
+  el.innerHTML=`<div class="wxdays">${days.map(d=>{const[ic,tx]=sky(d.code);return `<div class="wxd${d.date===t?' now':''}" title="${tx}"><span class="wn" aria-label="${dayName(d.date)}">${shortDay(d.date)}</span><span class="wi" role="img" aria-label="${tx}">${ic}</span><span class="wt"><b>${Math.round(d.max)}°</b> <span class="wmin">${Math.round(d.min)}°</span></span><span class="wr">${d.rain>=1?mm(d.rain):''}</span></div>`}).join('')}</div>
     <p class="wxsrc">El tiempo en ${esc(wxPlace())}${old?`, de hace ${Math.round((Date.now()-wx.at)/3600e3)} h (sin conexión)`:''}<span>Datos: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo.com</a></span></p>
     ${alerts.map(([k,txt])=>`<p class="wxa ${k}">${txt}</p>`).join('')}`;
 }
