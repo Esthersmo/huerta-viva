@@ -763,3 +763,15 @@ html.plan-noscroll header,html.plan-noscroll .fab{display:none}
 .harvnew{padding:6px 14px}
 @media (max-width:600px){.harvnew{display:none}}
 .hficha .gp-big img{max-height:42vh}
+/* Anotar o editar una cosecha: fotos en miniatura con × y un + para añadir */
+.hf-phs{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px}
+.hf-ph{position:relative;display:block;aspect-ratio:1;border-radius:10px;overflow:hidden;border:1px solid var(--card-line)}
+.hf-ph img{width:100%;height:100%;object-fit:cover;display:block}
+.hf-ph button{position:absolute;top:4px;right:4px;width:26px;height:26px;border-radius:50%;border:0;background:rgba(253,251,248,.92);color:#3D3121;font-size:1rem;line-height:1;cursor:pointer}
+.hf-phadd{display:grid;place-items:center;aspect-ratio:1;border-radius:10px;border:1.5px dashed var(--card-line);color:var(--carob-text);cursor:pointer;background:var(--surface)}
+.hf-phadd svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round}
+.hf-phadd input{display:none}
+.hf-acts .btn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;vertical-align:-3px;margin-right:6px}
+.hf-new{display:flex;justify-content:center;margin:4px 0 8px}
+.hf-form .acmsg{color:var(--danger);font-weight:500;margin:0}
+.hf-form .acmsg[hidden]{display:none}
