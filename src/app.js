@@ -1116,7 +1116,7 @@ function gpMove(from,to){const a=photos['huerto:'+from];if(!a)return;photos['hue
 function renderGPhotos(){
   const GP=gpKey(),gname=state.gpG?.name||'tu huerto';document.getElementById('gPhotoTitle').textContent=`Fotos de ${gname}`;
   const list=(photos[GP]||[]).slice().sort((a,b)=>a.date<b.date?1:-1),box=document.getElementById('gPhotoList');
-  if(!list.length){box.innerHTML='<p class="note">Haz fotos de ${esc(gname)} de vez en cuando y aquí verás cómo cambia a lo largo del año.</p>';return}
+  if(!list.length){box.innerHTML=`<p class="note">Haz fotos de ${esc(gname)} de vez en cuando y aquí verás cómo cambia a lo largo del año.</p>`;return}
   const big=list.find(x=>x.id===state.gpBig)||list[0],more=state.gpMore,thumbs=more?list:list.slice(0,6);
   box.innerHTML=`<figure class="gp-big"><img src="${img(big.src)}" alt="Foto de ${esc(gname)} del ${fdate(big.date)}"><figcaption>${fdate(big.date)}</figcaption></figure>
     <div class="gp-acts"><button class="btn act" type="button" id="gpShare">Compartir</button><button class="btn del" type="button" id="gpDel">Borrar</button></div>
