@@ -184,11 +184,16 @@ export function initPlan(ctx) {
     el('planGPick').hidden = all.list.length < 2; gSel._cselDraw?.();
     drawSize(); ctx.onGarden?.(pl);
   }
+  // «Editar» abre nombre, medidas y «Quitar huerto»; «Listo» lo cierra
+  const gBox = el('planGBox'), gEd = el('planGEdit');
+  const editG = on => { gBox.hidden = !on; gEd.setAttribute('aria-pressed', on); gEd.setAttribute('aria-expanded', on); };
+  gEd.addEventListener('click', () => editG(gBox.hidden));
+  el('planGDone').addEventListener('click', () => editG(false));
   gSel.addEventListener('change', () => { all.cur = gSel.value; pl = current(); sel = null; save(); drawGardens(); draw(); });
   el('planGAdd').addEventListener('click', () => {
     let n = all.list.length + 1; while (all.list.some(x => x.name === `Huerto ${n}`)) n++;
     const g = {id: 'h' + Date.now(), name: `Huerto ${n}`, w: 4, h: 3, beds: []};
-    all.list.push(g); all.cur = g.id; pl = g; sel = null; save(); drawGardens(); draw();
+    all.list.push(g); all.cur = g.id; pl = g; sel = null; save(); drawGardens(); draw(); editG(true);
     nIn.focus(); nIn.select(); ctx.toast('Huerto nuevo: ponle nombre y medidas');
   });
   nIn.addEventListener('change', () => { pl.name = nIn.value.trim().slice(0, 30) || pl.name; save(); drawGardens(); });
@@ -200,7 +205,7 @@ export function initPlan(ctx) {
     const gone = pl; for (const p of plants()) if (p.pos && gardenOf(p) === gone.id) delete p.pos;
     all.list = all.list.filter(x => x !== gone); all.cur = all.list[0].id; pl = current(); sel = null;
     ctx.onRemoveGarden?.(gone.id, pl.id);
-    save(); ctx.savePlants(); drawGardens(); draw(); ctx.toast(`${gone.name} quitado. Sus plantas siguen en Mis plantas, sin colocar, y sus fotos pasan a ${pl.name}.`);
+    save(); ctx.savePlants(); drawGardens(); draw(); editG(false); ctx.toast(`${gone.name} quitado. Sus plantas siguen en Mis plantas, sin colocar, y sus fotos pasan a ${pl.name}.`);
   });
   const setSize = () => { const c = v => Math.max(1, Math.min(60, Math.round((+String(v).replace(',', '.') || 1) * 10) / 10)); pl.w = c(wIn.value); pl.h = c(hIn.value); drawSize(); save(); draw(); };
   wIn.addEventListener('change', setSize); hIn.addEventListener('change', setSize);

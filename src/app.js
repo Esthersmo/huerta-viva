@@ -1149,7 +1149,7 @@ document.getElementById('gPhotoList').addEventListener('click',e=>{
 gpMigrate();renderGPhotos();
 // ---------- Mis plantas en el móvil: apartados Plantas · Plano · Cosechas · Semillas y botón «+» ----------
 const plPanel=document.getElementById('p-pl'),plFab=document.getElementById('plFab');
-const PL_FAB={plantas:'Añadir planta',plano:'Añadir bancal',cosechas:'Anotar cosecha',semillas:'Añadir semillas'};
+const PL_FAB={plantas:'Añadir planta',plano:'Añadir huerto',cosechas:'Anotar cosecha',semillas:'Añadir semillas'};
 function setPlSub(k){
   plPanel.dataset.sub=k;document.querySelectorAll('#plSub [data-sub]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.sub===k));
   document.getElementById('plFabTxt').textContent=PL_FAB[k];
@@ -1159,7 +1159,7 @@ function setPlSub(k){
 document.getElementById('plSub').addEventListener('click',e=>{const b=e.target.closest('[data-sub]');if(b){setPlSub(b.dataset.sub);window.scrollTo(0,0)}});
 plFab.addEventListener('click',()=>{const k=plPanel.dataset.sub;
   if(k==='plantas'){const a=document.getElementById('addBox');plPanel.classList.add('adding');a.open=true;window.scrollTo(0,0);setTimeout(()=>document.getElementById('fName').focus({preventScroll:true}),50)}
-  else if(k==='plano')document.getElementById('planBed').click();
+  else if(k==='plano')document.getElementById('planGAdd').click();
   else if(k==='cosechas'){const h=document.getElementById('harvAdd');h.open=true;h.scrollIntoView({block:'center'})}
   else{plPanel.classList.add('adding');const f=document.getElementById('seedForm');window.scrollTo(0,0);setTimeout(()=>f.querySelector('.csel-btn')?.focus({preventScroll:true}),50)}
 });

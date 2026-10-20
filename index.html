@@ -119,12 +119,13 @@
         <div class="plan-body">
         <div class="plan-tabs" id="planTabs">
           <span class="plan-gpick" id="planGPick" hidden><select id="planGSel" aria-label="Huerto"></select></span>
+          <button type="button" class="edit" id="planGEdit" aria-expanded="false" aria-controls="planGBox">Editar</button>
           <button type="button" class="add" id="planGAdd">+ Huerto</button>
         </div>
-        <div class="plan-garden">
+        <div class="plan-garden" id="planGBox" hidden>
           <label for="planGName">Nombre<input id="planGName" maxlength="30"></label>
-          <button class="btn del" type="button" id="planGRm" hidden>Quitar huerto</button>
           <span class="plan-size"><label for="planW">Medidas</label><input id="planW" inputmode="decimal" aria-label="Ancho del huerto en metros"> × <input id="planH" inputmode="decimal" aria-label="Largo del huerto en metros"> m</span>
+          <div class="plan-gacts"><button class="btn del" type="button" id="planGRm" hidden>Quitar huerto</button><button class="btn primary" type="button" id="planGDone">Listo</button></div>
         </div>
         <div class="plan-tools">
           <button class="btn primary" type="button" id="planBed">+ Bancal</button>
