@@ -1,7 +1,7 @@
 import './styles.css';
 import {store} from './store.js';
 import {setupNotify,updateSchedule} from './notify.js';
-import {sharePlant,shareGarden,shareGardenPhoto} from './share.js';
+import {sharePlant,shareGardenPlan} from './share.js';
 import {initAccount} from './account.js';
 import {initPlan} from './plan.js';
 import {loadWx,fetchWx,isFresh,capital,rainSince,rainSoon,hotNow,coldest,hottest,next as wxNext,sky,FROST_C,HEAT_C} from './weather.js';
@@ -1118,12 +1118,12 @@ function gpKey(){return 'huerto:'+(state.gpG?.id||load('hv.plan',null)?.list?.[0
 function gpMigrate(){const old=photos.huerto;if(!old)return;const k='huerto:'+(load('hv.plan',null)?.list?.[0]?.id||'h1');photos[k]=[...(photos[k]||[]),...old];delete photos.huerto;savePhotos()}
 function gpMove(from,to){const a=photos['huerto:'+from];if(!a)return;photos['huerto:'+to]=[...(photos['huerto:'+to]||[]),...a];delete photos['huerto:'+from];savePhotos()}
 function renderGPhotos(){
-  const GP=gpKey(),gname=state.gpG?.name||'tu huerto';document.getElementById('gPhotoTitle').textContent=`Fotos de ${gname}`;
+  const GP=gpKey(),gname=state.gpG?.name||'tu huerto';document.getElementById('gPhotoTitle').textContent=`Fotos de ${gname}`;{const sb=document.getElementById('gShare');if(!sb.disabled&&!sb._again)sb.textContent=`Compartir ${gname}`}
   const list=(photos[GP]||[]).slice().sort((a,b)=>a.date<b.date?1:-1),box=document.getElementById('gPhotoList');
   if(!list.length){box.innerHTML=`<p class="note">Haz fotos de ${esc(gname)} de vez en cuando y aquí verás cómo cambia a lo largo del año.</p>`;return}
   const big=list.find(x=>x.id===state.gpBig)||list[0],more=state.gpMore,thumbs=more?list:list.slice(0,6);
   box.innerHTML=`<figure class="gp-big"><img src="${img(big.src)}" alt="Foto de ${esc(gname)} del ${fdate(big.date)}"><figcaption>${fdate(big.date)}</figcaption></figure>
-    <div class="gp-acts"><button class="btn act" type="button" id="gpShare">Compartir</button><button class="btn del" type="button" id="gpDel">Borrar</button></div>
+    <div class="gp-acts"><button class="btn del" type="button" id="gpDel">Borrar</button></div>
     ${list.length>1?`<div class="gp-thumbs">${thumbs.map(x=>`<button type="button" class="gp-th${x===big?' on':''}" data-gp="${esc(x.id)}" aria-label="Foto del ${fdate(x.date)}"><img src="${img(x.src)}" alt=""><span>${fdate(x.date)}</span></button>`).join('')}</div>
     ${list.length>6?`<button class="btn remmore rm-soon" type="button" id="gpMore">${more?'Ver menos':`Ver ${list.length-6} más`}</button>`:''}`:''}`;
 }
@@ -1143,8 +1143,12 @@ document.getElementById('gPhotoList').addEventListener('click',e=>{
   const b=e.target.closest('#gpDel');
   if(b){if(!b.dataset.sure){b.dataset.sure='1';b.textContent='¿Seguro? Toca otra vez';setTimeout(()=>{if(b.isConnected){delete b.dataset.sure;b.textContent='Borrar'}},4000);return}
     photos[GP]=(photos[GP]||[]).filter(x=>x!==big);state.gpBig=null;savePhotos();renderGPhotos();toast('Foto borrada');return}
-  const sh=e.target.closest('#gpShare');
-  if(sh){const zone=state.cp?.name||ZONES[state.zone]?.name.split(' (')[0]||'';shareBusy(sh,()=>shareGardenPhoto({src:big.src,date:fdate(big.date),zone,title:state.gpG?.name||'Mi huerto'}))}
+});
+// Compartir el huerto elegido: la foto que se está viendo (si hay) y su plano
+document.getElementById('gShare').addEventListener('click',e=>{
+  const g=planUI.current(),zone=state.cp?.name||ZONES[state.zone]?.name.split(' (')[0]||'';
+  const list=(photos[gpKey()]||[]).slice().sort((a,b)=>a.date<b.date?1:-1),big=list.find(x=>x.id===state.gpBig)||list[0];
+  shareBusy(e.currentTarget,()=>shareGardenPlan({title:g.name,zone,n:g.n,plan:g,photo:big?{src:big.src,date:fdate(big.date)}:null}));
 });
 gpMigrate();renderGPhotos();
 // ---------- Mis plantas en el móvil: apartados Plantas · Plano · Cosechas · Semillas y botón «+» ----------
@@ -1266,11 +1270,6 @@ ficha.addEventListener('click',e=>{const b=e.target.closest('#sharePlantBtn');if
   shareBusy(b,()=>sharePlant({name:p.name,species:s.n,loc:p.loc==='interior'?'Interior':'Exterior',
     sownTxt:`${s.tree?'Plantada':'Sembrada'} el ${fdate(p.sown)}`,ageTxt:age===0?'hoy':age===1?'1 día':`${age} días`,
     photo:big?{src:big.src,caption:`Día ${daysSince(p,big.date)}`}:null,care:care.length?[care.join(' · ')]:[],deco:decoFor(s.id)}));
-});
-document.getElementById('shareGarden').addEventListener('click',e=>{
-  const zone=state.cp?.name||ZONES[state.zone]?.name.split(' (')[0]||'';
-  const plants=state.plants.map(p=>{const ph=(photos[p.id]||[]).slice().sort((a,b)=>a.date<b.date?-1:1);return {name:p.name,species:SP[p.sp]?.n||'',photo:ph.length?ph[ph.length-1].src:null,deco:decoFor(p.sp)}});
-  shareBusy(e.currentTarget,()=>shareGarden({zone,plants,plans:planUI.snapshot()}));
 });
 setupNotify();
 // Cuando llegan cambios de la nube (otro dispositivo) se recarga todo desde el almacén

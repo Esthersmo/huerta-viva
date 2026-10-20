@@ -711,3 +711,4 @@ html.plan-noscroll header,html.plan-noscroll .fab{display:none}
 /* «+ Bancal» y «+ Maceta» en el verde de «día» del logo */
 #planBed,#planPot{background:var(--title-viva);border-color:var(--title-viva);color:var(--sel-ink)}
 #planBed:hover,#planPot:hover{filter:brightness(.94)}
+.gphotos .sharerow .btn.act{background:var(--act-bg);border-color:var(--act-line);color:var(--act-ink)}

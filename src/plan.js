@@ -273,13 +273,9 @@ export function initPlan(ctx) {
   drawGardens();
 
   // Desde fuera: cuando cambian las plantas o llegan datos de otro dispositivo
-  // Para la imagen de compartir: cada huerto con algo dibujado, con sus piezas y plantas
-  function snapshot() {
-    return all.list.map(g => {
-      const ps = plants().filter(p => p.pos && gardenOf(p) === g.id && SP[p.sp]);
-      return {name: g.name, w: g.w, h: g.h, beds: g.beds.map(b => ({k: b.k, name: b.name, x: b.x, y: b.y, w: b.w, h: b.k === 'pot' ? b.w : b.h})),
-        plants: ps.map(p => ({x: p.pos.x, y: p.pos.y, ab: ab(SP[p.sp]), g: GCOL[SP[p.sp].g] || 'ali', tree: !!SP[p.sp].tree, r: SP[p.sp].tree ? canopy(p, g) : 0}))};
-    }).filter(g => g.beds.length || g.plants.length);
-  }
-  return {draw, snapshot, reload() { all = load(); pl = current(); drawGardens(); if (sel && !pl.beds.some(b => b.id === sel) && !plants().some(p => p.id === sel)) sel = null; draw(); }};
+  // El huerto que se está viendo, aunque aún no tenga nada dibujado
+  const shot = g => { const ps = plants().filter(p => p.pos && gardenOf(p) === g.id && SP[p.sp]);
+    return {name: g.name, w: g.w, h: g.h, n: ps.length, beds: g.beds.map(b => ({k: b.k, name: b.name, x: b.x, y: b.y, w: b.w, h: b.k === 'pot' ? b.w : b.h})),
+      plants: ps.map(p => ({x: p.pos.x, y: p.pos.y, ab: ab(SP[p.sp]), g: GCOL[SP[p.sp].g] || 'ali', tree: !!SP[p.sp].tree, r: SP[p.sp].tree ? canopy(p, g) : 0}))}; };
+  return {draw, current: () => shot(pl), reload() { all = load(); pl = current(); drawGardens(); if (sel && !pl.beds.some(b => b.id === sel) && !plants().some(p => p.id === sel)) sel = null; draw(); }};
 }

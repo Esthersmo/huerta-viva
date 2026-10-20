@@ -1,4 +1,4 @@
-// Tarjetas para compartir (imagen PNG) una planta o el huerto entero.
+// Tarjetas para compartir (imagen PNG) una planta o un huerto con su plano.
 // Se dibujan en un canvas con la paleta de la app y se abren con el menú de compartir del móvil;
 // si el navegador no puede compartir archivos, la imagen se descarga.
 const W = 1080, H = 1350;
@@ -86,53 +86,27 @@ export async function sharePlant(d) {
   return send(cv, `sembradia-${slug(d.name)}.png`, d.name, `${d.name} (${d.species.toLowerCase()}) en mi huerto · Sembradía`);
 }
 
-// Una foto del huerto: d: {src, date, zone}
-export async function shareGardenPhoto(d) {
+// Un huerto: su foto (si la hay) y su plano. d: {title, zone, n, photo:{src, date}|null, plan:{w, h, beds, plants}}
+export async function shareGardenPlan(d) {
   await fonts();
-  const cv = document.createElement('canvas'); cv.width = W; cv.height = H; const c = cv.getContext('2d');
-  frame(c);
-  const ph = await img(d.src), px = 100, py = 100, pw = W - 200, phH = 880;
-  if (ph) cover(c, ph, px, py, pw, phH, 30);
-  c.textAlign = 'left'; c.fillStyle = C.green; c.font = '700 66px "Bricolage Grotesque"'; c.fillText(d.title || 'Mi huerto', px, py + phH + 95);
-  c.fillStyle = C.muted; c.font = '400 34px "DM Sans"'; c.fillText(`${d.date}${d.zone ? ' · ' + d.zone : ''}`, px, py + phH + 148);
-  footer(c);
-  return send(cv, 'sembradia-foto-huerto.png', 'Mi huerto', `Mi huerto en Sembradía · ${d.date}`);
-}
-
-// d: {zone, plants:[{name, species, photo, deco}]}
-export async function shareGarden(d) {
-  await fonts();
-  // Si hay plano, la imagen se alarga hacia abajo para dibujar cada huerto debajo de las plantas
-  const plans = (d.plans || []).slice(0, 3), PW = W - 200;
-  const ph = plans.map(g => Math.min(760, PW * g.h / g.w));
-  const extra = plans.reduce((t, g, i) => t + 90 + ph[i] + 40, 0);
-  // Los planos van justo debajo de la última fila de plantas
-  const rows = Math.max(1, Math.ceil(Math.min(d.plants.length, 9) / 3)), gridEnd = 285 + rows * 281;
-  const HH = plans.length ? Math.max(H, gridEnd + extra + 220) : H;
+  const ph = await img(d.photo?.src), PW = W - 200, phH = ph ? 640 : 0;
+  const planH = Math.min(760, PW * d.plan.h / d.plan.w);
+  const tY = ph ? 100 + phH + 95 : 180, planY = tY + 120;
+  const HH = Math.max(H, planY + planH + 220);
   const cv = document.createElement('canvas'); cv.width = W; cv.height = HH; const c = cv.getContext('2d');
   frame(c, HH);
-  c.textAlign = 'left'; c.fillStyle = C.carob; c.font = '700 72px "Bricolage Grotesque"'; c.fillText('Mi huerto', 100, 180);
-  const n = d.plants.length;
-  c.fillStyle = C.muted; c.font = '400 34px "DM Sans"'; c.fillText(`${n} ${n === 1 ? 'planta' : 'plantas'}${d.zone ? ' · ' + d.zone : ''}`, 100, 235);
-  const cols = 3, gap = 30, cw = (W - 200 - gap * (cols - 1)) / cols, ch = 215, rowH = ch + 66, max = 9;
-  const shown = n > max ? d.plants.slice(0, max - 1) : d.plants.slice(0, max);
-  const ims = await Promise.all(shown.map(p => img(p.photo))), decos = await Promise.all(shown.map(p => p.photo ? null : img(p.deco)));
-  shown.forEach((p, i) => {
-    const x = 100 + (i % cols) * (cw + gap), y = 285 + Math.floor(i / cols) * rowH;
-    if (ims[i]) cover(c, ims[i], x, y, cw, ch, 22); else noPhoto(c, x, y, cw, ch, 22, p.species[0], decos[i]);
-    c.fillStyle = C.ink; c.font = '500 28px "DM Sans"'; wrap(c, p.name, x + cw / 2, y + ch + 40, cw, 32, 1, 'center');
-  });
-  if (n > max) {
-    const i = max - 1, x = 100 + (i % cols) * (cw + gap), y = 290 + Math.floor(i / cols) * rowH;
-    c.fillStyle = C.soft; rr(c, x, y, cw, ch, 22); c.fill();
-    c.fillStyle = C.green; c.textAlign = 'center'; c.font = '700 64px "Bricolage Grotesque"'; c.fillText(`+${n - max + 1}`, x + cw / 2, y + ch / 2 + 10);
-    c.font = '400 28px "DM Sans"'; c.fillText('plantas más', x + cw / 2, y + ch / 2 + 54);
+  if (ph) {
+    cover(c, ph, 100, 100, PW, phH, 30);
+    c.font = '500 30px "DM Sans"'; const t = d.photo.date, tw = c.measureText(t).width + 44;
+    c.fillStyle = 'rgba(253,251,248,.92)'; rr(c, 124, 100 + phH - 78, tw, 54, 27); c.fill();
+    c.fillStyle = C.ink; c.textAlign = 'left'; c.fillText(t, 146, 100 + phH - 41);
   }
-  if (!n) { c.fillStyle = C.muted; c.textAlign = 'center'; c.font = '400 34px "DM Sans"'; c.fillText('Aún no hay plantas', W / 2, 600); }
-  let py = gridEnd;
-  plans.forEach((g, i) => { py += 90; c.textAlign = 'left'; c.fillStyle = C.carob; c.font = '700 44px "Bricolage Grotesque"'; c.fillText(plans.length > 1 ? g.name : `Plano · ${g.name}`, 100, py - 24); drawPlan(c, g, 100, py, PW, ph[i]); py += ph[i] + 40; });
+  c.textAlign = 'left'; c.fillStyle = C.green; c.font = '700 66px "Bricolage Grotesque"'; wrap(c, d.title, 100, tY, PW, 72, 1);
+  c.fillStyle = C.muted; c.font = '400 34px "DM Sans"';
+  c.fillText([`${d.plan.w} × ${d.plan.h} m`, d.n ? `${d.n} ${d.n === 1 ? 'planta' : 'plantas'}` : '', d.zone].filter(Boolean).join(' · '), 100, tY + 53);
+  drawPlan(c, d.plan, 100, planY, PW, planH);
   footer(c, HH);
-  return send(cv, 'sembradia-mi-huerto.png', 'Mi huerto', `Mi huerto en Sembradía: ${n} ${n === 1 ? 'planta' : 'plantas'}`);
+  return send(cv, `sembradia-${slug(d.title)}.png`, d.title, `${d.title} en Sembradía`);
 }
 
 // El plano del huerto a escala, con los mismos colores que en la app
