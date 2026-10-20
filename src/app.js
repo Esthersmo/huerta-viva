@@ -1210,10 +1210,11 @@ function renderHarvFicha(){
   if(!hf.isNew&&!f.x){harvDlg.close();return}
   const sp=SP[p?p.sp:x.sp],name=p?p.name:sp?.n||'';
   let h=hf.isNew?`<div class="hd hf-newhd"><h2 id="hfTitle">Nueva cosecha</h2><button class="x" type="button" data-hclose aria-label="Cerrar">×</button></div>`
-    :`<div class="hd"><div><p class="k">Cosecha</p><h2 id="hfTitle">${esc(name)}</h2></div><button class="x" type="button" data-hclose aria-label="Cerrar">×</button></div>`;
+    :hf.edit?`<div class="hd"><h2 id="hfTitle">${esc(name)}</h2><button class="x" type="button" data-hclose aria-label="Cerrar">×</button></div>`
+    :`<div class="hd hf-viewhd"><h2 id="hfTitle">${esc(name)}</h2><strong class="hf-qty">${qtyTxt(x.q,x.u)}</strong><button class="x" type="button" data-hclose aria-label="Cerrar">×</button></div>`;
   if(!hf.edit){
     const list=hfSort(photos['cosecha:'+hf.id]||[]),big=list.find(y=>y.id===hf.big)||list[0];
-    h+=`<p class="hf-q"><strong>${qtyTxt(x.q,x.u)}</strong><span>${p&&sp?esc(sp.n)+' · ':''}${fdate(x.d)}</span></p>
+    h+=`<p class="hf-q"><span>${p&&sp?esc(sp.n)+' · ':''}${fdate(x.d)}</span></p>
       ${big?`<figure class="gp-big"><img src="${img(big.src)}" alt="Foto de la cosecha de ${esc(name)}"><figcaption>${fdate(big.date)}</figcaption></figure>
         ${list.length>1?`<div class="gp-thumbs">${list.map(y=>`<button type="button" class="gp-th${y===big?' on':''}" data-hpbig="${esc(y.id)}" aria-label="Foto del ${fdate(y.date)}"><img src="${img(y.src)}" alt=""><span>${fdate(y.date)}</span></button>`).join('')}</div>`:''}`:''}
       <div class="hf-obs"><p class="k">Observaciones</p>${x.o?`<p>${esc(x.o).replace(/\n/g,'<br>')}</p>`:'<p class="note">Sin observaciones.</p>'}</div>
