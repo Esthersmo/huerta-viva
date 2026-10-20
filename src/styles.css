@@ -622,7 +622,8 @@ html.plan-noscroll,html.plan-noscroll body{overflow:hidden}
 nav .ni,nav .sm,.plsub,.fab{display:none}
 .acctdlg .acrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-bottom:12px;border-bottom:1px solid var(--line)}
 @media (max-width:600px){
-  header{background:var(--bg);-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:0 1px 0 var(--line)}
+  header{background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:0 1px 0 var(--line)}
+  header::before{content:"";position:absolute;inset:0;z-index:-1;background:color-mix(in srgb,var(--bg) 64%,transparent);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
   header .wrap{padding-block:10px;gap:0}
   #themeSeg{display:none}
   body{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
