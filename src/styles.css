@@ -908,3 +908,29 @@ html.plan-noscroll header,html.plan-noscroll .fab{display:none}
 .tsec summary .tst{flex:none}
 .tsec summary small{flex:1 1 auto}
 @media (max-width:600px){.tsec[data-tsec="comp"] summary small{display:none}.tsec[data-tsec="comp"] .tch{margin-left:auto}}
+/* Calendario móvil: meses con flechas, «Con tus semillas» y ficha rápida (2026-10-20) */
+.cn-mon{display:none}
+@media (max-width:600px){
+  .cn-mon{display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--card);border:1px solid var(--card-line);border-radius:14px;padding:6px;width:100%;box-sizing:border-box}
+  .cn-mon>div{text-align:center;min-width:0}
+  .cn-mon .calnow-h{margin:0;font-family:var(--display);font-weight:700;font-size:1.15rem}
+  .cn-mon small{display:block;color:var(--muted);font-size:.78rem}
+  .cn-arr{flex:none;width:40px;height:40px;border-radius:50%;border:0;background:var(--panel);color:var(--carob-text);font-size:1.4rem;line-height:1;cursor:pointer;display:grid;place-items:center;padding:0 0 3px}
+  .cn-grp h4{display:flex;align-items:center;justify-content:center;gap:8px}
+  .cn-grp h4 .n{font:700 .72rem var(--body);background:var(--panel);border-radius:999px;padding:1px 8px;color:var(--muted)}
+  .cn-grp.cn-seeds{background:var(--ok-soft);border-color:var(--leaf-cell)}
+  .cn-grp.cn-seeds h4{color:var(--ok)}
+  .cn-grp .chip{display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:var(--card)}
+  .cn-grp .chip i{display:none}
+  .cn-grp .chip.cn-sem{border-style:dashed;border-color:var(--seed-ink)}
+  .cn-grp .chip.cn-pot{border-style:dotted;border-width:2px;border-color:var(--pot-cell)}
+  .cn-mine{font-size:.72rem;color:var(--ok);white-space:nowrap}
+  .cn-lbl{flex-direction:row;flex-wrap:wrap;justify-content:center;gap:6px 14px;font-size:.8rem}
+  .cn-lbl i{width:18px!important;height:11px!important;border-radius:6px!important;background:none!important;border:1px solid var(--line)}
+  .cn-lbl .cn-sem{border:1px dashed var(--seed-ink)!important}
+  .cn-lbl .cn-pot{border:2px dotted var(--pot-cell)!important}
+  .ficha.quick .in{gap:12px}
+  .qnow{margin:0;color:var(--muted);font-size:.92rem}
+  .qacts{display:flex;gap:8px}.qacts .btn{flex:1;justify-content:center;text-align:center}
+}
+.ficha .tkey{text-align:left}

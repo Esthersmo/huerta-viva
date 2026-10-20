@@ -543,17 +543,22 @@ function renderCal(){
     h+='</tr>';
   }
   document.getElementById('cal').innerHTML=h+'</tbody>';
-  // Móvil: lo que se puede sembrar o plantar este mes, antes de la tabla del año
-  const now=list.map(s=>({s,st:cellState(s,z,curM)})).filter(o=>o.st);
-  const anySem=now.some(o=>o.st==='semillero'),anyPot=now.some(o=>o.st==='maceta');
-  const chip=o=>`<button class="chip cn-${o.st==='directa'?'dir':o.st==='maceta'?'pot':'sem'}" type="button" data-sp="${o.s.id}"><i></i>${o.s.n}</button>`;
-  document.getElementById('calNowH').textContent=`Qué sembrar en ${MONTHS_L[curM]}`;
+  // Móvil: lo que se puede sembrar o plantar en el mes elegido (con flechas), antes de la tabla del año
+  const cm=state.calM??curM;
+  const now=list.map(s=>({s,st:cellState(s,z,cm)})).filter(o=>o.st);
+  const has=new Set(state.seeds.map(x=>x.sp)),grown=new Set(state.plants.filter(p=>!p.ej).map(p=>p.sp));
+  const kinds=new Set(now.map(o=>o.st));
+  const ord={directa:0,semillero:1,maceta:2},srt=(x,y)=>x.st===y.st?x.s.n.localeCompare(y.s.n,'es'):ord[x.st]-ord[y.st];
+  const chip=o=>`<button class="chip cn-${o.st==='directa'?'dir':o.st==='maceta'?'pot':'sem'}" type="button" data-sp="${o.s.id}"><span class="cn-n">${o.s.n}</span>${grown.has(o.s.id)?'<span class="cn-mine">🌱 en tu huerto</span>':''}</button>`;
+  const grp=(t,a,cls='')=>`<section class="cn-grp${cls}"><h4>${t} <span class="n">${a.length}</span></h4><div class="chips">${a.sort(srt).map(chip).join('')}</div></section>`;
+  const seeds=now.filter(o=>has.has(o.s.id));
+  document.getElementById('calNowH').textContent=`Qué sembrar en ${MONTHS_L[cm]}`;
+  document.getElementById('calNowN').textContent=now.length?`${now.length} ${now.length===1?'cultivo':'cultivos'} en tu zona${cm===curM?' · este mes':''}`:'';
   document.getElementById('calNow').innerHTML=
-    (now.length?`<p class="cn-lbl"><span><i class="cn-dir"></i>Siembra directa o plantación</span>${anySem?'<span><i class="cn-sem"></i>En semillero protegido</span>':''}${anyPot?'<span><i class="cn-pot"></i>En maceta resguardada</span>':''}</p>`+
-      Object.keys(GROUPS).map(g=>{const a=now.filter(o=>o.s.g===g);if(!a.length)return '';
-        const ord={directa:0,semillero:1,maceta:2};a.sort((x,y)=>(x.st===y.st?x.s.n.localeCompare(y.s.n,'es'):ord[x.st]-ord[y.st]));
-        return `<section class="cn-grp"><h4>${GROUPS[g]}</h4><div class="chips">${a.map(chip).join('')}</div></section>`}).join('')
-    :`<p class="cn-none">Este mes no toca sembrar nada de este grupo en tu zona.</p>`);
+    (now.length?(seeds.length?grp('Con tus semillas',seeds,' cn-seeds'):'')+
+      Object.keys(GROUPS).map(g=>{const a=now.filter(o=>o.s.g===g&&!has.has(o.s.id));return a.length?grp(GROUPS[g],a):''}).join('')+
+      `<p class="cn-lbl">${kinds.has('directa')?'<span><i class="cn-dir"></i>Siembra directa o plantación</span>':''}${kinds.has('semillero')?'<span><i class="cn-sem"></i>Semillero protegido</span>':''}${kinds.has('maceta')?'<span><i class="cn-pot"></i>En maceta resguardada</span>':''}</p>`
+    :`<p class="cn-none">En ${MONTHS_L[cm]} no toca sembrar nada de este grupo en tu zona.</p>`);
   const f=document.getElementById('ficha');if(f.open&&state.mode==='crop')renderFicha();
 }
 function renderFicha(){
@@ -567,6 +572,21 @@ function renderFicha(){
     :nowSt==='directa'?`Este mes (${MONTHS_L[curM]}) puedes sembrarlo directamente fuera.`:nowSt==='semillero'?`Este mes (${MONTHS_L[curM]}) toca semillero protegido.`:`Este mes (${MONTHS_L[curM]}) no es buen momento en tu zona.`;
   const strip=MONTHS.map((m,i)=>{const st=cellState(s,z,i);const luz=st&&!s.tree&&z.sun[i]<s.sun?' luz':'';return `<div><span class="cell ${st}${luz}" title="${MONTHS_L[i]}"></span>${i===curM?`<b>${m[0]}</b>`:m[0]}</div>`}).join('');
   const c=s.care;const mine=state.plants.filter(p=>p.sp===s.id);
+  if(state.quick){
+    // Ficha rápida desde «Qué sembrar»: meses, temporada del mes elegido, consejo clave y dos acciones
+    const cm=state.calM??curM,st=cellState(s,z,cm),M=MONTHS_L[cm][0].toUpperCase()+MONTHS_L[cm].slice(1),k=TIPS[s.id]?.k;
+    const qTxt=st==='directa'?`${M} es buen momento para ${s.tree?'plantarlo':'sembrarla directamente fuera'}.`:st==='semillero'?`En ${MONTHS_L[cm]} toca semillero protegido.`:st==='maceta'?`En ${MONTHS_L[cm]} se puede plantar en maceta y resguardarlo en invierno.`:`En ${MONTHS_L[cm]} no toca en tu zona.`;
+    const sub=[GROUPS[s.g],state.seeds.some(x=>x.sp===s.id)?'tienes semillas':'',mine.some(p=>!p.ej)?'en tu huerto':''].filter(Boolean).join(' · ');
+    document.getElementById('fichaIn').innerHTML=`
+   <div class="hd"><div><h2 id="fichaTitle">${s.n}</h2><span class="sp">${sub}</span></div>
+     <button class="x" id="fichaClose" aria-label="Cerrar ficha">×</button></div>
+   <div class="tmonths" role="img" aria-label="Meses de siembra en tu zona">${MONTHS.map((l,m)=>{const x=cellState(s,z,m);return `<i class="${x==='directa'?'d':x?'s':''}${m===cm?' cur':''}">${l[0]}</i>`}).join('')}</div>
+   <p class="qnow">${qTxt} Riego cada ${interval({sp:s.id,loc:INDOOR.includes(s.id)?'interior':'exterior'},'riego')} días.</p>
+   ${k?`<div class="tkey"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg><div><b>Consejo clave</b>${k}</div></div>`:''}
+   <div class="qacts"><button class="btn" type="button" id="fichaTips">Ver consejos</button><button class="btn primary" id="fichaAdd">+ Añadir a mis plantas</button></div>`;
+    document.getElementById('ficha').classList.add('quick');return;
+  }
+  document.getElementById('ficha').classList.remove('quick');
   document.getElementById('fichaIn').innerHTML=`
    <div class="hd"><div><h2 id="fichaTitle">${s.n}</h2><span class="sp">${GROUPS[s.g]} · ${z.name}</span></div>
      <button class="x" id="fichaClose" aria-label="Cerrar ficha">×</button></div>
@@ -594,8 +614,8 @@ function renderFicha(){
    <button class="btn primary" id="fichaAdd">Añadir a mis plantas</button>`;
 }
 function cap(t){return t.charAt(0).toUpperCase()+t.slice(1)}
-function openFicha(id){
-  state.mode='crop';state.sel=id;renderCal();renderFicha();
+function openFicha(id,quick){
+  state.mode='crop';state.sel=id;state.quick=!!quick&&MOBILE.matches;renderCal();renderFicha();
   const f=document.getElementById('ficha');try{f.showModal()}catch(e){f.setAttribute('open','')}
 }
 function daysSince(p,d){return Math.max(0,Math.round((parse(d)-parse(p.sown))/DAY))}
@@ -654,7 +674,7 @@ function compSec(p){
   </section>`;
 }
 function renderPlantFicha(){
-  document.getElementById('ficha').classList.remove('crop');
+  document.getElementById('ficha').classList.remove('crop','quick');
   const p=state.plants.find(x=>x.id===state.plantSel);if(!p)return;
   const s=SP[p.sp],ph=(photos[p.id]||[]).slice().sort((a,b)=>a.date<b.date?-1:1);
   const big=ph.find(x=>x.id===state.photoBig)||ph[ph.length-1];
@@ -748,6 +768,7 @@ ficha.addEventListener('click',e=>{
   const th=e.target.closest('[data-photo]');if(th){state.photoBig=th.dataset.photo;renderPlantFicha();return}
   const rm=e.target.closest('[data-rmphoto]');if(rm){const l=photos[state.plantSel]||[];photos[state.plantSel]=l.filter(x=>x.id!==rm.dataset.rmphoto);savePhotos();state.photoBig=null;renderPlantFicha();renderPlants();toast('Foto borrada');return}
   const cr=e.target.closest('#fichaCrop');if(cr){document.getElementById('t-cal').click();openFicha(cr.dataset.crop);return}
+  if(e.target.closest('#fichaTips')){state.tipSel=state.sel;ficha.close();document.getElementById('t-tip').click();window.scrollTo(0,0);return}
   if(e.target.closest('#fichaAdd')){
     // Se añade al momento con el nombre de la especie; la ficha se abre en edición para cambiarle el nombre
     const sp=SP[state.sel],n=state.plants.filter(p=>p.sp===sp.id).length,d=iso(today);
@@ -1036,7 +1057,8 @@ const calGroupSel=document.getElementById('calGroupSel');
 calGroupSel.innerHTML=`<option value="todos">Todos los cultivos</option>`+Object.entries(GROUPS).map(([g,l])=>`<option value="${g}">${l}</option>`).join('');
 calGroupSel.addEventListener('change',()=>{state.calGroup=calGroupSel.value;renderCal()});
 document.getElementById('cal').addEventListener('click',e=>{const r=e.target.closest('tr.crop');if(!r)return;openFicha(r.dataset.sp)});
-document.getElementById('calNow').addEventListener('click',e=>{const b=e.target.closest('[data-sp]');if(b)openFicha(b.dataset.sp)});
+document.getElementById('calNow').addEventListener('click',e=>{const b=e.target.closest('[data-sp]');if(b)openFicha(b.dataset.sp,true)});
+for(const[id,d]of[['calPrev',11],['calNext',1]])document.getElementById(id).addEventListener('click',()=>{state.calM=((state.calM??curM)+d)%12;renderCal()});
 const yearBtn=document.getElementById('yearBtn');
 yearBtn.addEventListener('click',()=>{const on=document.getElementById('p-cal').classList.toggle('showyear');yearBtn.setAttribute('aria-expanded',on);yearBtn.textContent=on?'Ocultar el calendario del año':'Ver todo el año'});
 document.getElementById('plGroups').addEventListener('click',e=>{const g=e.target.closest('[data-g]');if(!g)return;state.plGroup=state.plGroup===g.dataset.g?'todos':g.dataset.g;renderPlants()});
@@ -1045,7 +1067,7 @@ document.addEventListener('click',e=>{
   const a=e.target.closest('[data-act]');
   const o=e.target.closest('[data-open]');if(o){openPlant(o.dataset.open);return}
   if(e.target.closest('#goSeeds')){document.getElementById('t-pl').click();const sb=document.getElementById('seedBox');sb.open=true;sb.scrollIntoView({block:'start',behavior:'smooth'});return}
-  const rs=e.target.closest('[data-rmseed]');if(rs){const x=state.seeds.find(y=>y.id===rs.dataset.rmseed);state.seeds=state.seeds.filter(y=>y!==x);save('hv.seeds',state.seeds);renderSeeds();renderRem();toast(`Semillas de ${SP[x.sp].n.toLowerCase()} quitadas`);return}
+  const rs=e.target.closest('[data-rmseed]');if(rs){const x=state.seeds.find(y=>y.id===rs.dataset.rmseed);state.seeds=state.seeds.filter(y=>y!==x);save('hv.seeds',state.seeds);renderSeeds();renderRem();renderCal();toast(`Semillas de ${SP[x.sp].n.toLowerCase()} quitadas`);return}
   const sw=e.target.closest('[data-sow]');if(sw){const x=state.seeds.find(y=>y.id===sw.dataset.sow),sp=SP[x.sp],n=state.plants.filter(p=>p.sp===sp.id).length;
     const np={id:'p'+Date.now(),name:sp.n+(n?` ${n+1}`:''),sp:sp.id,loc:INDOOR.includes(sp.id)?'interior':'exterior',sown:iso(today),log:{}};
     dropExamples();state.plants.push(np);save('hv.plants',state.plants);state.plGroup='todos';state.plLoc='todas';renderPlants();renderRem();
@@ -1109,7 +1131,7 @@ document.getElementById('seedForm').addEventListener('submit',e=>{
   e.preventDefault();
   const x={id:'s'+Date.now(),sp:sSp.value,cad:sCad.value,note:document.getElementById('sNote').value.trim().slice(0,80)};
   state.seeds.push(x);save('hv.seeds',state.seeds);document.getElementById('sNote').value='';sCad.value='';refreshSelects();
-  renderSeeds();renderRem();toast(`Semillas de ${SP[x.sp].n.toLowerCase()} apuntadas`);
+  renderSeeds();renderRem();renderCal();toast(`Semillas de ${SP[x.sp].n.toLowerCase()} apuntadas`);
 });
 document.getElementById('seedList').addEventListener('click',e=>{const m=e.target.closest('[data-remmore]');if(!m)return;const k=m.dataset.remmore;state.remMore[k]=!state.remMore[k];renderSeeds()});
 const plLocSel=document.getElementById('plLocSel'),plGroupSel=document.getElementById('plGroupSel');
