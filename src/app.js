@@ -877,7 +877,7 @@ function drawWx(){
   if(wet.length){const r=wet[0].rain;alerts.push(['rain',`<strong>Ha llovido ${mm(r.rain)} ${dayName(r.date)==='hoy'?'hoy':`el ${fday(r.date)}`}.</strong> Cuenta como riego: se retrasa el de ${wet.length===1?esc(wet[0].p.name):`${wet.length} plantas de fuera`}.`])}
   const old=Date.now()-wx.at>12*3600e3;
   el.innerHTML=`<div class="wxdays">${days.map(d=>{const[ic,tx]=sky(d.code);return `<div class="wxd${d.date===t?' now':''}" title="${tx}"><span class="wn">${shortDay(d.date)}</span><span class="wi" role="img" aria-label="${tx}">${ic}</span><span class="wt"><b>${Math.round(d.max)}°</b> <span class="wmin">${Math.round(d.min)}°</span></span><span class="wr">${d.rain>=1?mm(d.rain):''}</span></div>`}).join('')}</div>
-    <p class="wxsrc">El tiempo en ${esc(wxPlace())}${old?`, de hace ${Math.round((Date.now()-wx.at)/3600e3)} h (sin conexión)`:''} · Datos: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo.com</a></p>
+    <p class="wxsrc">El tiempo en ${esc(wxPlace())}${old?`, de hace ${Math.round((Date.now()-wx.at)/3600e3)} h (sin conexión)`:''}<span>Datos: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo.com</a></span></p>
     ${alerts.map(([k,txt])=>`<p class="wxa ${k}">${txt}</p>`).join('')}`;
 }
 // ---------- Consejos ----------

@@ -843,3 +843,4 @@ html.plan-noscroll header,html.plan-noscroll .fab{display:none}
 .rempty{margin:0;text-align:center;color:var(--muted)}
 #p-rem .avisos{margin:22px 0 0;padding:16px 0 0;border-bottom:0;border-top:1px solid var(--line)}
 @media (max-width:520px){#p-rem .wxdays{gap:4px} #p-rem .wxd .wn{font-size:.68rem}}
+.wxsrc span{display:block;margin-top:2px}
