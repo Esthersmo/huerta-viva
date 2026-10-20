@@ -616,3 +616,4 @@ html.plan-noscroll,html.plan-noscroll body{overflow:hidden}
 .planbox .gphotos{margin-top:18px;padding-top:16px;border-top:1px solid var(--card-line)}
 .gphotos .harvhead h3{margin:0;font-family:var(--display);font-size:1.1rem;color:var(--carob-text)}
 .planbox.full .gphotos{display:none}
+.btn.ready{background:var(--carob);border-color:var(--carob);color:var(--carob-ink)}

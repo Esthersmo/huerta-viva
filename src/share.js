@@ -51,9 +51,13 @@ function toBlob(cv) { return new Promise(ok => cv.toBlob(ok, 'image/png')); }
 
 async function send(cv, name, title, text) {
   const blob = await toBlob(cv); const file = new File([blob], name, {type: 'image/png'});
-  try {
-    if (navigator.canShare && navigator.canShare({files: [file]})) { await navigator.share({files: [file], title, text}); return 'shared'; }
-  } catch (e) { if (e.name === 'AbortError') return 'cancel'; }
+  if (navigator.canShare && navigator.canShare({files: [file]})) {
+    const go = async () => { try { await navigator.share({files: [file], title, text}); return 'shared'; } catch (e) { return e.name === 'AbortError' ? 'cancel' : 'blocked'; } };
+    // El móvil solo deja enviar justo después de un toque; si preparar la imagen tardó, se pide otro toque
+    if (navigator.userActivation && !navigator.userActivation.isActive) return {again: go};
+    const r = await go(); if (r !== 'blocked') return r;
+    return {again: go};
+  }
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.append(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 4000); return 'downloaded';
 }

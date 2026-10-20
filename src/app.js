@@ -1225,8 +1225,14 @@ padHead();try{new ResizeObserver(padHead).observe(document.querySelector('header
 // ---------- Compartir como imagen ----------
 const relTxt=d=>{const n=Math.round((today-parse(d))/DAY);return n<=0?'hoy':n===1?'ayer':`hace ${n} días`};
 const decoFor=id=>DECO[id]?decoUrl(id):null;
-async function shareBusy(btn,fn){if(btn.disabled)return;const t=btn.textContent;btn.disabled=true;btn.textContent='Preparando…';
-  try{const r=await fn();if(r==='downloaded')toast('Imagen guardada en descargas')}catch(e){toast('No se pudo crear la imagen')}
+async function shareBusy(btn,fn){if(btn.disabled)return;
+  // Imagen ya preparada esperando otro toque: se envía en este mismo toque
+  if(btn._again){const go=btn._again;btn._again=null;btn.textContent=btn._label;btn.classList.remove('ready');go();return}
+  const t=btn.textContent;btn.disabled=true;btn.textContent='Preparando…';
+  try{const r=await fn();
+    if(r&&r.again){btn._again=r.again;btn._label=t;btn.disabled=false;btn.textContent='Toca para enviar';btn.classList.add('ready');
+      setTimeout(()=>{if(btn._again===r.again){btn._again=null;btn.textContent=t;btn.classList.remove('ready')}},60000);return}
+    if(r==='downloaded')toast('Imagen guardada en descargas')}catch(e){toast('No se pudo crear la imagen')}
   btn.disabled=false;btn.textContent=t}
 ficha.addEventListener('click',e=>{const b=e.target.closest('#sharePlantBtn');if(!b)return;
   const p=state.plants.find(x=>x.id===state.plantSel);if(!p)return;const s=SP[p.sp];
