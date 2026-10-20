@@ -1122,8 +1122,9 @@ function renderGPhotos(){
   const list=(photos[GP]||[]).slice().sort((a,b)=>a.date<b.date?1:-1),box=document.getElementById('gPhotoList');
   if(!list.length){box.innerHTML=`<p class="note">Haz fotos de ${esc(gname)} de vez en cuando y aquí verás cómo cambia a lo largo del año.</p>`;return}
   const big=list.find(x=>x.id===state.gpBig)||list[0],more=state.gpMore,thumbs=more?list:list.slice(0,6);
-  box.innerHTML=`<figure class="gp-big"><img src="${img(big.src)}" alt="Foto de ${esc(gname)} del ${fdate(big.date)}"><figcaption>${fdate(big.date)}</figcaption></figure>
-    <div class="gp-acts"><button class="btn del" type="button" id="gpDel">Borrar</button></div>
+  box.innerHTML=`<figure class="gp-big"><img src="${img(big.src)}" alt="Foto de ${esc(gname)} del ${fdate(big.date)}"><figcaption>${fdate(big.date)}</figcaption>
+    <button class="gp-edit" type="button" id="gpEdit" aria-label="Editar foto" aria-expanded="false" aria-controls="gpMenu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16v4z"/><path d="M13.5 6.5l4 4"/></svg></button>
+    <div class="gp-menu" id="gpMenu" hidden><label class="gp-mi">Cambiar foto<input type="file" id="gpRep" accept="image/*"></label><button class="gp-mi del" type="button" id="gpDel">Borrar foto</button></div></figure>
     ${list.length>1?`<div class="gp-thumbs">${thumbs.map(x=>`<button type="button" class="gp-th${x===big?' on':''}" data-gp="${esc(x.id)}" aria-label="Foto del ${fdate(x.date)}"><img src="${img(x.src)}" alt=""><span>${fdate(x.date)}</span></button>`).join('')}</div>
     ${list.length>6?`<button class="btn remmore rm-soon" type="button" id="gpMore">${more?'Ver menos':`Ver ${list.length-6} más`}</button>`:''}`:''}`;
 }
@@ -1140,8 +1141,9 @@ document.getElementById('gPhotoList').addEventListener('click',e=>{
   const t=e.target.closest('[data-gp]');if(t){state.gpBig=t.dataset.gp;renderGPhotos();return}
   if(e.target.closest('#gpMore')){state.gpMore=!state.gpMore;renderGPhotos();return}
   const GP=gpKey(),list=(photos[GP]||[]).slice().sort((a,b)=>a.date<b.date?1:-1),big=list.find(x=>x.id===state.gpBig)||list[0];if(!big)return;
+  const ed=e.target.closest('#gpEdit');if(ed){const m=document.getElementById('gpMenu');m.hidden=!m.hidden;ed.setAttribute('aria-expanded',!m.hidden);return}
   const b=e.target.closest('#gpDel');
-  if(b){if(!b.dataset.sure){b.dataset.sure='1';b.textContent='¿Seguro? Toca otra vez';setTimeout(()=>{if(b.isConnected){delete b.dataset.sure;b.textContent='Borrar'}},4000);return}
+  if(b){if(!b.dataset.sure){b.dataset.sure='1';b.textContent='¿Seguro? Toca otra vez';setTimeout(()=>{if(b.isConnected){delete b.dataset.sure;b.textContent='Borrar foto'}},4000);return}
     photos[GP]=(photos[GP]||[]).filter(x=>x!==big);state.gpBig=null;savePhotos();renderGPhotos();toast('Foto borrada');return}
 });
 // Compartir el huerto elegido: la foto que se está viendo (si hay) y su plano
@@ -1149,6 +1151,14 @@ document.getElementById('gShare').addEventListener('click',e=>{
   const g=planUI.current(),zone=state.cp?.name||ZONES[state.zone]?.name.split(' (')[0]||'';
   const list=(photos[gpKey()]||[]).slice().sort((a,b)=>a.date<b.date?1:-1),big=list.find(x=>x.id===state.gpBig)||list[0];
   shareBusy(e.currentTarget,()=>shareGardenPlan({title:g.name,zone,n:g.n,plan:g,photo:big?{src:big.src,date:fdate(big.date)}:null}));
+});
+// «Cambiar foto»: la foto que se está viendo se sustituye por otra, con la fecha de la nueva
+document.getElementById('gPhotoList').addEventListener('change',async e=>{
+  if(e.target.id!=='gpRep')return;const file=e.target.files[0];if(!file)return;
+  const list=photos[gpKey()]||[],big=list.find(x=>x.id===state.gpBig)||list.slice().sort((a,b)=>a.date<b.date?1:-1)[0];if(!big)return;
+  try{big.src=await shrink(file);big.date=iso(new Date(Math.min(file.lastModified||Date.now(),Date.now())));state.gpBig=big.id;
+    toast(savePhotos()?'Foto cambiada':'Foto cambiada, pero no cabe más en este navegador para guardarla');renderGPhotos()}
+  catch(err){toast('No se pudo leer la foto. Prueba con una imagen JPG o PNG.')}
 });
 gpMigrate();renderGPhotos();
 // ---------- Mis plantas en el móvil: apartados Plantas · Plano · Cosechas · Semillas y botón «+» ----------
@@ -1274,7 +1284,15 @@ ficha.addEventListener('click',e=>{const b=e.target.closest('#sharePlantBtn');if
 setupNotify();
 // Cuando llegan cambios de la nube (otro dispositivo) se recarga todo desde el almacén
 function reloadFromStore(){
-  photos=load('hv.photos',{});state.plants=load('hv.plants',[]);state.harvX=load('hv.harv',[]);gpMigrate();renderGPhotos();
+  photos=load('hv.photos',{});state.plants=load('hv.plants',[]);state.harvX=load('hv.harv',[]);// «Cambiar foto»: la foto que se está viendo se sustituye por otra, con la fecha de la nueva
+document.getElementById('gPhotoList').addEventListener('change',async e=>{
+  if(e.target.id!=='gpRep')return;const file=e.target.files[0];if(!file)return;
+  const list=photos[gpKey()]||[],big=list.find(x=>x.id===state.gpBig)||list.slice().sort((a,b)=>a.date<b.date?1:-1)[0];if(!big)return;
+  try{big.src=await shrink(file);big.date=iso(new Date(Math.min(file.lastModified||Date.now(),Date.now())));state.gpBig=big.id;
+    toast(savePhotos()?'Foto cambiada':'Foto cambiada, pero no cabe más en este navegador para guardarla');renderGPhotos()}
+  catch(err){toast('No se pudo leer la foto. Prueba con una imagen JPG o PNG.')}
+});
+gpMigrate();renderGPhotos();
   state.zone=(z=>OLD_ZONES[z]||(ZONES[z]?z:state.zone))(load('hv.zone',state.zone));state.alt=load('hv.alt',null);state.cp=load('hv.cp',null);state.seeds=load('hv.seeds',[]);
   drawZones();drawAlt();drawCp();drawZoneBox();planUI.reload();renderAll();refreshSelects();refreshWx();
   if(ficha.open&&state.mode==='plant'){if(state.plants.some(p=>p.id===state.plantSel))renderPlantFicha();else ficha.close()}
