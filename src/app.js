@@ -882,29 +882,61 @@ function drawWx(){
 }
 // ---------- Consejos ----------
 const TIP_ROWS=[['s','Siembra'],['r','Riego'],['l','Luz'],['t','Suelo'],['a','Abonado'],['o','Poda'],['p','Plagas y problemas'],['c','Cosecha'],['b','Buenas compañeras'],['e','Mejor lejos de']];
+// Secciones plegables de la ficha de consejos
+const TIP_SECS=[['siembra','Siembra',['s'],'<path d="M12 21V11"/><path d="M12 13c-4 0-7-3-7-7 4 0 7 3 7 7zm0-2c0-3 2-6 6-6 0 4-3 6-6 6"/>'],
+  ['cuidados','Cuidados',['r','l','t','a','o'],'<path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/>'],
+  ['plagas','Plagas y problemas',['p'],'<circle cx="12" cy="13" r="5"/><path d="M12 8V5M9 6L7 4M15 6l2-2M7 13H4M20 13h-3"/>'],
+  ['cosecha','Cosecha',['c'],'<path d="M5 10h14l-2 10H7z"/><path d="M9 10l3-5 3 5"/>'],
+  ['comp','Compañeras y rotación',['b','e','rot'],'<circle cx="8" cy="12" r="4"/><circle cx="16" cy="12" r="4"/>']];
+const TIP_LBL=Object.fromEntries(TIP_ROWS);
+const shortIv=d=>ivTxt(d).replace(/^cada /,'').replace(/^año$/,'1 año');
 function renderTips(){
   const mine=[...new Set(state.plants.map(p=>p.sp))].filter(id=>SP[id]);
   if(!state.tipSel||!SP[state.tipSel])state.tipSel=mine[0]||'tomate';
-  const s=SP[state.tipSel],t=TIPS[s.id]||{},z=zoneNow();
-  document.getElementById('tipMine').innerHTML=mine.length?mine.map(id=>`<button class="chip" data-tip="${esc(id)}" aria-pressed="${id===s.id}">${SP[id].n}</button>`).join(''):'';
-  const sel=document.getElementById('tipSp');if(sel.value!==s.id){sel.value=s.id;sel._cselDraw&&sel._cselDraw()}
-  const ms=document.getElementById('tipMineSel');
-  ms.innerHTML=(mine.includes(s.id)?'':'<option value="">Elige una de tus plantas</option>')+mine.map(id=>`<option value="${esc(id)}">${SP[id].n}</option>`).join('');
-  ms.value=mine.includes(s.id)?s.id:'';ms._cselDraw&&ms._cselDraw();
-  ms.closest('.tip-mine-sel').classList.toggle('empty',!mine.length);
-  const st=s.pot?null:cellState(s,z,curM);
-  const now=s.pot?`<p class="now semillero">Planta de maceta: se cuida todo el año.</p>`
-    :s.tree&&!treeFits(s,z)?`<p class="now maceta">Tus inviernos son demasiado fríos para tenerlo fuera. ${st?`En ${MONTHS_L[curM]} es buen momento para plantarlo en maceta y resguardarlo en invierno.`:`En maceta resguardada, mejor plantarlo en ${ranges(potMonths(s,z)).toLowerCase().replace(/, ([^,]*)$/,' y $1')}.`}</p>`
-    :s.tree?`<p class="now ${st||'no'}">${st?`En ${MONTHS_L[curM]} es buen momento para plantarlo en tu zona.`:treeWhy(s,z)||`En ${MONTHS_L[curM]} no es buen momento para plantarlo en tu zona.`}</p>`+(lowChill(s,z)?`<p class="tip chill">${chillTxt(s)}</p>`:'')
-    :`<p class="now ${st||'no'}">${st==='directa'?`En ${MONTHS_L[curM]} puedes sembrarla directamente fuera en tu zona.`:st==='semillero'?`En ${MONTHS_L[curM]} toca semillero protegido en tu zona.`:`En ${MONTHS_L[curM]} no es buen momento para sembrarla en tu zona.`}</p>`;
-  const care=Object.keys(ACTIONS).filter(a=>s.care&&s.care[a]).map(a=>`${ACTIONS[a]} ${ivTxt(s.care[a])}`).join(' · ');
+  const s=SP[state.tipSel],t=TIPS[s.id]||{},z=zoneNow(),open=state.tipOpen||(state.tipOpen={siembra:true});
+  document.getElementById('tipMine').innerHTML=mine.map(id=>`<button class="chip" data-tip="${esc(id)}" aria-pressed="${id===s.id}">${SP[id].n}</button>`).join('');
+  document.getElementById('tipMine').hidden=!mine.length;
+  // Temporada: frase tranquila y barra de los 12 meses
+  const st=s.pot?null:cellState(s,z,curM),sow=s.tree?'plantarlo':'sembrarla';
+  const ms=s.pot||(s.tree&&!treeFits(s,z))?null:MONTHS.map((_,m)=>cellState(s,z,m));
+  const nx=ms&&!st?[1,2,3,4,5,6,7,8,9,10,11].map(i=>(curM+i)%12).find(m=>ms[m]):null;
+  const nxTxt=nx!=null?` Próxima ${s.tree?'plantación':'siembra'}: ${ms[nx]==='semillero'?'semillero en ':''}${MONTHS_L[nx]}.`:'';
+  const now=s.pot?`Planta de maceta: se cuida todo el año.`
+    :s.tree&&!treeFits(s,z)?`Tus inviernos son demasiado fríos para tenerlo fuera. ${st?`En ${MONTHS_L[curM]} es <b class="ok">buen momento</b> para plantarlo en maceta y resguardarlo en invierno.`:`En maceta resguardada, mejor plantarlo en ${ranges(potMonths(s,z)).toLowerCase().replace(/, ([^,]*)$/,' y $1')}.`}`
+    :st==='directa'?`En ${MONTHS_L[curM]} <b class="ok">es buen momento</b> para ${s.tree?'plantarlo':'sembrarla directamente fuera'} en tu zona.`
+    :st==='semillero'?`En ${MONTHS_L[curM]} <b class="ok">toca semillero</b> protegido en tu zona.`
+    :(s.tree&&treeWhy(s,z))||`En ${MONTHS_L[curM]} <b>no toca ${sow}</b> en tu zona.${nxTxt}`;
+  const bar=ms?`<div class="tmonths" role="img" aria-label="Meses de ${s.tree?'plantación':'siembra'} en tu zona">${MONTHS.map((l,m)=>`<i class="${ms[m]==='directa'?'d':ms[m]?'s':''}${m===curM?' cur':''}">${l[0]}</i>`).join('')}</div>
+    <div class="tleg">${ms.includes('semillero')?'<span class="s">Semillero</span>':''}${ms.includes('directa')?`<span class="d">${s.tree?'Plantación':'Siembra directa'}</span>`:''}</div>`:'';
+  const ilu=['tomate','pimiento','zanahoria','col','rabano','monstera','sandia'].includes(s.id)?ILUS+s.id+'.webp':'';
+  const care=Object.keys(ACTIONS).filter(a=>s.care&&s.care[a]);
+  const rot=rotNext(s.id),rotTxt=rot?`Es ${ROT[rot.f].n}. Cuando la quites, siembra en ese sitio ${ROT[rot.f].why}${rot.now.length?`: ahora en tu zona, ${rot.now.map(id=>SP[id].n.toLowerCase()).join(', ')}`:''}.`:'';
+  const val=k=>k==='rot'?rotTxt:t[k]&&t[k]!=='—'?t[k]:'';
+  const lbl=k=>k==='rot'?'Rotación':k==='s'&&s.tree?'Plantación':TIP_LBL[k];
+  const secs=TIP_SECS.map(([id,ti,ks,ic])=>{const its=ks.filter(val);if(!its.length)return '';
+    const one=its.length===1&&ks.length===1;
+    return `<details class="tsec" data-tsec="${id}"${open[id]?' open':''}><summary><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true">${ic}</svg></span><span class="tst">${id==='siembra'&&s.tree?'Plantación':ti}</span>${its.length>1?`<small>${its.map(k=>lbl(k)).join(', ').toLowerCase().replace(/^./,c=>c.toUpperCase())}</small>`:''}<svg class="tch" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
+      <div class="tsb">${its.map(k=>`<div>${one?'':`<em>${lbl(k)}</em>`}<p>${val(k)}</p></div>`).join('')}</div></details>`}).join('');
   document.getElementById('tipBody').innerHTML=`
-    <div class="tip-hd"><h2>${s.n}</h2><p class="sp">${GROUPS[s.g]}${care?` · ${care}${s.tree?'':' de base'}`:''}</p></div>
-    ${now}
-    <div class="tip-grid">${TIP_ROWS.filter(([k])=>t[k]&&t[k]!=='—').map(([k,l])=>`<div class="tip-c"><h3>${k==='s'&&s.tree?'Plantación':l}</h3><p>${t[k]}</p></div>`).join('')}${(r=>r?`<div class="tip-c"><h3>Rotación</h3><p>Es ${ROT[r.f].n}. Cuando la quites, siembra en ese sitio ${ROT[r.f].why}${r.now.length?`: ahora en tu zona, ${r.now.map(id=>SP[id].n.toLowerCase()).join(', ')}`:''}.</p></div>`:'')(rotNext(s.id))}</div>
-    ${t.k?`<div class="tip-k"><h3>Consejo</h3><p>${t.k}</p></div>`:''}
-    ${s.pot?'':`<button class="btn" data-crop="${s.id}" id="tipCal">Ver su calendario de ${s.tree?'plantación':'siembra'}</button>`}`;
+    <div class="thero"><div class="ttop">${ilu?`<img src="${ilu}" alt="">`:''}<div><h2>${s.n}</h2><small>${GROUPS[s.g]}${mine.includes(s.id)?' · en tu huerto':''}</small></div></div>
+      ${care.length?`<div class="tstats" style="--n:${care.length}">${care.map(a=>`<div><span>${ACTIONS[a]}</span><b>${shortIv(s.care[a])}</b></div>`).join('')}</div>`:''}</div>
+    ${t.k?`<div class="tkey"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg><div><b>Consejo clave</b>${t.k}</div></div>`:''}
+    <div class="tseason"><p>${now}</p>${bar}${s.tree&&lowChill(s,z)?`<p class="tchill">${chillTxt(s)}</p>`:''}</div>
+    <div class="tacc">${secs}</div>`;
 }
+// Buscador de Consejos
+const tipQ=document.getElementById('tipQ'),tipRes=document.getElementById('tipRes');
+tipQ.placeholder=`Buscar entre ${SPECIES.length} plantas…`;
+let tipAct=0;
+function tipFind(){
+  const k=cselNorm(tipQ.value.trim());
+  if(!k){tipRes.hidden=true;tipQ.setAttribute('aria-expanded','false');return}
+  const hits=SPECIES.filter(s=>{const n=cselNorm(s.n);return n.startsWith(k)||n.split(/[\s(]+/).some(w=>w.startsWith(k))}).slice(0,8);
+  if(tipAct>=hits.length)tipAct=0;
+  tipRes.innerHTML=hits.length?hits.map((s,i)=>`<li role="option" id="tr-${s.id}" data-tip="${s.id}" aria-selected="${i===tipAct}" class="${i===tipAct?'act':''}">${s.n}<small>${GROUPS[s.g]}</small></li>`).join(''):'<li class="none">Sin resultados</li>';
+  tipRes.hidden=false;tipQ.setAttribute('aria-expanded','true');
+}
+function tipPick(id){state.tipSel=id;tipQ.value='';tipRes.hidden=true;tipQ.setAttribute('aria-expanded','false');tipQ.blur();renderTips();document.getElementById('tipBody').scrollIntoView({block:'nearest'})}
 
 let tt;function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.hidden=false;clearTimeout(tt);tt=setTimeout(()=>t.hidden=true,2200)}
 
@@ -1080,17 +1112,21 @@ document.getElementById('seedForm').addEventListener('submit',e=>{
   renderSeeds();renderRem();toast(`Semillas de ${SP[x.sp].n.toLowerCase()} apuntadas`);
 });
 document.getElementById('seedList').addEventListener('click',e=>{const m=e.target.closest('[data-remmore]');if(!m)return;const k=m.dataset.remmore;state.remMore[k]=!state.remMore[k];renderSeeds()});
-const tipSp=document.getElementById('tipSp');tipSp.innerHTML=fSp.innerHTML;enhanceSelect(tipSp);
-tipSp.addEventListener('change',()=>{state.tipSel=tipSp.value;renderTips()});
-// En el móvil los filtros van en desplegables
-const plLocSel=document.getElementById('plLocSel'),plGroupSel=document.getElementById('plGroupSel'),tipMineSel=document.getElementById('tipMineSel');
+const plLocSel=document.getElementById('plLocSel'),plGroupSel=document.getElementById('plGroupSel');
 plGroupSel.innerHTML=`<option value="todos">Todos los tipos</option>`+Object.entries(GROUPS).map(([g,l])=>`<option value="${g}">${l}</option>`).join('');
 plLocSel.addEventListener('change',()=>{state.plLoc=plLocSel.value;renderPlants()});
 plGroupSel.addEventListener('change',()=>{state.plGroup=plGroupSel.value;renderPlants()});
-tipMineSel.addEventListener('change',()=>{if(tipMineSel.value){state.tipSel=tipMineSel.value;renderTips()}});
-enhanceSelect(plLocSel);enhanceSelect(plGroupSel);enhanceSelect(tipMineSel);
+enhanceSelect(plLocSel);enhanceSelect(plGroupSel);
 document.getElementById('tipMine').addEventListener('click',e=>{const b=e.target.closest('[data-tip]');if(!b)return;state.tipSel=b.dataset.tip;renderTips()});
-document.getElementById('tipBody').addEventListener('click',e=>{const b=e.target.closest('#tipCal');if(!b)return;document.getElementById('t-cal').click();openFicha(b.dataset.crop)});
+// Recordar qué secciones están abiertas al cambiar de planta
+document.getElementById('tipBody').addEventListener('toggle',e=>{const d=e.target.closest?.('[data-tsec]');if(d)state.tipOpen[d.dataset.tsec]=d.open},true);
+tipQ.addEventListener('input',()=>{tipAct=0;tipFind()});
+tipQ.addEventListener('keydown',e=>{const li=[...tipRes.querySelectorAll('[data-tip]')];
+  if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();if(!li.length)return;tipAct=(tipAct+(e.key==='ArrowDown'?1:li.length-1))%li.length;tipFind()}
+  else if(e.key==='Enter'){e.preventDefault();if(li[tipAct])tipPick(li[tipAct].dataset.tip)}
+  else if(e.key==='Escape'){tipQ.value='';tipFind()}});
+tipRes.addEventListener('click',e=>{const li=e.target.closest('[data-tip]');if(li)tipPick(li.dataset.tip)});
+document.addEventListener('click',e=>{if(!tipRes.hidden&&!e.target.closest('.tsearch'))tipRes.hidden=true});
 renderTips();
 document.getElementById('fDate').value=iso(today);
 document.getElementById('addForm').addEventListener('submit',e=>{
