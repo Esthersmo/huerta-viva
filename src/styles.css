@@ -725,3 +725,4 @@ html.plan-noscroll header,html.plan-noscroll .fab{display:none}
 .gp-mi.del{color:var(--del-ink)}
 .gp-thumbs{margin-top:12px}
 .gphotos .sharerow{border-top:1px solid var(--card-line);padding-top:16px;margin-top:16px;justify-content:center}
+.plan-card .row.rm{justify-content:flex-end;margin-top:4px}

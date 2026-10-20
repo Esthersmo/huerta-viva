@@ -85,7 +85,7 @@ export function initPlan(ctx) {
         ${b.k === 'pot' ? `<label class="pf">Tamaño<select id="planSize">${opts}</select></label>`
           : `<div class="pf"><span>Tamaño</span><span class="pf-size"><input id="planBW" inputmode="decimal" value="${num(b.w)}" aria-label="Ancho del bancal en metros"> × <input id="planBH" inputmode="decimal" value="${num(b.h)}" aria-label="Largo del bancal en metros"> m</span></div>`}
         <p class="sub">${kids.length ? 'Tiene ' + kids.map(q => esc(q.name)).join(', ') : 'Vacía. Arrastra una planta dentro.'}</p>
-        <div class="row"><button class="btn del" type="button" id="planRm">Quitar ${b.k === 'pot' ? 'maceta' : 'bancal'}</button></div>`;
+        <div class="row rm"><button class="btn del" type="button" id="planRm">Quitar ${b.k === 'pot' ? 'maceta' : 'bancal'}</button></div>`;
       if (el('planSize')) ctx.enhance?.(el('planSize'));
       return;
     }
