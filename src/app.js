@@ -979,7 +979,7 @@ function renderTips(){
     return `<details class="tsec" data-tsec="${id}"${open[id]?' open':''}><summary><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true">${ic}</svg></span><span class="tst">${id==='siembra'&&s.tree?'Plantación':ti}</span>${its.length>1?`<small>${its.map(k=>lbl(k)).join(', ').toLowerCase().replace(/^./,c=>c.toUpperCase())}</small>`:''}<svg class="tch" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
       <div class="tsb">${its.map(k=>`<div>${one?'':`<em>${lbl(k)}</em>`}<p>${val(k)}</p></div>`).join('')}</div></details>`}).join('');
   document.getElementById('tipBody').innerHTML=`
-    <div class="thero"><div class="ttop">${ilu?`<img src="${ilu}" alt="">`:''}<div><h2>${s.n}</h2><small>${GROUPS[s.g]}${mine.includes(s.id)?' · en tu huerto':''}</small></div></div>
+    <div class="thero"><div class="ttop${ilu?'':' noimg'}">${ilu?`<img src="${ilu}" alt="">`:''}<div><h2>${s.n}</h2><small>${GROUPS[s.g]}${mine.includes(s.id)?' · en tu huerto':''}</small></div></div>
       ${care.length?`<div class="tstats" style="--n:${care.length}">${care.map(a=>`<div><span>${ACTIONS[a]}</span><b>${shortIv(s.care[a])}</b></div>`).join('')}</div>`:''}</div>
     ${t.k?`<div class="tkey"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg><div><b>Consejo clave</b>${t.k}</div></div>`:''}
     <div class="tseason"><p>${now}</p>${bar}${s.tree&&lowChill(s,z)?`<p class="tchill">${chillTxt(s)}</p>`:''}</div>
