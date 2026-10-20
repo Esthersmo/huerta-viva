@@ -180,7 +180,7 @@ export function initPlan(ctx) {
   function drawGardens() {
     el('planTabs').innerHTML = all.list.map(x => `<button type="button" data-garden="${esc(x.id)}" aria-pressed="${x === pl}">${esc(x.name)}</button>`).join('')
       + '<button type="button" class="add" id="planGAdd">+ Huerto</button>';
-    drawSize();
+    drawSize(); ctx.onGarden?.(pl);
   }
   el('planTabs').addEventListener('click', e => {
     const t = e.target.closest('[data-garden]');
@@ -200,7 +200,8 @@ export function initPlan(ctx) {
     delete b.dataset.sure; b.textContent = 'Quitar huerto';
     const gone = pl; for (const p of plants()) if (p.pos && gardenOf(p) === gone.id) delete p.pos;
     all.list = all.list.filter(x => x !== gone); all.cur = all.list[0].id; pl = current(); sel = null;
-    save(); ctx.savePlants(); drawGardens(); draw(); ctx.toast(`${gone.name} quitado. Sus plantas siguen en Mis plantas, sin colocar.`);
+    ctx.onRemoveGarden?.(gone.id, pl.id);
+    save(); ctx.savePlants(); drawGardens(); draw(); ctx.toast(`${gone.name} quitado. Sus plantas siguen en Mis plantas, sin colocar, y sus fotos pasan a ${pl.name}.`);
   });
   const setSize = () => { const c = v => Math.max(1, Math.min(60, Math.round((+String(v).replace(',', '.') || 1) * 10) / 10)); pl.w = c(wIn.value); pl.h = c(hIn.value); drawSize(); save(); draw(); };
   wIn.addEventListener('change', setSize); hIn.addEventListener('change', setSize);

@@ -612,3 +612,7 @@ html.plan-noscroll,html.plan-noscroll body{overflow:hidden}
 .harvsum .harvl{margin-top:4px;display:flex}
 .harvsum .harvl li{display:grid;border:1px solid var(--line);padding:6px 8px 6px 12px}
 #xCancel[hidden]{display:none}
+/* Fotos de cada huerto, bajo su plano */
+.planbox .gphotos{margin-top:18px;padding-top:16px;border-top:1px solid var(--card-line)}
+.gphotos .harvhead h3{margin:0;font-family:var(--display);font-size:1.1rem;color:var(--carob-text)}
+.planbox.full .gphotos{display:none}

@@ -89,7 +89,7 @@ export async function shareGardenPhoto(d) {
   frame(c);
   const ph = await img(d.src), px = 100, py = 100, pw = W - 200, phH = 880;
   if (ph) cover(c, ph, px, py, pw, phH, 30);
-  c.textAlign = 'left'; c.fillStyle = C.green; c.font = '700 66px "Bricolage Grotesque"'; c.fillText('Mi huerto', px, py + phH + 95);
+  c.textAlign = 'left'; c.fillStyle = C.green; c.font = '700 66px "Bricolage Grotesque"'; c.fillText(d.title || 'Mi huerto', px, py + phH + 95);
   c.fillStyle = C.muted; c.font = '400 34px "DM Sans"'; c.fillText(`${d.date}${d.zone ? ' · ' + d.zone : ''}`, px, py + phH + 148);
   footer(c);
   return send(cv, 'sembradia-foto-huerto.png', 'Mi huerto', `Mi huerto en Sembradía · ${d.date}`);
