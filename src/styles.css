@@ -844,3 +844,8 @@ html.plan-noscroll header,html.plan-noscroll .fab{display:none}
 #p-rem .avisos{margin:22px 0 0;padding:16px 0 0;border-bottom:0;border-top:1px solid var(--line)}
 @media (max-width:520px){#p-rem .wxdays{gap:4px} #p-rem .wxd .wn{font-size:.68rem}}
 .wxsrc span{display:block;margin-top:2px}
+/* Ventanas emergentes centradas también en el móvil (2026-10-20) */
+@media (max-width:600px){
+  .ficha,.acctdlg,.hficha{margin:auto;width:calc(100% - 24px);max-width:calc(100% - 24px);border-radius:20px;max-height:min(84vh,calc(100dvh - 48px))}
+  .ficha .in{padding-bottom:18px}
+}
