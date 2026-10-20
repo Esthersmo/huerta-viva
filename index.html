@@ -167,6 +167,11 @@
             <label class="tip-all">Tipo<select id="plGroupSel"></select></label>
           </div>
         </div>
+        <div class="plm" id="plm">
+          <div class="plm-ej" id="plmEj" hidden><span aria-hidden="true">🌱</span><b>Son plantas de ejemplo.</b><button type="button" id="plmEjX">Quitarlas</button></div>
+          <div class="plm-tools"><label class="plm-q"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input type="search" id="plmQ" placeholder="Buscar planta" aria-label="Buscar planta" autocomplete="off"></label>
+            <select id="plmSort" aria-label="Ordenar plantas"><option value="care">Cuidado primero</option><option value="name">Por nombre</option><option value="new">Más recientes</option></select></div>
+        </div>
         <div id="plList"></div>
       </div>
     </section>
@@ -205,5 +210,6 @@
   <div class="acbody" id="acctIn"></div>
 </div></dialog>
 <div id="toast" hidden></div>
+<dialog class="cfm" id="cfmDlg" aria-labelledby="cfmT"><h3 id="cfmT"></h3><p id="cfmP"></p><div class="cfm-b"><button class="btn" type="button" id="cfmNo">Cancelar</button><button class="btn danger" type="button" id="cfmYes">Quitar</button></div></dialog>
 </body>
 </html>

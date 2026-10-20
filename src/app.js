@@ -680,6 +680,21 @@ function renderPlantFicha(){
   const big=ph.find(x=>x.id===state.photoBig)||ph[ph.length-1];
   const age=daysSince(p,iso(today));
   const fd=d=>parse(d).toLocaleDateString('es-ES',{day:'numeric',month:'short'});
+  const photoSec=`   <section class="pf-sec">
+     <div class="pf-sh"><h3>Diario de fotos${ph.length?` <small>${ph.length}</small>`:''}</h3><div class="pf-btns">
+       ${ph.length?`<button class="btn" id="photoEditToggle" aria-pressed="${!!state.photoEdit}">${state.photoEdit?'Listo':'Editar fotos'}</button>`:''}
+       <label class="btn primary upl" for="photoIn">Añadir foto<input type="file" id="photoIn" accept="image/*"></label></div></div>
+     ${big?`${state.photoEdit?`<p class="tip">Cambia la fecha de cada foto o bórrala. Se ordenan solas de la más antigua a la más reciente.</p>`:''}
+       <figure class="big"><img src="${img(big.src)}" alt="${esc(p.name)} el ${fdate(big.date)}"><figcaption><b>Día ${daysSince(p,big.date)}</b> · ${fdate(big.date)}</figcaption></figure>
+       <div class="pgrid${state.photoEdit?' editing':''}">${ph.map(x=>`<figure class="ph"><button class="th" data-photo="${esc(x.id)}" aria-pressed="${x===big}" aria-label="Ver foto del día ${daysSince(p,x.date)}"><img src="${img(x.src)}" alt=""></button>
+         ${state.photoEdit?`<button class="rm" data-rmphoto="${esc(x.id)}" aria-label="Borrar foto del día ${daysSince(p,x.date)}">×</button>
+         <figcaption>Día ${daysSince(p,x.date)}<input type="date" class="phDate" data-pid="${esc(x.id)}" value="${esc(x.date)}" min="${esc(p.sown)}" max="${iso(today)}" aria-label="Fecha de la foto del día ${daysSince(p,x.date)}"></figcaption>`
+         :`<figcaption>Día ${daysSince(p,x.date)}<small>${fd(x.date)}</small></figcaption>`}</figure>`).join('')}</div>
+       <p class="tip">${ph.length>1&&ph[0].date!==ph[ph.length-1].date?`De la primera a la última foto han pasado ${daysSince(p,ph[ph.length-1].date)-daysSince(p,ph[0].date)} días.`:'Añade otra foto más adelante para ver cómo crece.'}</p>`
+     :`<div class="empty-ph">Aún no hay fotos. Añade la primera y vuelve a hacer una cada pocas semanas para ver cómo crece.</div>`}
+   </section>`;
+  const age2=age===0?'Hoy':age>=365?`${(age/365).toFixed(1).replace('.0','').replace('.',',')} años`:`${age} días`;
+  if(MOBILE.matches&&!state.editing)return renderPlantFichaM(p,s,age2,photoSec);
   document.getElementById('fichaIn').innerHTML=`
    <div class="pf-hd">
      <div class="pf-id">
@@ -700,23 +715,30 @@ function renderPlantFicha(){
        <label for="eDate">Sembrada o plantada<input id="eDate" type="date" value="${esc(p.sown)}" max="${iso(today)}"></label>
        <div style="display:flex;gap:8px;grid-column:1/-1"><button class="btn primary" type="submit">Guardar cambios</button><button class="btn" type="button" id="editCancel">Cancelar</button></div>
      </form></section>`:''}
-   <section class="pf-sec">
-     <div class="pf-sh"><h3>Diario de fotos${ph.length?` <small>${ph.length}</small>`:''}</h3><div class="pf-btns">
-       ${ph.length?`<button class="btn" id="photoEditToggle" aria-pressed="${!!state.photoEdit}">${state.photoEdit?'Listo':'Editar fotos'}</button>`:''}
-       <label class="btn primary upl" for="photoIn">Añadir foto<input type="file" id="photoIn" accept="image/*"></label></div></div>
-     ${big?`${state.photoEdit?`<p class="tip">Cambia la fecha de cada foto o bórrala. Se ordenan solas de la más antigua a la más reciente.</p>`:''}
-       <figure class="big"><img src="${img(big.src)}" alt="${esc(p.name)} el ${fdate(big.date)}"><figcaption><b>Día ${daysSince(p,big.date)}</b> · ${fdate(big.date)}</figcaption></figure>
-       <div class="pgrid${state.photoEdit?' editing':''}">${ph.map(x=>`<figure class="ph"><button class="th" data-photo="${esc(x.id)}" aria-pressed="${x===big}" aria-label="Ver foto del día ${daysSince(p,x.date)}"><img src="${img(x.src)}" alt=""></button>
-         ${state.photoEdit?`<button class="rm" data-rmphoto="${esc(x.id)}" aria-label="Borrar foto del día ${daysSince(p,x.date)}">×</button>
-         <figcaption>Día ${daysSince(p,x.date)}<input type="date" class="phDate" data-pid="${esc(x.id)}" value="${esc(x.date)}" min="${esc(p.sown)}" max="${iso(today)}" aria-label="Fecha de la foto del día ${daysSince(p,x.date)}"></figcaption>`
-         :`<figcaption>Día ${daysSince(p,x.date)}<small>${fd(x.date)}</small></figcaption>`}</figure>`).join('')}</div>
-       <p class="tip">${ph.length>1&&ph[0].date!==ph[ph.length-1].date?`De la primera a la última foto han pasado ${daysSince(p,ph[ph.length-1].date)-daysSince(p,ph[0].date)} días.`:'Añade otra foto más adelante para ver cómo crece.'}</p>`
-     :`<div class="empty-ph">Aún no hay fotos. Añade la primera y vuelve a hacer una cada pocas semanas para ver cómo crece.</div>`}
-   </section>
+${photoSec}
    <button class="btn pf-cal" id="fichaCrop" data-crop="${s.id}">${s.pot?'':'Ver calendario de '+(s.tree?'plantación':'siembra')+' de '+s.n.toLowerCase()}</button>`;
   if(s.pot)document.getElementById('fichaCrop').remove();
   const hU=document.getElementById('hU');if(hU)enhanceSelect(hU);
   if(state.editing){document.getElementById('eSp').value=p.sp;document.getElementById('eLoc').value=p.loc;enhanceSelect(document.getElementById('eSp'));enhanceSelect(document.getElementById('eLoc'));const n=document.getElementById('eName');n.focus();n.select()}
+}
+// Ficha de planta en el móvil: cabecera con foto, datos, cuidados, fotos, cosechas y compañeras plegadas, y Quitar con confirmación
+function renderPlantFichaM(p,s,age,photoSec){
+  const d=dues(p),when=l=>l<0?`Hace ${-l} ${-l===1?'día':'días'}`:l===0?'Toca hoy':leftTxt(l);
+  const BTN={riego:'Regada hoy',abono:'Abonada hoy',sustrato:'Sustrato cambiado',poda:'Podada hoy'};
+  const tot=harvTot(p.harv,YEAR),hs=harvSec(p),cs=compSec(p),have=[...REL[p.sp].good].filter(id=>mine(id).length).length;
+  const fold=(id,t,sum,body)=>body?`<details class="pf-fold" data-fold="${id}"${state.pfOpen?.[id]?' open':''}><summary>${t}<small>${sum}</small><svg class="tch" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>${body}</details>`:'';
+  document.getElementById('fichaIn').innerHTML=`
+   <div class="pf-hd m">${plantThumb(p)}<div class="pf-id"><h2 id="fichaTitle">${esc(p.name)}</h2><small>${s.n} · ${GROUPS[s.g]}</small></div>
+     <button class="x" id="fichaClose" aria-label="Cerrar ficha">×</button></div>
+   <div class="tstats" style="--n:3"><div><span>Ubicación</span><b>${p.loc==='interior'?'Interior':'Exterior'}</b></div><div><span>${s.tree?'Plantación':'Siembra'}</span><b>${parse(p.sown).toLocaleDateString('es-ES',{day:'numeric',month:'short'})}</b></div><div><span>Edad</span><b>${age}</b></div></div>
+   ${d.length?`<section class="pf-sec pcare-s"><div class="pf-sh"><h3>Cuidados</h3></div><div class="pcare">${d.map(x=>{const c=x.left<0?'over':x.left===0?'today':'';
+     return `<div class="pcr ${c}">${remIc(x.a)}<div><b>${ACTIONS[x.a]}</b><small>${ivTxt(x.iv).replace(/^c/,'C')} · <em>${when(x.left).toLowerCase()}</em></small></div><button class="btn act" data-act="${x.a}" data-id="${esc(p.id)}">${BTN[x.a]}</button></div>`}).join('')}</div></section>`:''}
+   ${photoSec}
+   ${fold('harv','Cosechas',tot?`${tot} en ${YEAR}`:(p.harv||[]).length?'Ver':'Anotar',hs)}
+   ${fold('comp','Compañeras',have?`${have} ${have===1?'la tienes':'las tienes'}`:'Ver',cs)}
+   ${s.pot?'':`<button class="btn pf-cal" id="fichaCrop" data-crop="${s.id}">Ver calendario de ${s.tree?'plantación':'siembra'} de ${s.n.toLowerCase()}</button>`}
+   <div class="pf-bot"><button class="btn" id="sharePlantBtn">Compartir</button><button class="btn" id="editToggle" aria-expanded="false">Editar datos</button><button class="btn danger" id="plantDel">Quitar</button></div>`;
+  const hU=document.getElementById('hU');if(hU)enhanceSelect(hU);
 }
 function openPlant(id){
   state.mode='plant';state.plantSel=id;state.harvEdit=null;state.photoBig=null;state.editing=false;state.photoEdit=false;renderPlantFicha();
@@ -804,6 +826,31 @@ function leftTxt(l){return l<0?`Hace ${-l} ${-l===1?'día':'días'}`:l===0?'Hoy'
 function leftCls(l){return l<0?'over':l===0?'today':'ok'}
 
 function renderPlants(){planUI?.draw();renderPlantsList()}
+// Móvil: tarjetas compactas con la próxima tarea, buscador y orden
+const ILU_SP=['tomate','pimiento','zanahoria','col','rabano','monstera','sandia'];
+function plantThumb(p){
+  const ph=(photos[p.id]||[]).slice().sort((a,b)=>a.date<b.date?-1:1).pop();
+  return ph?`<span class="pth"><img src="${img(ph.src)}" alt=""></span>`:ILU_SP.includes(p.sp)?`<span class="pth ilu"><img src="${ILUS+p.sp}.webp" alt=""></span>`:`<span class="pth none" aria-hidden="true">${esc(SP[p.sp].n[0])}</span>`;
+}
+const nextDue=p=>dues(p).sort((a,b)=>a.left-b.left)[0];
+function renderPlantsMobile(){
+  document.getElementById('plmEj').hidden=!state.plants.some(p=>p.ej);
+  const q=cselNorm(document.getElementById('plmQ').value.trim()),sort=state.plSort||'care';
+  const list=state.plants.filter(p=>!q||cselNorm(p.name).includes(q)||cselNorm(SP[p.sp].n).includes(q));
+  const key={care:p=>nextDue(p)?.left??999,name:p=>0,new:p=>-parse(p.sown)};
+  list.sort((a,b)=>key[sort](a)-key[sort](b)||a.name.localeCompare(b.name,'es'));
+  const when=l=>l<0?`hace ${-l} ${-l===1?'día':'días'}`:l===0?'hoy':leftTxt(l).toLowerCase();
+  const OK='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg>';
+  const row=p=>{const d=nextDue(p),c=d?(d.left<0?'over':d.left===0?'today':'fine'):'fine';
+    return `<div class="prow" data-open="${esc(p.id)}" role="button" tabindex="0" aria-label="Abrir ficha de ${esc(p.name)}">${plantThumb(p)}
+      <div class="pt"><b>${esc(p.name)}</b><small>${SP[p.sp].n} · ${p.loc}</small>${d?`<span class="nx ${c}">${VERB[d.a]} · ${when(d.left)}</span>`:''}</div>
+      ${d?`<button class="pok ${c}" data-act="${d.a}" data-id="${esc(p.id)}" aria-label="Hecho: ${VERB[d.a].toLowerCase()} ${esc(p.name)}">${OK}</button>`:'<span></span>'}</div>`};
+  let h='';
+  for(const g of Object.keys(GROUPS)){const ps=list.filter(p=>SP[p.sp].g===g);if(!ps.length)continue;
+    h+=`<h3 class="pgh">${GROUPS[g]} <span class="n">${ps.length}</span></h3><div class="plist">${ps.map(row).join('')}</div>`}
+  renderHarvests();
+  document.getElementById('plList').innerHTML=h||`<p class="lede" style="text-align:center;margin-inline:auto">${q?'No hay plantas con ese nombre.':'Aún no tienes plantas. Añade la primera con el botón +.'}</p>`;
+}
 function renderPlantsList(){
   const groups=['todos',...Object.keys(GROUPS)];
   document.getElementById('plGroups').innerHTML=Object.keys(GROUPS).map(g=>`<button class="chip" data-g="${g}" aria-pressed="${state.plGroup===g}">${GROUPS[g]}</button>`).join('');
@@ -811,6 +858,7 @@ function renderPlantsList(){
   const all=state.plLoc==='todas'&&state.plGroup==='todos';
   document.querySelectorAll('#locSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.loc==='todas'?all:b.dataset.loc===state.plLoc));
   for(const[id,v]of[['plLocSel',state.plLoc],['plGroupSel',state.plGroup]]){const el=document.getElementById(id);if(el&&el.value!==v){el.value=v;el._cselDraw&&el._cselDraw()}}
+  if(MOBILE.matches)return renderPlantsMobile();
   const list=state.plants.filter(p=>(state.plLoc==='todas'||p.loc===state.plLoc)&&(state.plGroup==='todos'||SP[p.sp].g===state.plGroup));
   let h='';
   for(const g of Object.keys(GROUPS)){
@@ -959,7 +1007,9 @@ function tipFind(){
 }
 function tipPick(id){state.tipSel=id;tipQ.value='';tipRes.hidden=true;tipQ.setAttribute('aria-expanded','false');tipQ.blur();renderTips();document.getElementById('tipBody').scrollIntoView({block:'nearest'})}
 
-let tt;function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.hidden=false;clearTimeout(tt);tt=setTimeout(()=>t.hidden=true,2200)}
+let tt,tDone;function toast(msg,act,fn,ms){const t=document.getElementById('toast');tDone?.();tDone=null;t.textContent=msg;t.classList.toggle('act',!!act);
+  if(act){const b=document.createElement('button');b.type='button';b.textContent=act;b.onclick=()=>{clearTimeout(tt);t.hidden=true;tDone=null;fn()};t.append(b)}
+  t.hidden=false;clearTimeout(tt);tt=setTimeout(()=>{t.hidden=true;tDone?.();tDone=null},ms||2200)}
 
 // ---------- Eventos ----------
 const zBtn=document.getElementById('zone'),zList=document.getElementById('zoneList'),zKeys=Object.keys(ZONES);
@@ -1065,14 +1115,14 @@ document.getElementById('plGroups').addEventListener('click',e=>{const g=e.targe
 document.getElementById('locSeg').addEventListener('click',e=>{const b=e.target.closest('[data-loc]');if(!b)return;state.plLoc=b.dataset.loc;if(b.dataset.loc==='todas')state.plGroup='todos';renderPlants()});
 document.addEventListener('click',e=>{
   const a=e.target.closest('[data-act]');
-  const o=e.target.closest('[data-open]');if(o){openPlant(o.dataset.open);return}
+  const o=e.target.closest('[data-open]');if(o&&!a){openPlant(o.dataset.open);return}
   if(e.target.closest('#goSeeds')){document.getElementById('t-pl').click();const sb=document.getElementById('seedBox');sb.open=true;sb.scrollIntoView({block:'start',behavior:'smooth'});return}
   const rs=e.target.closest('[data-rmseed]');if(rs){const x=state.seeds.find(y=>y.id===rs.dataset.rmseed);state.seeds=state.seeds.filter(y=>y!==x);save('hv.seeds',state.seeds);renderSeeds();renderRem();renderCal();toast(`Semillas de ${SP[x.sp].n.toLowerCase()} quitadas`);return}
   const sw=e.target.closest('[data-sow]');if(sw){const x=state.seeds.find(y=>y.id===sw.dataset.sow),sp=SP[x.sp],n=state.plants.filter(p=>p.sp===sp.id).length;
     const np={id:'p'+Date.now(),name:sp.n+(n?` ${n+1}`:''),sp:sp.id,loc:INDOOR.includes(sp.id)?'interior':'exterior',sown:iso(today),log:{}};
     dropExamples();state.plants.push(np);save('hv.plants',state.plants);state.plGroup='todos';state.plLoc='todas';renderPlants();renderRem();
     openPlant(np.id);state.editing=true;renderPlantFicha();toast(`Sembrada: ${np.name}. Cámbiale el nombre si quieres.`);return}
-  const hv=e.target.closest('[data-harvest]');if(hv){openPlant(hv.dataset.harvest);const sec=document.getElementById('harvSec');sec?.scrollIntoView({block:'start'});document.getElementById('hQ')?.focus({preventScroll:true});return}
+  const hv=e.target.closest('[data-harvest]');if(hv){openPlant(hv.dataset.harvest);const sec=document.getElementById('harvSec');sec?.closest('details')?.setAttribute('open','');sec?.scrollIntoView({block:'start'});document.getElementById('hQ')?.focus({preventScroll:true});return}
   if(a){const p=state.plants.find(x=>x.id===a.dataset.id);p.log=p.log||{};p.log[a.dataset.act]=iso(today);save('hv.plants',state.plants);renderPlants();renderRem();if(ficha.open&&state.mode==='plant')renderPlantFicha();toast(`${ACTIONS[a.dataset.act]} anotado: ${p.name}`);return}
   const d=e.target.closest('[data-del]');
   if(d){const p=state.plants.find(x=>x.id===d.dataset.del);state.plants=state.plants.filter(x=>x!==p);save('hv.plants',state.plants);renderPlants();renderRem();toast(`${p.name} quitada`)}
@@ -1379,6 +1429,28 @@ async function shareBusy(btn,fn){if(btn.disabled)return;
       setTimeout(()=>{if(btn._again===r.again){btn._again=null;btn.textContent=t;btn.classList.remove('ready')}},60000);return}
     if(r==='downloaded')toast('Imagen guardada en descargas')}catch(e){toast('No se pudo crear la imagen')}
   btn.disabled=false;btn.textContent=t}
+// Quitar con confirmación y «Deshacer» (móvil)
+const cfm=document.getElementById('cfmDlg');let cfmYes=null;
+function confirmQ(t,txt,yes){document.getElementById('cfmT').textContent=t;document.getElementById('cfmP').textContent=txt;cfmYes=yes;try{cfm.showModal()}catch(e){cfm.setAttribute('open','')}}
+document.getElementById('cfmNo').addEventListener('click',()=>cfm.close());
+document.getElementById('cfmYes').addEventListener('click',()=>{cfm.close();const f=cfmYes;cfmYes=null;f?.()});
+cfm.addEventListener('click',e=>{if(e.target===cfm)cfm.close()});
+function removePlant(p){
+  const i=state.plants.indexOf(p);if(i<0)return;
+  state.plants.splice(i,1);save('hv.plants',state.plants);if(ficha.open)ficha.close();renderPlants();renderRem();renderCal();
+  toast(`${p.name} quitada`,'Deshacer',()=>{state.plants.splice(Math.min(i,state.plants.length),0,p);save('hv.plants',state.plants);renderPlants();renderRem();renderCal();toast(`${p.name} recuperada`)},6000);
+  // Las fotos se borran cuando ya no se puede deshacer
+  tDone=()=>{if(!state.plants.includes(p)){delete photos[p.id];savePhotos()}};
+}
+ficha.addEventListener('click',e=>{if(!e.target.closest('#plantDel'))return;const p=state.plants.find(x=>x.id===state.plantSel);if(!p)return;
+  confirmQ(`¿Quitar «${p.name}»?`,'Se borran también sus fotos y cosechas.',()=>removePlant(p))});
+ficha.addEventListener('toggle',e=>{const d=e.target.closest?.('[data-fold]');if(d)(state.pfOpen||(state.pfOpen={}))[d.dataset.fold]=d.open},true);
+document.getElementById('plmQ').addEventListener('input',renderPlants);
+const plmSort=document.getElementById('plmSort');enhanceSelect(plmSort);plmSort.addEventListener('change',()=>{state.plSort=plmSort.value;renderPlants()});
+document.getElementById('plmEjX').addEventListener('click',()=>{if(dropExamples()){save('hv.plants',state.plants);renderPlants();renderRem();renderCal();toast('Plantas de ejemplo quitadas')}});
+MOBILE.addEventListener('change',()=>{renderPlants();if(ficha.open&&state.mode==='plant')renderPlantFicha()});
+// Fila de planta con teclado
+document.getElementById('plList').addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('.prow')){e.preventDefault();openPlant(e.target.dataset.open)}});
 ficha.addEventListener('click',e=>{const b=e.target.closest('#sharePlantBtn');if(!b)return;
   const p=state.plants.find(x=>x.id===state.plantSel);if(!p)return;const s=SP[p.sp];
   const ph=(photos[p.id]||[]).slice().sort((a,b)=>a.date<b.date?-1:1);const big=ph.find(x=>x.id===state.photoBig)||ph[ph.length-1];
