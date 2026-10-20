@@ -1469,9 +1469,9 @@ function reloadFromStore(){
   if(ficha.open&&state.mode==='plant'){if(state.plants.some(p=>p.id===state.plantSel))renderPlantFicha();else ficha.close()}
 }
 initAccount({refresh:reloadFromStore,toast});
-// En el móvil la zona y los avisos viven dentro de «Mi cuenta»; en el ordenador, en su pestaña
+// La zona y los avisos viven dentro de «Mi cuenta» (si la cuenta está disponible)
 {const acct=document.getElementById('acctBtn'),homes=['zoneBox','avisos'].map(id=>{const el=document.getElementById(id);return [el,el.parentNode,el.nextSibling]});
- function placeSettings(){const inAcct=MOBILE.matches&&!acct.hidden;
+ function placeSettings(){const inAcct=!acct.hidden;
   homes.forEach(([el,par,nx],i)=>{if(inAcct)document.getElementById(i?'acctAvisos':'acctZona').append(el);else par.insertBefore(el,nx)});
   drawZoneBox()}
  MOBILE.addEventListener('change',placeSettings);placeSettings();
