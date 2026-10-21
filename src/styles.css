@@ -1148,3 +1148,15 @@ body.ver{padding:0 16px 32px}
 
 /* Calendario: la zona es solo una frase más, en el mismo tono que «Toca un cultivo…» (sigue llevando a Mi cuenta) */
 .calzone{border:0;background:none;padding:0;margin:0;font:inherit;color:inherit;text-align:inherit;cursor:pointer;-webkit-appearance:none;appearance:none}
+
+/* Enlace de una cosecha: observaciones */
+.vobs{margin:0;line-height:1.55}
+.vharv{list-style:none;margin:0;padding:0}
+.vharv li{display:grid;grid-template-columns:1fr auto;gap:2px 12px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.vharv li:first-child{border-top:0;padding-top:0}
+.vharv li div{display:flex;flex-direction:column}
+.vharv li div span{font-size:.85rem;color:var(--muted)}
+.vharv .q{font-weight:600;color:var(--carob-text)}
+.vharv p{grid-column:1/-1;margin:4px 0 0;font-size:.9rem;color:var(--muted);line-height:1.45}
+.harvshare{display:flex;justify-content:center;margin-top:14px}
+.vhero .vcare{margin-top:14px}

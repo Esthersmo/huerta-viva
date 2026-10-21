@@ -64,7 +64,7 @@ function linksHtml() {
   if (!links) return '<p class="tip">Cargando…</p>';
   if (!links.length) return '<p class="tip">Aún no has compartido nada con un enlace. Usa «Compartir» en la ficha de una planta o en las fotos de un huerto.</p>';
   const f = d => new Date(d).toLocaleDateString('es-ES', {day: 'numeric', month: 'short', year: 'numeric'});
-  return `<p class="tip">Quien tenga el enlace ve lo que había al compartirlo. Si lo borras, deja de funcionar.</p><ul class="lklist">${links.map(l => `<li><div><b>${esc(l.titulo)}</b><small>${l.tipo === 'huerto' ? 'Huerto' : 'Planta'} · ${f(l.creado)}</small></div>
+  return `<p class="tip">Quien tenga el enlace ve lo que había al compartirlo. Si lo borras, deja de funcionar.</p><ul class="lklist">${links.map(l => `<li><div><b>${esc(l.titulo)}</b><small>${({huerto: 'Huerto', cosecha: 'Cosecha', cosechas: 'Cosechas del año'})[l.tipo] || 'Planta'} · ${f(l.creado)}</small></div>
     <button class="btn" type="button" data-lkcopy="${esc(l.id)}">Copiar</button><button class="btn warn" type="button" data-lkdel="${esc(l.id)}">Borrar</button></li>`).join('')}</ul>`;
 }
 

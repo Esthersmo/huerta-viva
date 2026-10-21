@@ -1,16 +1,19 @@
 -- Sembradía: compartir con un enlace de solo lectura.
--- Cada enlace guarda una copia fija (datos y fotos) de una planta o un huerto tal como estaban al compartirlo.
+-- Cada enlace guarda una copia fija (datos y fotos) de una planta, un huerto, una cosecha o las cosechas de un año tal como estaban al compartirlo.
 -- Se pega entera en Supabase > SQL Editor > New query y se pulsa Run. Se puede ejecutar más de una vez.
 
 -- 1. Los enlaces: un código largo al azar, de quién es, qué es y la copia de los datos
 create table if not exists public.compartidos (
   id text primary key check (id ~ '^[A-Za-z0-9_-]{20,40}$'),
   user_id uuid not null default auth.uid() references auth.users on delete cascade,
-  tipo text not null check (tipo in ('planta', 'huerto')),
+  tipo text not null check (tipo in ('planta', 'huerto', 'cosecha', 'cosechas')),
   titulo text not null check (length(titulo) between 1 and 80),
   data jsonb not null check (pg_column_size(data) < 100000),
   creado timestamptz not null default now()
 );
+-- Si la tabla ya existía de antes, se añaden las cosechas a los tipos permitidos
+alter table public.compartidos drop constraint if exists compartidos_tipo_check;
+alter table public.compartidos add constraint compartidos_tipo_check check (tipo in ('planta', 'huerto', 'cosecha', 'cosechas'));
 alter table public.compartidos enable row level security;
 drop policy if exists "compartidos: los propios" on public.compartidos;
 drop policy if exists "compartidos: crear hasta 200" on public.compartidos;

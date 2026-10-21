@@ -1322,8 +1322,23 @@ function renderHarvests(){
   // Una sola lista: cada cosecha del año elegido, de la más reciente a la más antigua
   document.getElementById('harvSum').innerHTML=(rows.length?'':`<p class="note">${Y===YEAR?'Anota lo que vas recogiendo con «Anotar cosecha» y aquí verás cada cosecha del año.':`No hay cosechas anotadas en ${Y}.`}</p>`)
     +(rows.length?`<ul class="harvl">${shown.map(x=>`<li>${harvRow(x,esc(x.n),fdate(x.d))}</li>`).join('')}</ul>`
-      +(rows.length>6?`<button class="btn remmore rm-soon" type="button" id="harvXMore">${more?'Ver menos':`Ver ${rows.length-6} más`}</button>`:''):'');
+      +(rows.length>6?`<button class="btn remmore rm-soon" type="button" id="harvXMore">${more?'Ver menos':`Ver ${rows.length-6} más`}</button>`:'')
+      +`<div class="harvshare"><button class="btn" type="button" id="harvShare">Compartir las cosechas de ${Y}</button></div>`:'');
+  state.harvRows=rows;
 }
+// Compartir todas las cosechas del año elegido: total por cultivo, cada cosecha y una foto de cada una (hasta 12)
+document.getElementById('harvSum').addEventListener('click',e=>{const b=e.target.closest('#harvShare');if(!b)return;
+  const Y=state.harvY,rows=state.harvRows||[];if(!rows.length)return;
+  const by={};for(const x of rows){const k=SP[x.sp]?.n||x.n;(by[k]||(by[k]=[])).push(x)}
+  const tot=Object.entries(by).map(([n,l])=>({n,t:harvTot(l)})).sort((a,b)=>by[b.n].length-by[a.n].length||a.n.localeCompare(b.n,'es'));
+  const fotos=rows.map(x=>{const f=hfSort(photos['cosecha:'+x.id]||[])[0];return f?{src:f.src,date:f.date,n:x.n}:null}).filter(Boolean).slice(0,12).reverse();
+  const first=rows[rows.length-1].d,last=rows[0].d,big=fotos[fotos.length-1];
+  const img=()=>sharePlant({name:`Mis cosechas de ${Y}`,species:`${rows.length} ${rows.length===1?'cosecha':'cosechas'}`,loc:harvTot(rows)||'',
+    sownTxt:`Del ${fdate(first)}`,ageTxt:`al ${fdate(last)}`,photo:big?{src:big.src,caption:big.n}:null,
+    care:[tot.slice(0,4).map(x=>`${x.n} ${x.t}`).join(' · ')],deco:null});
+  shareLink(b,'cosechas',`Cosechas de ${Y}`,()=>({data:{year:Y,at:iso(today),tot,
+    list:rows.slice(0,200).map(x=>({n:x.n,species:SP[x.sp]?.n||'',qty:qtyTxt(x.q,x.u),d:x.d,o:(x.o||'').slice(0,300)}))},fotos}),img);
+});
 // Busca una cosecha por id, suelta o de una planta (p)
 function findHarv(id){const x=state.harvX.find(y=>y.id===id);if(x)return{x};for(const p of state.plants){const h=(p.harv||[]).find(y=>y.id===id);if(h)return{x:h,p}}return{}}
 const harvSpOpts=Object.entries(GROUPS).filter(([g])=>g!=='ornamental').map(([g,l])=>`<optgroup label="${l}">${SPECIES.filter(s=>s.g===g).map(s=>`<option value="${s.id}">${s.n}</option>`).join('')}</optgroup>`).join('');
@@ -1353,7 +1368,7 @@ function renderHarvFicha(){
       ${big?`<figure class="gp-big"><img src="${img(big.src)}" alt="Foto de la cosecha de ${esc(name)}">${big.date!==x.d?`<figcaption>${fdate(big.date)}</figcaption>`:''}</figure>
         ${list.length>1?`<div class="gp-thumbs">${list.map(y=>`<button type="button" class="gp-th${y===big?' on':''}" data-hpbig="${esc(y.id)}" aria-label="Foto del ${fdate(y.date)}"><img src="${img(y.src)}" alt=""><span>${fdate(y.date)}</span></button>`).join('')}</div>`:''}`:''}
       <div class="hf-obs"><p class="k">Observaciones</p>${x.o?`<p>${esc(x.o).replace(/\n/g,'<br>')}</p>`:'<p class="note">Sin observaciones.</p>'}</div>
-      <div class="hf-acts"><button class="btn" type="button" data-hedit>${pencil}Editar</button></div>`;
+      <div class="hf-acts"><button class="btn" type="button" data-hshare>Compartir</button><button class="btn" type="button" data-hedit>${pencil}Editar</button></div>`;
   }else{
     const u=x.u||(p?.harv||[]).slice(-1)[0]?.u||'kg';
     const units=Object.entries(HARV_U).map(([k,v])=>`<option value="${k}"${k===u?' selected':''}>${v}</option>`).join('');
@@ -1384,6 +1399,15 @@ harvDlg.addEventListener('click',e=>{
     const {x,p}=findHarv(hf.id);if(!x)return;
     if(p)p.harv=p.harv.filter(y=>y.id!==x.id);else state.harvX=state.harvX.filter(y=>y.id!==x.id);
     if(photos['cosecha:'+x.id]){delete photos['cosecha:'+x.id];savePhotos()}harvDlg.close();harvChanged(p);toast('Cosecha borrada')}
+});
+// Compartir una cosecha: enlace de solo lectura con cantidad, fecha, fotos y observaciones (sin cuenta, una imagen)
+harvDlg.addEventListener('click',e=>{const b=e.target.closest('[data-hshare]');if(!b)return;
+  const f=findHarv(hf.id),x=f.x;if(!x)return;const p=f.p,sp=SP[p?p.sp:x.sp],name=p?p.name:sp?.n||'Cosecha';
+  const ph=hfSort(photos['cosecha:'+x.id]||[]),big=ph.find(y=>y.id===hf.big)||ph[0];
+  const img=()=>sharePlant({name,species:sp?.n||'',loc:'Cosecha',sownTxt:`Cosechado el ${fdate(x.d)}`,ageTxt:qtyTxt(x.q,x.u),
+    photo:big?{src:big.src,caption:fdate(big.date)}:null,care:x.o?[x.o]:[],deco:sp?decoFor(sp.id):null});
+  shareLink(b,'cosecha',name,()=>({data:{name,sp:sp?.id||'',species:sp?.n||'',qty:qtyTxt(x.q,x.u),d:x.d,o:x.o||'',at:iso(today),ilu:!!sp&&ILU_SP.includes(sp.id)},
+    fotos:ph.map(y=>({src:y.src,date:y.date}))}),img);
 });
 harvDlg.addEventListener('change',async e=>{
   if(!e.target.matches('[data-hpadd]'))return;const files=[...e.target.files];if(!files.length)return;const v=hfKeep();
