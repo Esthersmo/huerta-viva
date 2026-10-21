@@ -524,8 +524,7 @@ function ranges(months){
 }
 function renderCal(){
   const z=zoneNow();
-  const zl=state.cp?`${esc(state.cp.name)} · ${esc(state.cp.cp)}`:'';
-  document.getElementById('calLede').innerHTML=`<span>Toca un cultivo para abrir su ficha.${zl?` <button type="button" class="calzone" id="calZone">${zl} · cambia la zona en Mi cuenta</button>`:''}</span>`;
+  document.getElementById('calLede').innerHTML=`<span>Toca un cultivo para abrir su ficha.</span>`;
   const groups=['todos',...Object.keys(GROUPS)];
   document.getElementById('calGroups').innerHTML=groups.map(g=>`<button class="chip" data-g="${g}" aria-pressed="${state.calGroup===g}">${g==='todos'?'Todos':GROUPS[g]}</button>`).join('');
   const gs=document.getElementById('calGroupSel');if(gs&&gs.value!==state.calGroup){gs.value=state.calGroup;gs._cselDraw&&gs._cselDraw()}
@@ -1054,8 +1053,14 @@ function drawZoneBox(){
   const c=state.cp,fold=!!c&&!zoneOpen;
   document.getElementById('zoneSum').hidden=!fold;document.getElementById('zoneFull').hidden=fold;
   document.getElementById('zoneDoneRow').hidden=!c||fold;
-  document.getElementById('zoneHint').hidden=!!c||!document.getElementById('zoneBox').closest('dialog');
-  if(c)document.getElementById('zoneSumTxt').textContent=`${c.name} (${ZONES[PROV_INE[c.prov]].name.split(' (')[0]})${state.alt!=null?` · ${state.alt} m`:''}`;
+  const zt=c?`${c.name} (${ZONES[PROV_INE[c.prov]].name.split(' (')[0]})${state.alt!=null?` · ${state.alt} m`:''}`:'';
+  if(c)document.getElementById('zoneSumTxt').textContent=zt;
+  // Arriba del calendario, siempre a la vista: la zona y «Cambiar», o el aviso para ponerla
+  const bar=document.getElementById('zoneBar');bar.hidden=!document.getElementById('zoneBox').closest('dialog');
+  bar.classList.toggle('none',!c);
+  bar.innerHTML=`<span class="zb-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg></span>`
+    +(c?`<span class="zb-t"><small>Tu zona</small><b>${esc(c.name)}</b><small>${esc(ZONES[PROV_INE[c.prov]].name.split(' (')[0])}${state.alt!=null?` · ${state.alt} m de altitud`:''}</small></span><button class="btn" type="button" data-zopen>Cambiar</button>`
+       :`<span class="zb-t"><b>Pon tu código postal</b><small>para ajustar el calendario a tu zona</small></span><button class="btn primary" type="button" data-zopen>Poner zona</button>`);
 }
 document.getElementById('zoneEdit').addEventListener('click',()=>{zoneOpen=true;drawZoneBox();cpIn.focus()});
 document.getElementById('zoneDone').addEventListener('click',()=>{zoneOpen=false;drawZoneBox()});
@@ -1080,7 +1085,7 @@ async function cpApply(code,i){
   setCp({cp:code,i,name,prov,alt,opts,lat,lon});
   const z=PROV_INE[prov];if(z&&z!==state.zone){state.zone=z;save('hv.zone',z);drawZones()}
   state.alt=alt;save('hv.alt',alt);drawAlt();drawZoneBox();renderAll();refreshWx(true);
-  toast(alt==null?`Calendario para ${name}. Sin conexión no puedo consultar la altitud: escríbela si la sabes.`:`Calendario ajustado a ${name} (${alt} m)`);
+  toast(alt==null?`Calendario para ${name}. Sin conexión no se pudo consultar la altitud: se puede escribir a mano en Mi cuenta.`:`Calendario ajustado a ${name} (${alt} m)`);
 }
 cpIn.addEventListener('input',async()=>{
   const v=cpIn.value.replace(/\D/g,'').slice(0,5);if(v!==cpIn.value)cpIn.value=v;
@@ -1124,7 +1129,6 @@ document.getElementById('calQ').addEventListener('input',renderCal);
 document.getElementById('calQm').addEventListener('input',renderCal);
 document.getElementById('calSpan').addEventListener('click',e=>{const b=e.target.closest('[data-span]');if(!b)return;state.calSpan=b.dataset.span;save('hv.calspan',state.calSpan);renderCal()});
 document.getElementById('calSeeds').addEventListener('click',()=>{state.calSeeds=!state.calSeeds;renderCal()});
-document.getElementById('calLede').addEventListener('click',e=>{if(e.target.closest('#calZone'))document.getElementById('acctBtn').click()});
 MOBILE.addEventListener('change',renderCal);
 const yearBtn=document.getElementById('yearBtn');
 yearBtn.addEventListener('click',()=>{const on=document.getElementById('p-cal').classList.toggle('showyear');yearBtn.setAttribute('aria-expanded',on);yearBtn.textContent=on?'Ocultar el calendario del año':'Ver todo el año'});
@@ -1524,7 +1528,7 @@ setupNotify();
 function reloadFromStore(){
   photos=load('hv.photos',{});state.plants=load('hv.plants',[]);state.harvX=load('hv.harv',[]);gpMigrate();renderGPhotos();
   state.zone=(z=>OLD_ZONES[z]||(ZONES[z]?z:state.zone))(load('hv.zone',state.zone));state.alt=load('hv.alt',null);state.cp=load('hv.cp',null);state.seeds=load('hv.seeds',[]);
-  drawZones();drawAlt();drawCp();drawZoneBox();planUI.reload();renderAll();refreshSelects();refreshWx();
+  drawZones();drawAlt();drawCp();drawZoneBox();planUI.reload();if(state.cp&&document.getElementById('zoneDlg').open&&!document.getElementById('zdCp').value)document.getElementById('zoneDlg').close();renderAll();refreshSelects();refreshWx();
   if(ficha.open&&state.mode==='plant'){if(state.plants.some(p=>p.id===state.plantSel))renderPlantFicha();else ficha.close()}
 }
 initAccount({refresh:reloadFromStore,toast});
@@ -1534,6 +1538,28 @@ initAccount({refresh:reloadFromStore,toast});
   homes.forEach(([el,par,nx],i)=>{if(inAcct)document.getElementById(i?'acctAvisos':'acctZona').append(el);else par.insertBefore(el,nx)});
   drawZoneBox()}
  MOBILE.addEventListener('change',placeSettings);placeSettings();
- document.getElementById('zoneHint').addEventListener('click',()=>{zoneOpen=true;drawZoneBox();acct.click()})}
+ }
+// ---------- Al abrir la app sin zona: se pide el código postal ----------
+const zDlg=document.getElementById('zoneDlg'),zdCp=document.getElementById('zdCp'),zdOpts=document.getElementById('zdOpts'),zdRes=document.getElementById('zdRes'),zdOk=document.getElementById('zdOk');
+function zdDraw(msg){const c=state.cp;zdOk.disabled=!c;
+  zdRes.hidden=!(msg||c);zdRes.classList.toggle('err',!!msg);
+  zdRes.textContent=msg||(c?`${c.name} (${ZONES[PROV_INE[c.prov]].name.split(' (')[0]})${c.alt!=null?` · ${c.alt} m de altitud`:''}`:'');
+  const o=!msg&&c?.opts||[];zdOpts.hidden=o.length<2;
+  zdOpts.innerHTML=o.length<2?'':o.map(x=>`<button class="chip" type="button" data-zdm="${x.i}" aria-pressed="${x.i===c.i}">${esc(x.name)}</button>`).join('')}
+function openZoneDlg(){zdCp.value=state.cp?.cp||'';zdDraw();try{zDlg.showModal()}catch(e){zDlg.setAttribute('open','')}if(!state.cp)zdCp.focus()}
+zdCp.addEventListener('input',async()=>{
+  const v=zdCp.value.replace(/\D/g,'').slice(0,5);if(v!==zdCp.value)zdCp.value=v;
+  if(v.length<5){zdRes.hidden=true;zdOpts.hidden=true;return}
+  if(state.cp?.cp===v)return zdDraw();
+  zdRes.hidden=false;zdRes.classList.remove('err');zdRes.textContent='Buscando…';
+  try{const d=await cpLoad(),ms=d.c[v];if(!ms)return zdDraw('No se encuentra ese código postal. Revisa los 5 números.');
+    await cpApply(v,ms[0]);zdDraw();zdCp.blur()}catch(e){zdDraw('No se pudieron cargar los códigos postales. Se puede intentar con conexión.')}
+});
+zdOpts.addEventListener('click',async e=>{const b=e.target.closest('[data-zdm]');if(!b||!state.cp)return;await cpApply(state.cp.cp,+b.dataset.zdm);zoneOpen=false;drawZoneBox();zdDraw()});
+zdOk.addEventListener('click',()=>{zoneOpen=false;drawZoneBox();zDlg.close()});
+document.getElementById('zdNo').addEventListener('click',()=>{try{sessionStorage.setItem('hv.zskip','1')}catch(e){}zDlg.close()});
+document.getElementById('zoneBar').addEventListener('click',e=>{if(e.target.closest('[data-zopen]'))openZoneDlg()});
+// Se pregunta en cada apertura mientras no haya zona (salvo «Ahora no» en esta sesión)
+setTimeout(()=>{let skip=false;try{skip=!!sessionStorage.getItem('hv.zskip')}catch(e){}if(!state.cp&&!skip&&!document.querySelector('dialog[open]'))openZoneDlg()},600);
 refreshWx();
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refreshWx()});

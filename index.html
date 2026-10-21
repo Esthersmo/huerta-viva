@@ -43,7 +43,7 @@
   <div class="wrap">
     <!-- CALENDARIO -->
     <section id="p-cal" class="tabpanel">
-      <button class="zhint" type="button" id="zoneHint" hidden>Pon tu código postal en <strong>Mi cuenta</strong> para ajustar el calendario a tu zona</button>
+      <div class="zbar" id="zoneBar" hidden></div>
       <div class="panel zonebox" id="zoneBox">
         <div class="zsum" id="zoneSum" hidden><span><strong>Tu zona:</strong> <span id="zoneSumTxt"></span></span><button class="btn" type="button" id="zoneEdit">Cambiar</button></div>
         <div class="zfull" id="zoneFull">
@@ -217,5 +217,8 @@
 </div></dialog>
 <div id="toast" hidden></div>
 <dialog class="cfm" id="cfmDlg" aria-labelledby="cfmT"><h3 id="cfmT"></h3><p id="cfmP"></p><div class="cfm-b"><button class="btn" type="button" id="cfmNo">Cancelar</button><button class="btn danger" type="button" id="cfmYes">Quitar</button></div></dialog>
+<dialog class="cfm zdlg" id="zoneDlg" aria-labelledby="zdT"><span class="zd-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg></span><h3 id="zdT">¿Dónde está tu huerto?</h3><p>Con el código postal, el calendario de siembra se ajusta al clima y la altitud de tu pueblo.</p>
+<input id="zdCp" type="text" inputmode="numeric" maxlength="5" autocomplete="postal-code" placeholder="Código postal" aria-label="Código postal"><div class="chips" id="zdOpts" hidden></div><p class="zd-res" id="zdRes" hidden></p>
+<div class="cfm-b"><button class="btn" type="button" id="zdNo">Ahora no</button><button class="btn primary" type="button" id="zdOk" disabled>Listo</button></div></dialog>
 </body>
 </html>

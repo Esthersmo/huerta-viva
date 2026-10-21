@@ -1160,3 +1160,25 @@ body.ver{padding:0 16px 32px}
 .vharv p{grid-column:1/-1;margin:4px 0 0;font-size:.9rem;color:var(--muted);line-height:1.45}
 .harvshare{display:flex;justify-content:center;margin-top:14px}
 .vhero .vcare{margin-top:14px}
+
+/* La zona a la vista arriba del calendario, y la ventana para ponerla al abrir la app */
+.zbar{display:none}
+.zbar:not([hidden]){display:flex;align-items:center;gap:12px;width:100%;max-width:980px;box-sizing:border-box;margin:0 auto 16px;padding:12px 14px;border-radius:16px;background:var(--card);border:1px solid var(--card-line);box-shadow:var(--tip-shadow)}
+.zbar.none{background:var(--warn-soft);border-color:var(--carob-text)}
+.zb-ic{flex:none;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:var(--ok-soft);color:var(--ok)}
+.zbar.none .zb-ic{background:var(--card);color:var(--carob-text)}
+.zb-ic svg,.zd-ic svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.zb-t{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.3}
+.zb-t small{font-size:.8rem;color:var(--muted)}
+.zb-t b{font-weight:600;color:var(--ink);overflow-wrap:anywhere}
+.zbar .btn{flex:none}
+.zdlg{width:min(380px,calc(100% - 40px))}
+.zd-ic{width:52px;height:52px;margin:2px auto 10px;border-radius:50%;display:grid;place-items:center;background:var(--ok-soft);color:var(--ok)}
+.zd-ic svg{width:28px;height:28px}
+.zdlg input{display:block;width:100%;box-sizing:border-box;margin:0 0 10px;padding:12px 14px;border-radius:12px;border:1px solid var(--card-line);background:var(--card);color:var(--ink);font:inherit;font-size:1.15rem;text-align:center;letter-spacing:.12em}
+.zdlg input:focus{outline:0;border-color:var(--carob)}
+.zdlg .chips{justify-content:center;margin:0 0 10px}
+.zd-res{margin:0 0 14px!important;color:var(--ok)!important;font-weight:600}
+.zd-res.err{color:var(--danger-ink,var(--del-ink))!important;font-weight:400}
+.zdlg .btn[disabled]{opacity:.45;cursor:default}
+@media (min-width:601px){.cal-gsel.plm-tools{display:none}}
