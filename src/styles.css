@@ -1065,7 +1065,6 @@ html.plan-noscroll header,html.plan-noscroll .fab{display:none}
   .cal tr.grp .gn{text-transform:none;letter-spacing:0;font-family:var(--body);font-weight:500;font-size:.85rem;color:var(--muted)}
   .cal .cmk{display:inline-block;margin-left:8px;padding:1px 8px;border-radius:999px;background:var(--ok-soft);color:var(--ok);font:500 .74rem var(--body);vertical-align:middle;white-space:nowrap}
   .cal tr.cempty td{padding:22px;color:var(--muted);font-size:.92rem}
-  .calzone{border:0;background:none;padding:0;font:inherit;color:var(--carob-text);text-decoration:underline;text-underline-offset:2px;cursor:pointer}
 }
 /* Consejos: sin acuarela, el nombre y el grupo van centrados */
 .ttop.noimg,.ttop.noimg>div{justify-content:center;text-align:center}
@@ -1146,3 +1145,6 @@ body.ver{padding:0 16px 32px}
 .plm-q input::-webkit-search-cancel-button{-webkit-appearance:none;appearance:none;width:16px;height:16px;cursor:pointer;background:currentColor;color:var(--carob-text);-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 6l12 12M18 6L6 18' stroke='black' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 6l12 12M18 6L6 18' stroke='black' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E") center/contain no-repeat}
 .plm-tools .csel{display:flex}
 .plm-tools .csel-btn{height:100%}
+
+/* Calendario: la zona es solo una frase más, en el mismo tono que «Toca un cultivo…» (sigue llevando a Mi cuenta) */
+.calzone{border:0;background:none;padding:0;margin:0;font:inherit;color:inherit;text-align:inherit;cursor:pointer;-webkit-appearance:none;appearance:none}
