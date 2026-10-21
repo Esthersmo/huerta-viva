@@ -347,8 +347,8 @@ form.add label{display:flex;flex-direction:column;gap:4px;font-size:.85rem;color
   .tip-all.tip-mine-sel{display:flex}
   .tip-all.tip-mine-sel.empty{display:none}
   .tip-pick .tip-all{flex:1 1 100%;min-width:0}
-  .cal-gsel{display:flex;align-items:center;justify-content:center;gap:10px;font-size:.9rem;color:var(--muted);margin:4px auto 12px}
-  .cal-gsel .csel{width:210px}
+  .cal-gsel{display:flex;align-items:stretch;gap:8px;margin:4px 0 14px}
+  .cal-gsel .csel{flex:none;width:auto;max-width:48%}
   table.cal{min-width:0;table-layout:fixed}
   .cal th.name{min-width:0;width:96px;padding:6px 4px 6px 8px;white-space:normal;overflow-wrap:normal;hyphens:auto;line-height:1.15}
   .cal tr.grp th{font-size:.78rem;padding:7px 8px}
@@ -1139,3 +1139,10 @@ body.ver{padding:0 16px 32px}
 .vwhen{text-align:center;color:var(--muted);font-size:.85rem;margin:0}
 .vfoot{max-width:720px;margin:20px auto 0;text-align:center;color:var(--muted);font-size:.85rem}
 .vfoot a{color:var(--carob-text)}
+
+/* Calendario en el móvil: cultivos buscados que no tocan en el mes elegido */
+.cn-off .chip{border-style:solid;opacity:.75}
+/* Buscadores: la × para borrar en marrón (no el azul del navegador) y el desplegable de al lado a la misma altura */
+.plm-q input::-webkit-search-cancel-button{-webkit-appearance:none;appearance:none;width:16px;height:16px;cursor:pointer;background:currentColor;color:var(--carob-text);-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 6l12 12M18 6L6 18' stroke='black' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 6l12 12M18 6L6 18' stroke='black' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E") center/contain no-repeat}
+.plm-tools .csel{display:flex}
+.plm-tools .csel-btn{height:100%}
